@@ -295,7 +295,7 @@ You can either download pre-built release packages from GitHub Releases or build
 
 ### Loading into Chromium Browsers (Google Chrome, Microsoft Edge, Brave, Opera, Arc)
 
-1. Download or generate the extension package (`openviet_ime-chrome-1.0.0.zip` or `openviet_ime-edge-1.0.0.zip`).
+1. Download or generate the extension package (`openviet_ime-chrome-1.1.0.zip` or `openviet_ime-edge-1.1.0.zip`).
 2. Extract the `.zip` file into a local folder (or use the repository directory after running `npm run build:chrome`).
 3. Open your browser extension management console:
    - Chrome / Brave: `chrome://extensions`
@@ -338,12 +338,12 @@ npm run build:edge
 To generate production-ready `.zip` files ready for installation or store publishing (saved in `web-ext-artifacts/`):
 
 ```bash
-# Package for Chrome -> web-ext-artifacts/openviet_ime-chrome-1.0.0.zip
+# Package for Chrome -> web-ext-artifacts/openviet_ime-chrome-1.1.0.zip
 npm run bundle:chrome
 
-# Package for Firefox -> web-ext-artifacts/openviet_ime-firefox-1.0.0.zip
+# Package for Firefox -> web-ext-artifacts/openviet_ime-firefox-1.1.0.zip
 
-# Package for Edge -> web-ext-artifacts/openviet_ime-edge-1.0.0.zip
+# Package for Edge -> web-ext-artifacts/openviet_ime-edge-1.1.0.zip
 ```
 
 #### 4. Development mode
