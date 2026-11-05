@@ -14,7 +14,7 @@
 
 </div>
 
-Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ cao dành cho mọi trình duyệt (Google Chrome, Microsoft Edge, Brave, Opera, Arc, Firefox). Hoạt động hoàn hảo dưới cả hai hình thức: **Tiện ích mở rộng trình duyệt (Manifest V3)** và **Ứng dụng Web độc lập (Web App)**.
+Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ cao dành cho mọi trình duyệt (Microsoft Edge, Brave, Opera, Arc, Firefox). Hoạt động hoàn hảo dưới cả hai hình thức: **Tiện ích mở rộng trình duyệt (Manifest V3)** và **Ứng dụng Web độc lập (Web App)**.
 
 > 🇺🇸 **English Version**: [Read English documentation at README.md](./README.md)
 
@@ -54,7 +54,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 
 ## Điểm Nổi Bật & Tính Năng Vượt Trội
 
-- **Không Phụ Thuộc Hệ Điều Hành**: Hoạt động trực tiếp trên mọi tab trình duyệt, iframe, web app (Google Docs, Gmail, Slack, Notion, Facebook, Discord, web console, Figma...).
+- **Không Phụ Thuộc Hệ Điều Hành**: Hoạt động trực tiếp trên mọi tab trình duyệt, iframe, web app (Gmail, Slack, Notion, Facebook, Telegram Web, Discord, web console, Figma...).
 - **Chế Độ Tự Động (Auto) Mặc Định**: Mặc định kích hoạt chế độ **Tự động thích ứng** (gõ số theo VNI, gõ chữ theo Telex), dễ dàng chuyển đổi sang Telex, VNI hoặc Tắt chỉ với 1 click.
 - **Phím `z` Xóa Dấu Thanh Chuyên Dụng**: Gõ phím `z` (Telex/Auto) hoặc phím `0` (VNI) để lập tức gỡ bỏ dấu thanh và đưa nguyên âm về dạng gốc (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Tự Động Bỏ Qua URL, Email & Code (`isUrlOrEmailOrCode`)**: Tự động nhận diện đường dẫn web (`https://`, `www.`, `.com`, `/path`), địa chỉ email (`user@gmail.com`) và cú pháp lập trình (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, thẻ HTML, `->`, `=>`, `===`), tạm ngưng biến đổi bộ gõ để giữ nguyên link và code.

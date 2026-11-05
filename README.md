@@ -53,7 +53,7 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
 
 ## Key Features
 
-- **No OS Dependency**: Operates natively in any browser tab, iframe, or web app (Google Docs, Gmail, Slack, Notion, Facebook, Telegram Web, Discord, devtools).
+- **No OS Dependency**: Operates natively in any browser tab, iframe, or web app (Gmail, Slack, Notion, Facebook, Telegram Web, Discord, devtools).
 - **Adaptive Auto Mode by Default**: Starts out-of-the-box in **Auto (Adaptive)** mode (digits route to VNI, letters route to Telex), with instantaneous switching between Auto, Telex, VNI, or Off.
 - **Key `z` Tone Removal**: Tap `z` (Telex / Auto) or `0` (VNI) to instantly remove diacritical tone marks while retaining vowel shapes (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Contextual URL, Email & Code Protection (`isUrlOrEmailOrCode`)**: Automatically detects web links (`https://`, `www.`, `.com`, `/path`), email addresses (`user@domain.com`), and programming syntax (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, HTML `<tags>`, `->`, `=>`, `===`), cleanly suspending IME transformations to prevent link or code corruption.
