@@ -9,6 +9,7 @@
 [![Manifest V3](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-blue?style=flat-square)](#)
 [![Firefox WebExtension](https://img.shields.io/badge/Firefox-WebExtension-orange?style=flat-square)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square)](#)
+[![AI-Assisted](https://img.shields.io/badge/AI%20Assisted-Google%20Gemini-8E75C2?logo=google-gemini&logoColor=white)](https://gemini.google.com)
 
 </div>
 
@@ -310,20 +311,46 @@ Compatible with Chromium browsers (Google Chrome, Microsoft Edge, Brave, Opera, 
 3. Select the `manifest.json` file inside the unzipped directory.
 4. OpenViet IME will activate with full support for Firefox WebExtensions storage and content scripts.
 
-### Building from Source
+### Building & Packaging from Source
+
+#### 1. Install dependencies
+```bash
+npm install
+```
+
+#### 2. Build for a specific browser
+These commands compile the TypeScript/JavaScript assets with `esbuild` and copy the appropriate browser-specific manifest (`manifest.chrome.json` or `manifest.firefox.json`):
 
 ```bash
-# 1. Install dependencies
-npm install
+# Google Chrome, Brave, Opera, Arc
+npm run build:chrome
 
-# 2. Bundle content script and options page (esbuild IIFE)
-npm run bundle:extension
+# Mozilla Firefox
+npm run build:firefox
 
-# 3. Run development web server
+# Microsoft Edge
+npm run build:edge
+```
+
+#### 3. Package into `.zip` distribution archives
+To generate production-ready `.zip` files ready for installation or store publishing (saved in `web-ext-artifacts/`):
+
+```bash
+# Package for Chrome -> web-ext-artifacts/openviet_ime-chrome-1.0.0.zip
+npm run bundle:chrome
+
+# Package for Firefox -> web-ext-artifacts/openviet_ime-firefox-1.0.0.zip
+
+# Package for Edge -> web-ext-artifacts/openviet_ime-edge-1.0.0.zip
+```
+
+#### 4. Development mode
+```bash
+# Bundle extension scripts with file watching
+npm run dev:extension
+
+# Start Vite preview server for the interactive playground
 npm run dev
-
-# 4. Build extension bundle & production web app
-npm run build
 ```
 
 ---

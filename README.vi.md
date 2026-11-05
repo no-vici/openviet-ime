@@ -9,6 +9,8 @@
 [![Manifest V3](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-blue?style=flat-square)](#)
 [![Firefox WebExtension](https://img.shields.io/badge/Firefox-WebExtension-orange?style=flat-square)](#)
 [![Giấy Phép](https://img.shields.io/badge/Gi%E1%BA%A5y%20ph%C3%A9p-Apache%202.0-green?style=flat-square)](#)
+[![AI-Assisted](https://img.shields.io/badge/AI%20Assisted-Google%20Gemini-8E75C2?logo=google-gemini&logoColor=white)](https://gemini.google.com)
+
 
 </div>
 
@@ -307,20 +309,46 @@ Bấm [⌫]:    "vn"
 3. Chọn file `manifest.json` trong thư mục extension đã giải nén.
 4. OpenViet IME sẽ kích hoạt đầy đủ với quyền lưu trữ WebExtension và chạy trên mọi trang web.
 
-### Biên Dịch Từ Mã Nguồn
+### Biên Dịch & Đóng Gói Từ Mã Nguồn
+
+#### 1. Cài đặt thư viện phụ thuộc
+```bash
+npm install
+```
+
+#### 2. Biên dịch theo từng trình duyệt cụ thể
+Các lệnh này sẽ bundle script bằng `esbuild` và tự động áp dụng `manifest.json` chuẩn hóa riêng biệt cho từng trình duyệt:
 
 ```bash
-# 1. Cài đặt các thư viện phụ thuộc
-npm install
+# Dành cho Google Chrome, Brave, Opera, Arc
+npm run build:chrome
 
-# 2. Đóng gói script extension (esbuild IIFE)
-npm run bundle:extension
+# Dành cho Mozilla Firefox
+npm run build:firefox
 
-# 3. Chạy server phát triển (Vite port 3000)
+# Dành cho Microsoft Edge
+npm run build:edge
+```
+
+#### 3. Đóng gói thành file `.zip` phát hành
+Để tạo các gói cài đặt `.zip` hoàn chỉnh (lưu tại thư mục `web-ext-artifacts/`):
+
+```bash
+# Đóng gói cho Chrome -> web-ext-artifacts/openviet_ime-chrome-1.0.0.zip
+npm run bundle:chrome
+
+# Đóng gói cho Firefox -> web-ext-artifacts/openviet_ime-firefox-1.0.0.zip
+
+# Đóng gói cho Edge -> web-ext-artifacts/openviet_ime-edge-1.0.0.zip
+```
+
+#### 4. Chế độ lập trình (Development)
+```bash
+# Tự động build lại extension khi code thay đổi (watch mode)
+npm run dev:extension
+
+# Chạy web playground thử nghiệm với Vite
 npm run dev
-
-# 4. Biên dịch bản đóng gói hoàn chỉnh
-npm run build
 ```
 
 ---
