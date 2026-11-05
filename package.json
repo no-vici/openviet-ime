@@ -6,6 +6,12 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "bundle:extension": "esbuild src/content/content.js --bundle --outfile=src/content/content.bundle.js --format=iife && esbuild src/options/options.js --bundle --outfile=src/options/options.bundle.js --format=iife",
+    "manifest:chrome": "cp manifest.chrome.json manifest.json",
+    "manifest:firefox": "cp manifest.firefox.json manifest.json",
+    "build:chrome": "npm run bundle:extension && npm run manifest:chrome && npx web-ext build --overwrite-dest --filename=openviet_ime-chrome-{version}.zip",
+    "build:firefox": "npm run bundle:extension && npm run manifest:firefox && npx web-ext build --overwrite-dest --filename=openviet_ime-firefox-{version}.zip",
+    "bundle:chrome": "npm run build:chrome",
+    "bundle:firefox": "npm run build:firefox",
     "build": "esbuild src/content/content.js --bundle --outfile=src/content/content.bundle.js --format=iife && esbuild src/options/options.js --bundle --outfile=src/options/options.bundle.js --format=iife && vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
