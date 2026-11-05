@@ -573,9 +573,12 @@
             <h2 class="card-title" style="margin-bottom: 4px;">Dữ Liệu Thói Quen Đã Học (On-Device Memory)</h2>
             <div style="font-size: 12px; color: var(--text-muted);">Dữ liệu được lưu trong bộ nhớ cục bộ trình duyệt (localStorage), không gửi ra ngoài.</div>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button id="seedHabitsBtn" class="btn">Nạp Mẫu Thói Quen Thử</button>
-            <button id="clearHabitsBtn" class="btn btn-danger">Xóa Sạch Bộ Nhớ Học (Reset)</button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="exportHabitsCsvBtn" class="btn">Export CSV</button>
+            <button id="exportHabitsJsonBtn" class="btn">Export JSON</button>
+            <button id="importHabitsBtn" class="btn">Import...</button>
+            <button id="seedHabitsBtn" class="btn">Nạp Mẫu Thử</button>
+            <button id="clearHabitsBtn" class="btn btn-danger">Xóa Sạch (Reset)</button>
           </div>
         </div>
 
@@ -726,6 +729,34 @@
       <div class="modal-footer">
         <button id="importDictCancelBtn" class="btn">Đóng</button>
         <button id="importDictConfirmBtn" class="btn btn-primary">Nạp Vô Từ Điển</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Habits Modal -->
+  <div id="importHabitsModal" class="modal-backdrop">
+    <div class="modal">
+      <h3 class="modal-title">Nhập Dữ Liệu Thói Quen (CSV / JSON)</h3>
+      <div class="form-group">
+        <label class="form-label">Dán nội dung JSON hoặc CSV (hoặc kéo thả/chọn file bên dưới):</label>
+        <textarea id="importHabitsTextarea" rows="8" class="form-control font-mono" placeholder="Dán nội dung JSON hoặc CSV vào đây...&#10;Ví dụ CSV:&#10;chuyển,khoản,12&#10;họp,team,8"></textarea>
+      </div>
+      <div class="form-group" style="margin-top: 10px;">
+        <label class="form-label">Hoặc chọn file từ máy tính:</label>
+        <input type="file" id="importHabitsFileInput" accept=".json,.csv,.txt" class="form-control">
+      </div>
+      <div class="form-group" style="margin-top: 10px;">
+        <label class="checkbox-row" style="margin: 0;">
+          <input type="checkbox" id="importHabitsMergeOption" checked>
+          <div>
+            <strong>Gộp chung với thói quen hiện có (Merge)</strong>
+            <div style="font-size: 12px; color: var(--text-muted);">Cộng dồn số lần gõ cho các cặp từ đã có thay vì xóa sạch ghi đè.</div>
+          </div>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button id="importHabitsCancelBtn" class="btn">Đóng</button>
+        <button id="importHabitsConfirmBtn" class="btn btn-primary">Nạp Thói Quen</button>
       </div>
     </div>
   </div>

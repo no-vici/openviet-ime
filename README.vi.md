@@ -223,6 +223,7 @@ Khi bạn vừa gõ xong một từ, thanh gợi ý ribbon sẽ đưa ra các t�
 - Khi bạn gõ các cặp từ liên tiếp (như `họp team`, `chuyển khoản`, `gửi email`), mô hình bigram trên máy bạn sẽ tự động tăng tần suất xuất hiện.
 - Các cặp từ hay dùng nhất sẽ được đưa lên vị trí số 1 kèm huy hiệu xanh **Thói quen**.
 - Toàn bộ dữ liệu được lưu cục bộ trong `localStorage` / `sync storage` của trình duyệt, không có telemetry, không gửi dữ liệu ra mạng internet.
+- **Xuất & Nhập Thói Quen (Backup & Portable)**: Hỗ trợ xuất (`Export JSON`, `Export CSV`) và nhập (`Import`) trực tiếp từ tab *"Gợi Ý & Thói Quen"* trong trang Cài Đặt. Bạn có thể dễ dàng chuyển toàn bộ dữ liệu thói quen gõ từ máy này sang máy khác mà không cần phải gõ lại từ đầu, đồng thời hỗ trợ chế độ Gộp thông minh (Merge) hoặc Ghi đè.
 
 ---
 

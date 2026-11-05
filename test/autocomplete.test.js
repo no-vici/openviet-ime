@@ -62,4 +62,24 @@ test('AutoComplete and Next-Word Prediction', () => {
   assert.strictEqual(updatedStats.totalTransitions, 1, 'Should record 1 transition');
   assert.strictEqual(updatedStats.topPairs[0].from, 'họp');
   assert.strictEqual(updatedStats.topPairs[0].to, 'team');
+
+  // 6. Export / Import JSON & CSV
+  const jsonExport = engine.exportLearnedJSON();
+  assert(jsonExport.includes('họp') && jsonExport.includes('team'), 'JSON export should contain learned pair');
+
+  const csvExport = engine.exportLearnedCSV();
+  assert(csvExport.includes('Tu_bat_dau') && csvExport.includes('họp') && csvExport.includes('team'), 'CSV export should format valid CSV');
+
+  // Clear and re-import via JSON
+  engine.clearLearnedHabits();
+  assert.strictEqual(engine.getLearnedStats().totalPairs, 0, 'Should be empty after clear');
+  const importRes = engine.importLearnedData(jsonExport, true);
+  assert.strictEqual(importRes.success, true, 'Import JSON should succeed');
+  assert.strictEqual(engine.getLearnedStats().totalPairs, 1, 'Should restore pair from JSON');
+
+  // Import extra pairs via CSV
+  const extraCsv = 'chuyển,khoản,10\ngửi,email,5';
+  const csvImportRes = engine.importLearnedData(extraCsv, true);
+  assert.strictEqual(csvImportRes.success, true, 'Import CSV should succeed');
+  assert.strictEqual(engine.getLearnedStats().totalPairs, 3, 'Should merge extra pairs');
 });

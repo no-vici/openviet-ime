@@ -414,6 +414,144 @@ export class GboardLearnedModel {
       totalWordsLearned: Object.keys(this.userUnigrams).length
     };
   }
+
+  /**
+   * Export all learned habits data as JSON string
+   * @returns {string} Formatted JSON
+   */
+  exportJSON() {
+    const payload = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      bigrams: this.userBigrams,
+      unigrams: this.userUnigrams
+    };
+    return JSON.stringify(payload, null, 2);
+  }
+
+  /**
+   * Export bigram habits as CSV string
+   * Format: "word1,word2,count"
+   * @returns {string} CSV text
+   */
+  exportCSV() {
+    const rows = ['Tu_bat_dau,Tu_ke_tiep,So_lan_go'];
+    for (const [w1, toMap] of Object.entries(this.userBigrams)) {
+      for (const [w2, count] of Object.entries(toMap)) {
+        rows.push(`"${w1.replace(/"/g, '""')}","${w2.replace(/"/g, '""')}",${count}`);
+      }
+    }
+    return rows.join('\n');
+  }
+
+  /**
+   * Import learned habits from JSON or CSV string
+   * @param {string} rawText Input string
+   * @param {boolean} merge If true, increment/combine counts; if false, overwrite
+   * @returns {{ success: boolean, count: number, error?: string }}
+   */
+  importData(rawText, merge = true) {
+    if (!rawText || typeof rawText !== 'string') {
+      return { success: false, count: 0, error: 'Dữ liệu nhập rỗng hoặc không hợp lệ.' };
+    }
+    const trimmed = rawText.trim();
+    if (!trimmed) {
+      return { success: false, count: 0, error: 'Nội dung nhập rỗng.' };
+    }
+
+    let importedBigrams = {};
+    let importedUnigrams = {};
+    let pairCount = 0;
+
+    // Try parsing as JSON first
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const bigramsSrc = parsed.bigrams || parsed.userBigrams || (typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null);
+        const unigramsSrc = parsed.unigrams || parsed.userUnigrams || {};
+
+        if (!bigramsSrc || typeof bigramsSrc !== 'object') {
+          return { success: false, count: 0, error: 'Cấu trúc JSON không chứa thuộc tính bigrams hợp lệ.' };
+        }
+
+        for (const [w1, toMap] of Object.entries(bigramsSrc)) {
+          if (toMap && typeof toMap === 'object') {
+            for (const [w2, count] of Object.entries(toMap)) {
+              const num = parseInt(count, 10);
+              if (!isNaN(num) && num > 0) {
+                const k1 = w1.trim().toLowerCase();
+                const k2 = w2.trim().toLowerCase();
+                if (k1 && k2) {
+                  if (!importedBigrams[k1]) importedBigrams[k1] = {};
+                  importedBigrams[k1][k2] = num;
+                  importedUnigrams[k2] = (importedUnigrams[k2] || 0) + num;
+                  pairCount++;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        return { success: false, count: 0, error: `Lỗi đọc JSON: ${err.message}` };
+      }
+    } else {
+      // Parse as CSV: w1,w2,count
+      const lines = trimmed.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        // Skip header if matches
+        if (i === 0 && (line.toLowerCase().includes('tu_bat_dau') || line.toLowerCase().includes('word1'))) {
+          continue;
+        }
+
+        let parts = [];
+        if (line.includes(',')) {
+          parts = line.split(',');
+        } else if (line.includes('\t')) {
+          parts = line.split('\t');
+        } else if (line.includes(';')) {
+          parts = line.split(';');
+        }
+
+        if (parts.length >= 2) {
+          const w1 = parts[0].replace(/^["']|["']$/g, '').trim().toLowerCase();
+          const w2 = parts[1].replace(/^["']|["']$/g, '').trim().toLowerCase();
+          const count = parts[2] ? parseInt(parts[2].replace(/^["']|["']$/g, '').trim(), 10) : 1;
+          const validCount = isNaN(count) || count <= 0 ? 1 : count;
+
+          if (w1 && w2) {
+            if (!importedBigrams[w1]) importedBigrams[w1] = {};
+            importedBigrams[w1][w2] = (importedBigrams[w1][w2] || 0) + validCount;
+            importedUnigrams[w2] = (importedUnigrams[w2] || 0) + validCount;
+            pairCount++;
+          }
+        }
+      }
+    }
+
+    if (pairCount === 0) {
+      return { success: false, count: 0, error: 'Không tìm thấy cặp từ hợp lệ trong dữ liệu.' };
+    }
+
+    if (!merge) {
+      this.userBigrams = importedBigrams;
+      this.userUnigrams = importedUnigrams;
+    } else {
+      for (const [w1, toMap] of Object.entries(importedBigrams)) {
+        if (!this.userBigrams[w1]) this.userBigrams[w1] = {};
+        for (const [w2, count] of Object.entries(toMap)) {
+          this.userBigrams[w1][w2] = (this.userBigrams[w1][w2] || 0) + count;
+        }
+      }
+      for (const [w, count] of Object.entries(importedUnigrams)) {
+        this.userUnigrams[w] = (this.userUnigrams[w] || 0) + count;
+      }
+    }
+
+    this.flushSaveToStorage();
+    return { success: true, count: pairCount };
+  }
 }
 
 /**
@@ -514,6 +652,27 @@ export class AutoCompleteEngine {
    */
   seedLearnedHabits() {
     return this.learnedModel.seedSampleHabits();
+  }
+
+  /**
+   * Export learned habits to JSON
+   */
+  exportLearnedJSON() {
+    return this.learnedModel.exportJSON();
+  }
+
+  /**
+   * Export learned habits to CSV
+   */
+  exportLearnedCSV() {
+    return this.learnedModel.exportCSV();
+  }
+
+  /**
+   * Import learned habits from text
+   */
+  importLearnedData(rawText, merge = true) {
+    return this.learnedModel.importData(rawText, merge);
   }
 
   /**

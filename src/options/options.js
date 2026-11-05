@@ -823,6 +823,15 @@ function initAiHabitsTab() {
   const habitsTableBody = document.getElementById('habitsTableBody');
   const seedHabitsBtn = document.getElementById('seedHabitsBtn');
   const clearHabitsBtn = document.getElementById('clearHabitsBtn');
+  const exportHabitsCsvBtn = document.getElementById('exportHabitsCsvBtn');
+  const exportHabitsJsonBtn = document.getElementById('exportHabitsJsonBtn');
+  const importHabitsBtn = document.getElementById('importHabitsBtn');
+  const importHabitsModal = document.getElementById('importHabitsModal');
+  const importHabitsTextarea = document.getElementById('importHabitsTextarea');
+  const importHabitsFileInput = document.getElementById('importHabitsFileInput');
+  const importHabitsMergeOption = document.getElementById('importHabitsMergeOption');
+  const importHabitsCancelBtn = document.getElementById('importHabitsCancelBtn');
+  const importHabitsConfirmBtn = document.getElementById('importHabitsConfirmBtn');
 
   renderHabitsTableAndStats = async () => {
     try {
@@ -926,6 +935,64 @@ function initAiHabitsTab() {
       autoCompleteEngine.clearLearnedHabits();
       renderHabitsTableAndStats();
       showToast('Đã xóa sạch bộ nhớ thói quen!');
+    }
+  });
+
+  // Export Habits to JSON
+  exportHabitsJsonBtn?.addEventListener('click', () => {
+    const jsonStr = autoCompleteEngine.exportLearnedJSON();
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    downloadFile(jsonStr, `openviet_habits_${dateStr}.json`, 'application/json');
+    showToast('Đã xuất file JSON thói quen thành công!');
+  });
+
+  // Export Habits to CSV
+  exportHabitsCsvBtn?.addEventListener('click', () => {
+    const csvStr = autoCompleteEngine.exportLearnedCSV();
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    downloadFile(csvStr, `openviet_habits_${dateStr}.csv`, 'text/csv;charset=utf-8;');
+    showToast('Đã xuất file CSV thói quen thành công!');
+  });
+
+  // Open Import Habits Modal
+  importHabitsBtn?.addEventListener('click', () => {
+    if (importHabitsTextarea) importHabitsTextarea.value = '';
+    if (importHabitsFileInput) importHabitsFileInput.value = '';
+    importHabitsModal?.classList.add('open');
+  });
+
+  importHabitsCancelBtn?.addEventListener('click', () => {
+    importHabitsModal?.classList.remove('open');
+  });
+
+  // File picker handler for habits
+  importHabitsFileInput?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (importHabitsTextarea) {
+        importHabitsTextarea.value = event.target?.result || '';
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // Confirm Import Habits
+  importHabitsConfirmBtn?.addEventListener('click', async () => {
+    const raw = importHabitsTextarea?.value || '';
+    if (!raw.trim()) {
+      alert('Vui lòng dán nội dung hoặc chọn file trước khi nạp.');
+      return;
+    }
+    const isMerge = importHabitsMergeOption ? importHabitsMergeOption.checked : true;
+    const res = autoCompleteEngine.importLearnedData(raw, isMerge);
+    if (res.success) {
+      importHabitsModal?.classList.remove('open');
+      renderHabitsTableAndStats();
+      showToast(`Đã nạp thành công ${res.count} cặp thói quen gõ từ!`);
+    } else {
+      alert(`Lỗi nạp dữ liệu: ${res.error}`);
     }
   });
 
