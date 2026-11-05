@@ -265,37 +265,37 @@ Hit [⌫]:    "vn"
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        OpenViet IME Architecture                       │
-├──────────────────────────────────┬─────────────────────────────────────┤
-│  Standalone React App (App.tsx)  │     Manifest V3 Browser Extension    │
-│  - Live Interactive Playground   │  - Service Worker (state sync)      │
-│  - Keystroke Inspection Logger   │  - Content Script (all pages)       │
-│  - Macro Manager (Import/Export) │  - Shadow DOM Floating HUD          │
-│  - Automated Test Runner         │  - Popup & Options UI               │
-│  - Zip Extension Downloader      │  - Global Shortcuts (Ctrl+Shift+Z)  │
-└──────────────────────────────────┴─────────────────────────────────────┘
-                                  │
-                                  ▼
-      ┌────────────────────────────────────────────────────────┐
-      │                   src/engine/                          │
-      │  ├─ avim.js       (Core IME state, VNI/Telex parser)   │
-      │  ├─ macro.js      (xKey word-boundary expansion engine)│
-      │  ├─ key-codes.js  (Unicode character map & URL guard)  │
-      │  ├─ autocomplete.js (Word suggestion & prefix ranking) │
-      │  ├─ dictionary.js (User custom whitelist & phonology)  │
-      │  └─ vietnamese-words.js (Standard 6.7k syllable set)   │
-      └────────────────────────────────────────────────────────┘
+├────────────────────────────────────────────────────────────────────────┤
+│                     Manifest V3 Browser Extension                      │
+│  - Service Worker / Background Scripts (State sync & shortcut routing) │
+│  - Content Script (Key interception, typing engine runner)             │
+│  - Shadow DOM HUD & Suggestion Ribbon (Isolated floating UI)           │
+│  - Popup & Options Management Page                                     │
+│  - Cross-Browser Builds (Chrome MV3 / Firefox WebExtensions / Edge)    │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │                   src/engine/                          │
+       │  ├─ avim.js       (Core IME state, VNI/Telex parser)   │
+       │  ├─ macro.js      (xKey word-boundary expansion engine)│
+       │  ├─ key-codes.js  (Unicode character map & URL guard)  │
+       │  ├─ autocomplete.js (Word suggestion & prefix ranking) │
+       │  ├─ dictionary.js (User custom whitelist & phonology)  │
+       │  └─ vietnamese-words.js (Standard 6.7k syllable set)   │
+       └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Installation & Setup
 
-### Loading as an Unpacked Browser Extension (Chromium)
+You can either download pre-built release packages from GitHub Releases or build directly from source.
 
-Compatible with Chromium browsers (Google Chrome, Microsoft Edge, Brave, Opera, Arc):
+### Loading into Chromium Browsers (Google Chrome, Microsoft Edge, Brave, Opera, Arc)
 
-1. Click **"Tải Extension (.ZIP)"** in the top navigation bar to download the extension package, or build from source.
-2. Extract the `.zip` file into a local folder.
+1. Download or generate the extension package (`openviet_ime-chrome-1.0.0.zip` or `openviet_ime-edge-1.0.0.zip`).
+2. Extract the `.zip` file into a local folder (or use the repository directory after running `npm run build:chrome`).
 3. Open your browser extension management console:
    - Chrome / Brave: `chrome://extensions`
    - Edge: `edge://extensions`
@@ -306,10 +306,11 @@ Compatible with Chromium browsers (Google Chrome, Microsoft Edge, Brave, Opera, 
 
 ### Loading into Mozilla Firefox
 
-1. Open `about:debugging#/runtime/this-firefox` in Firefox.
-2. Click **Load Temporary Add-on...**.
-3. Select the `manifest.json` file inside the unzipped directory.
-4. OpenViet IME will activate with full support for Firefox WebExtensions storage and content scripts.
+1. Build or download the Firefox package (`npm run build:firefox`).
+2. Open `about:debugging#/runtime/this-firefox` in Firefox.
+3. Click **Load Temporary Add-on...**.
+4. Select the `manifest.json` file inside the repository directory (or choose the built `.zip` file).
+5. OpenViet IME will activate with full support for Firefox WebExtensions storage and content scripts.
 
 ### Building & Packaging from Source
 

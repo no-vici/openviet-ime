@@ -265,49 +265,52 @@ Bấm [⌫]:    "vn"
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        Kiến Trúc OpenViet IME                          │
-├──────────────────────────────────┬─────────────────────────────────────┤
-│  Ứng Dụng React Độc Lập (App.tsx)│     Extension Trình Duyệt (MV3)     │
-│  - Bàn thử nghiệm gõ trực quan   │  - Service Worker (đồng bộ cài đặt) │
-│  - Nhật ký phím gõ thời gian thực│  - Content Script (mọi trang web)   │
-│  - Quản lý Macro & Từ điển riêng │  - Thanh HUD & Ribbon (Shadow DOM)  │
-│  - Trình chạy kiểm thử tự động   │  - Giao diện Popup & Options        │
-│  - Xuất file đóng gói .ZIP       │  - Phím tắt toàn cục (Ctrl+Shift+Z) │
-└──────────────────────────────────┴─────────────────────────────────────┘
-                                  │
-                                  ▼
-      ┌────────────────────────────────────────────────────────┐
-      │                   src/engine/                          │
-      │  ├─ avim.js       (Xử lý logic VNI, Telex, bỏ dấu)     │
-      │  ├─ macro.js      (Động cơ mở rộng gõ tắt xKey)        │
-      │  ├─ key-codes.js  (Bảng mã Unicode & bộ lọc URL/Code)  │
-      │  ├─ autocomplete.js (Động cơ gợi ý từ ngữ & Gboard)    │
-      │  ├─ dictionary.js (Từ điển cá nhân & quy tắc ngữ âm)   │
-      │  └─ vietnamese-words.js (Bộ từ vựng 6.7k âm tiết)      │
-      └────────────────────────────────────────────────────────┘
+├────────────────────────────────────────────────────────────────────────┤
+│                     Extension Trình Duyệt (MV3)                        │
+│  - Service Worker / Background Script (Đồng bộ cấu hình & phím tắt)    │
+│  - Content Script (Bắt sự kiện gõ phím & kích hoạt bộ gõ tiếng Việt)   │
+│  - Thanh HUD & Ribbon Gợi Ý (Giao diện nổi cách ly qua Shadow DOM)     │
+│  - Giao diện Popup Cài Đặt & Trang Tùy Chọn Options                    │
+│  - Đa nền tảng (Chrome MV3 / Firefox WebExtensions / Edge Chromium)    │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+                                   ▼
+       ┌────────────────────────────────────────────────────────┐
+       │                   src/engine/                          │
+       │  ├─ avim.js       (Xử lý logic VNI, Telex, bỏ dấu)     │
+       │  ├─ macro.js      (Động cơ mở rộng gõ tắt xKey)        │
+       │  ├─ key-codes.js  (Bảng mã Unicode & bộ lọc URL/Code)  │
+       │  ├─ autocomplete.js (Động cơ gợi ý từ ngữ & Gboard)    │
+       │  ├─ dictionary.js (Từ điển cá nhân & quy tắc ngữ âm)   │
+       │  └─ vietnamese-words.js (Bộ từ vựng 6.7k âm tiết)      │
+       └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Hướng Dẫn Cài Đặt
 
-### Cài Đặt Vào Chrome / Edge / Brave / Opera (Chromium)
+Bạn có thể tải gói cài đặt sẵn từ mục GitHub Releases hoặc tự đóng gói từ mã nguồn.
 
-1. Nhấn nút **"Tải Extension (.ZIP)"** trên thanh điều hướng để tải trọn bộ extension, hoặc tự build từ mã nguồn.
-2. Giải nén file `.zip` vừa tải về vào một thư mục trên máy bạn.
+### Cài Đặt Vào Trình Duyệt Chromium (Chrome, Edge, Brave, Opera, Arc)
+
+1. Tải về hoặc tự tạo file đóng gói extension (`openviet_ime-chrome-1.0.0.zip` hoặc `openviet_ime-edge-1.0.0.zip`).
+2. Giải nén file `.zip` vào một thư mục (hoặc dùng trực tiếp thư mục repo sau khi chạy lệnh `npm run build:chrome`).
 3. Mở trang quản lý tiện ích trên trình duyệt:
    - Chrome / Brave: `chrome://extensions`
    - Edge: `edge://extensions`
    - Opera: `opera://extensions`
 4. Bật công tắc **Chế độ dành cho nhà phát triển (Developer mode)** ở góc trên bên phải.
-5. Nhấn nút **Tải tiện ích đã giải nén (Load unpacked)** và chọn thư mục vừa giải nén (nơi có file `manifest.json`).
+5. Nhấn nút **Tải tiện ích đã giải nén (Load unpacked)** và chọn thư mục chứa file `manifest.json`.
 6. Biểu tượng OpenViet IME sẽ xuất hiện trên thanh công cụ của bạn với huy hiệu **`AUTO`**.
 
 ### Cài Đặt Vào Mozilla Firefox
 
-1. Nhập `about:debugging#/runtime/this-firefox` vào thanh địa chỉ của Firefox.
-2. Nhấn nút **Tải tiện ích tạm thời (Load Temporary Add-on...)**.
-3. Chọn file `manifest.json` trong thư mục extension đã giải nén.
-4. OpenViet IME sẽ kích hoạt đầy đủ với quyền lưu trữ WebExtension và chạy trên mọi trang web.
+1. Biên dịch hoặc tải về file zip Firefox (`npm run build:firefox`).
+2. Nhập `about:debugging#/runtime/this-firefox` vào thanh địa chỉ của Firefox.
+3. Nhấn nút **Tải tiện ích tạm thời (Load Temporary Add-on...)**.
+4. Chọn file `manifest.json` trong thư mục tiện ích (hoặc chọn trực tiếp file `.zip` vừa build).
+5. OpenViet IME sẽ kích hoạt đầy đủ với quyền lưu trữ WebExtension và chạy trên mọi trang web.
 
 ### Biên Dịch & Đóng Gói Từ Mã Nguồn
 
