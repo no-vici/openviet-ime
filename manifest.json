@@ -4,17 +4,6 @@
   "version": "1.0.0",
   "description": "Modern Cross-Browser Vietnamese Input Extension with Telex, VNI, Modern Tone Placement, and Text Expansion Macro Engine.",
   "author": "OpenViet Team",
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "openviet-ime@vietnamese-ime.org",
-      "strict_min_version": "142.0",
-      "data_collection_permissions": {
-        "required": [
-          "none"
-        ]
-      }
-    }
-  },
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "OpenViet IME - Bộ Gõ Tiếng Việt",
@@ -31,9 +20,7 @@
     "open_in_tab": true
   },
   "background": {
-    "scripts": [
-      "src/background/service-worker.js"
-    ]
+    "service_worker": "src/background/service-worker.js"
   },
   "content_scripts": [
     {
