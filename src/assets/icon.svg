@@ -174,19 +174,19 @@
   </defs>
   <!-- Outer squircle badge -->
   <rect
-     x="8"
-     y="8"
-     width="112"
-     height="112"
+     x="3"
+     y="3"
+     width="122"
+     height="122"
      rx="28"
      fill="url(#bgGrad)"
      filter="url(#softShadow)"
      id="rect10" />
   <rect
-     x="8"
-     y="8"
-     width="112"
-     height="112"
+     x="3"
+     y="3"
+     width="122"
+     height="122"
      rx="28"
      fill="none"
      stroke="url(#accentGlow)"
@@ -203,7 +203,7 @@
   <!-- Subtle Underline / Typing Prompt Cursor Bar -->
   <g
      id="g18"
-     transform="matrix(1.217076,0,0,1.2499047,-13.608421,-15.104)">
+     transform="matrix(1.42,0,0,1.448,-26.88,-27.776)">
     <g
        id="g19"
        transform="translate(-0.23371014,0.28802508)">
