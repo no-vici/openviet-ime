@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenViet IME - Tùy chọn & Bảng Gõ Tắt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --border-focus: #38bdf8;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 32px 24px;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .actions-bar {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      border-color: #374151;
+      background: #1f2937;
+    }
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    .btn-danger {
+      color: var(--danger);
+    }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--danger);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #f8fafc;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+    }
+    .form-control, .form-select, textarea {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      outline: none;
+      transition: border 0.15s ease;
+    }
+    .form-control:focus, .form-select:focus, textarea:focus {
+      border-color: var(--border-focus);
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      cursor: pointer;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+    }
+
+    /* Macro Table */
+    .table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+    .search-input {
+      max-width: 280px;
+    }
+    .table-container {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 520px;
+    }
+    .table-container thead th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #0f172a;
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .table-container::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    .table-container::-webkit-scrollbar-track {
+      background: #0f172a;
+      border-radius: 4px;
+    }
+    .table-container::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background: #0f172a;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: #e2e8f0;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .tag-trigger {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 480px;
+      max-width: 90vw;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .feedback-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10b981;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 200;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="top-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="../assets/icon48.png" width="36" height="36" style="border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" alt="OpenViet IME" />
+        <div>
+          <h1 class="brand-title">OpenViet IME Settings</h1>
+          <div class="brand-sub">Modern Cross-Browser Vietnamese IME & Macro Engine</div>
+        </div>
+      </div>
+      <div class="actions-bar">
+        <button id="exportJsonBtn" class="btn">Export JSON</button>
+        <button id="exportCsvBtn" class="btn">Export CSV</button>
+        <button id="importBtn" class="btn">Import...</button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="macrosTab">Bảng Gõ Tắt (Macros)</button>
+      <button class="tab-btn" data-tab="dictTab">Từ Điển Cá Nhân (User Dict)</button>
+      <button class="tab-btn" data-tab="imeTab">Thiết Lập Kiểu Gõ (IME)</button>
+      <button class="tab-btn" data-tab="aiTab">Gợi Ý &amp; Thói Quen (AI / Gboard)</button>
+      <button class="tab-btn" data-tab="exclusionsTab">Loại Trừ &amp; Tên Miền</button>
+    </div>
+
+    <!-- TAB 1: MACROS -->
+    <div id="macrosTab" class="tab-pane active">
+      <div class="table-toolbar">
+        <input type="text" id="macroSearch" class="form-control search-input font-mono" placeholder="Tìm kiếm từ viết tắt...">
+        <div style="display:flex; gap: 8px;">
+          <button id="resetDefaultsBtn" class="btn">Reset để xài bảng mặc định</button>
+          <button id="addMacroBtn" class="btn btn-primary">+ Thêm Từ Viết Tắt</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 80px;">Bật</th>
+              <th style="width: 160px;">Ký tự viết tắt</th>
+              <th>Cụm từ thay thế</th>
+              <th style="width: 120px; text-align: right;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="macroTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: USER DICTIONARY -->
+    <div id="dictTab" class="tab-pane">
+      <div class="card" style="margin-bottom: 16px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 14px; font-weight: 600; color: #38bdf8; margin-bottom: 4px;">Từ Điển Tiếng Việt & Từ Điển Cá Nhân</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+              Bộ gõ tích hợp sẵn <strong>~6.700 từ tiếng Việt chuẩn</strong> (từ điển Hunspell của Hồ Ngọc Đức / OpenOffice / xKey). Bạn có thể thêm các từ riêng (Tiếng Anh, thuật ngữ, tên riêng) vào từ điển cá nhân để bộ gõ tự động bỏ qua kiểm tra chính tả và không biến đổi phụ âm.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="exportDictTxtBtn" class="btn">Export TXT</button>
+            <button id="exportDictJsonBtn" class="btn">Export JSON</button>
+            <button id="importDictBtn" class="btn">Import...</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-toolbar">
+        <div style="display: flex; gap: 8px; flex: 1;">
+          <input type="text" id="dictSearch" class="form-control search-input font-mono" placeholder="Tìm từ trong từ điển riêng...">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="newDictWordInput" class="form-control font-mono" placeholder="Nhập từ mới (vd: plugin, figma)..." style="width: 220px;">
+          <button id="addDictWordBtn" class="btn btn-primary">+ Thêm Từ</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 60px;">#</th>
+              <th>Từ / Thuật ngữ riêng</th>
+              <th style="width: 120px; text-align: right;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="dictTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: IME PREFERENCES -->
+    <div id="imeTab" class="tab-pane">
+      <div class="card">
+        <h2 class="card-title">Thiết lập bộ gõ Tiếng Việt</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Phương pháp gõ mặc định</label>
+            <select id="methodSelect" class="form-select">
+              <option value="3" selected>Tự động (Adaptive Telex + VNI)</option>
+              <option value="1">Telex</option>
+              <option value="2">VNI</option>
+              <option value="0">Tắt (Mặc định không gõ dấu)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kiểu đặt dấu thanh</label>
+            <select id="toneStyleSelect" class="form-select">
+              <option value="modern">Kiểu mới (hòa, thủy, khỏe)</option>
+              <option value="classic">Kiểu cũ (hoà, thuỷ, khoẻ)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <label class="checkbox-row">
+            <input type="checkbox" id="spellCheckOption">
+            <div>
+              <strong>Bật kiểm tra chánh tả Tiếng Việt</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động nhận diện chuỗi ký tự không phải Tiếng Việt hoặc từ tiếng Anh (như fast, test, chat) để không bỏ dấu lộn.</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="quickTelexOption">
+            <div>
+              <strong>Bật gõ nhanh Quick Telex (OpenKey)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động chuyển <code>cc &rarr; ch</code>, <code>gg &rarr; gi</code>, <code>kk &rarr; kh</code>, <code>nn &rarr; ng</code>, <code>pp &rarr; ph</code>, <code>tt &rarr; th</code> (giữ nguyên hoa/thường). Nhấn phím lần 3 sẽ hoàn lại 3 phụ âm thô (như <code>ch + c &rarr; ccc</code>).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="emojiShortcutsOption">
+            <div>
+              <strong>Gõ tắt Emoji thông minh (IBus-Bamboo / Slack)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Gõ theo cú pháp <code>:tên_emoji:</code> hoặc <code>:tên</code> kèm phím cách để tự động bung emoji (ví dụ: <code>:tim:</code> hoặc <code>:heart:</code> &rarr; ❤️, <code>:cuoi:</code> &rarr; 😄, <code>:like:</code> &rarr; 👍, <code>:fire:</code> &rarr; 🔥). Hỗ trợ tìm kiếm nhanh từ ribbon gợi ý khi gõ tiền tố <code>:</code>.</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="autoCapitalizeOption">
+            <div>
+              <strong>Tự động viết hoa đầu câu (Auto-Capitalization)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động viết hoa chữ cái đầu tiên sau dấu chấm (<code>.</code>), chấm than (<code>!</code>), chấm hỏi (<code>?</code>) kèm phím cách hoặc ở đầu dòng mà không cần nhấn Shift. Tự động nhận diện các chữ viết tắt phổ biến (như v.v, Mr, Dr, e.g).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="quickConsonantsOption">
+            <div>
+              <strong>Bật gõ nhanh phụ âm (XKey)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Đầu từ: <code>f &rarr; ph</code>, <code>j &rarr; gi</code>, <code>w &rarr; qu</code>. Cuối từ sau nguyên âm: <code>g &rarr; ng</code> (đag &rarr; đang), <code>h &rarr; nh</code> (ah &rarr; anh), <code>k &rarr; ch</code> (tik &rarr; tích).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="autoUndoOption">
+            <div>
+              <strong>Bật khôi phục ký tự viết tắt bằng Backspace</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Nếu nhấn Backspace ngay sau khi từ viết tắt vừa được bung ra, từ viết tắt ban đầu sẽ được khôi phục.</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="autoRestoreEnglishOption">
+            <div>
+              <strong>Tự động khôi phục từ Tiếng Anh khi gõ phím cách (Auto-Restore - GoNhanh)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Khi gõ xong một từ Tiếng Anh (như <code>text</code>, <code>user</code>, <code>expect</code>, <code>push</code>, <code>window</code>, <code>luxury</code>) và bấm phím Cách (Space) hoặc dấu câu, bộ gõ tự động khôi phục về từ tiếng Anh nguyên gốc thay vì để nguyên dấu Tiếng Việt sai (<code>têt</code> &rarr; <code>text</code>, <code>úẻ</code> &rarr; <code>user</code>).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="escRevertOption">
+            <div>
+              <strong>Khôi phục tức thời bằng phím ESC (Instant ESC Revert - GoNhanh)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Khi đang gõ một từ mà dính dấu không mong muốn hoặc muốn lấy lại chuỗi phím thô, chỉ cần bấm phím <code>ESC</code> để khôi phục ngay lập tức về chuỗi ký tự ban đầu.</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="phonologyRulesOption">
+            <div>
+              <strong>Bộ lọc âm vị học chính tả nghiêm ngặt (Phonology Rules - GoNhanh)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Áp dụng quy tắc chính tả tiếng Việt: không bỏ dấu cho <code>c</code> đi trước <code>e, i, y</code> (như <code>center</code>, <code>city</code>); <code>g</code> đi trước <code>e</code> (như <code>get</code>); <code>ng</code> đi trước <code>e, i</code>; và quy tắc âm khép <code>c, ch, p, t</code> chỉ chấp nhận dấu Sắc hoặc Nặng (ngăn chặn dấu huyền/hỏi/ngã sai chính tả).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="ctrlToggleOption">
+            <div>
+              <strong>Bật/Tắt bằng phím Ctrl kép (Nhấn phím Ctrl 2 lần liên tiếp)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tính năng kinh điển của AVIM: gõ phím Ctrl hai lần thật nhanh để chuyển đổi qua lại giữa Tiếng Việt và Tiếng Anh mà không cần dùng chuột hoặc rời tay khỏi bàn phím.</div>
+            </div>
+          </label>
+
+          <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
+            <div style="font-size: 14px; font-weight: 600; color: #38bdf8; margin-bottom: 10px;">Tính năng Gợi ý &amp; Học thói quen (AI / Gboard)</div>
+
+            <label class="checkbox-row">
+              <input type="checkbox" id="autoCompleteOption">
+              <div>
+                <strong>Bật gợi ý từ thông minh (Auto-complete)</strong>
+                <div style="font-size: 12px; color: var(--text-muted);">Gợi ý từ ghép và từ đơn chuẩn tiếng Việt khi đang gõ từ chưa hoàn chỉnh (tìm kiếm tiền tố có dấu và không dấu).</div>
+              </div>
+            </label>
+
+            <label class="checkbox-row">
+              <input type="checkbox" id="nextWordOption">
+              <div>
+                <strong>Bật dự đoán từ kế tiếp (Next-Word Prediction kiểu Gboard)</strong>
+                <div style="font-size: 12px; color: var(--text-muted);">Ngay khi hoàn thành một từ và bấm phím cách, gợi ý các từ có khả năng xuất hiện tiếp theo (thí dụ: <code>Việt</code> &rarr; <code>Nam</code>, <code>công</code> &rarr; <code>nghệ</code>).</div>
+              </div>
+            </label>
+
+            <label class="checkbox-row">
+              <input type="checkbox" id="gboardLearningOption">
+              <div>
+                <strong>Tự động học thói quen ghép từ của người dùng (On-Device Habit Learning)</strong>
+                <div style="font-size: 12px; color: var(--text-muted);">Ghi nhận các cặp từ bạn hay gõ để ưu tiên xếp lên đầu. Dữ liệu lưu 100% cục bộ trên máy bạn, bảo mật tuyệt đối.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: AI & GBOARD HABIT LEARNING -->
+    <div id="aiTab" class="tab-pane">
+      <div class="card">
+        <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🤖 Gợi Ý Từ &amp; Dự Đoán Từ Kế Tiếp (Gboard-Style AI)</span>
+        </h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          Hệ thống kết hợp mô hình ngôn ngữ Tiếng Việt (Bigram language model) và cơ chế tự học thói quen on-device giống Google Gboard. Khi bạn gõ phím, bộ gõ sẽ dự đoán từ tiếp theo có khả năng cao nhất để bạn chỉ cần nhấn <code>Tab</code> hoặc click chuột là hoàn thành từ.
+        </p>
+
+        <div style="margin-top: 10px;">
+          <label class="checkbox-row">
+            <input type="checkbox" id="aiTabAutoComplete">
+            <div>
+              <strong>Kích hoạt gợi ý từ thông minh (Auto-complete)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động hiển thị danh sách từ ghép (hơn 150+ cụm từ chọn lọc) và ~6.700 từ đơn chuẩn.</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="aiTabNextWord">
+            <div>
+              <strong>Kích hoạt dự đoán từ kế tiếp (Next-word Prediction)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Hiển thị băng gợi ý các từ tiếp theo ngay sau khi gõ dấu cách.</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="aiTabLearning">
+            <div>
+              <strong>Tự động ghi nhận thói quen ghép từ cá nhân (On-Device Learning)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Cặp từ nào bạn hay gõ cùng nhau sẽ được học và ưu tiên lên vị trí #1 với nhãn "Thói quen".</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <h2 class="card-title" style="margin-bottom: 4px;">Dữ Liệu Thói Quen Đã Học (On-Device Memory)</h2>
+            <div style="font-size: 12px; color: var(--text-muted);">Dữ liệu được lưu trong bộ nhớ cục bộ trình duyệt (localStorage), không gửi ra ngoài.</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="seedHabitsBtn" class="btn">Nạp Mẫu Thói Quen Thử</button>
+            <button id="clearHabitsBtn" class="btn btn-danger">Xóa Sạch Bộ Nhớ Học (Reset)</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+          <div style="background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center;">
+            <div style="font-size: 11px; color: var(--text-muted);">Tổng số cặp từ</div>
+            <div id="statTotalPairs" style="font-size: 20px; font-weight: bold; color: #f59e0b; margin-top: 4px;">0</div>
+          </div>
+          <div style="background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center;">
+            <div style="font-size: 11px; color: var(--text-muted);">Lượt chuyển đổi</div>
+            <div id="statTotalTransitions" style="font-size: 20px; font-weight: bold; color: #10b981; margin-top: 4px;">0</div>
+          </div>
+          <div style="background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center;">
+            <div style="font-size: 11px; color: var(--text-muted);">Từ vựng đã dùng</div>
+            <div id="statTotalWords" style="font-size: 20px; font-weight: bold; color: #38bdf8; margin-top: 4px;">0</div>
+          </div>
+        </div>
+
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 60px;">STT</th>
+                <th>Từ bắt đầu</th>
+                <th>Từ kế tiếp (dự đoán)</th>
+                <th style="width: 120px; text-align: center;">Số lần gõ</th>
+                <th style="width: 120px; text-align: right;">Phân loại</th>
+              </tr>
+            </thead>
+            <tbody id="habitsTableBody">
+              <!-- Dynamic rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: EXCLUSIONS -->
+    <div id="exclusionsTab" class="tab-pane">
+      <div class="card">
+        <h2 class="card-title">Tên miền không sử dụng bộ gõ</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+          Nhập các tên miền (mỗi tên miền một dòng) để tự động vô hiệu hóa bộ gõ khi duyệt web (ví dụ: figma.com, overleaf.com, v.v.).
+        </p>
+        <textarea id="blacklistTextarea" rows="4" class="form-control font-mono" placeholder="figma.com&#10;github.com"></textarea>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Nhớ trạng thái kiểu gõ theo từng website (Per-Domain Memory)</h2>
+        <label class="checkbox-row" style="margin-bottom: 16px;">
+          <input type="checkbox" id="perDomainMemoryOption">
+          <div>
+            <strong>Tự động ghi nhớ kiểu gõ riêng cho từng website</strong>
+            <div style="font-size: 12px; color: var(--text-muted);">Khi bạn chuyển sang TẮT trên github.com hay leetcode.com, bộ gõ sẽ nhớ riêng cho domain đó. Khi quay lại facebook.com hay zalo.me, kiểu gõ tiếng Việt sẽ tự động được phục hồi.</div>
+          </div>
+        </label>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+          <input type="text" id="newDomainInput" class="form-control font-mono" placeholder="Tên miền (ví dụ: github.com)..." style="width: 240px;">
+          <select id="newDomainMethodSelect" class="form-select" style="width: 150px;">
+            <option value="0">TẮT (Tiếng Anh)</option>
+            <option value="1">Telex</option>
+            <option value="2">VNI</option>
+            <option value="3">Tự động</option>
+          </select>
+          <button id="addDomainBtn" class="btn btn-primary">+ Thêm Website</button>
+        </div>
+
+        <div class="table-container" style="max-height: 260px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên miền (Website)</th>
+                <th style="width: 180px;">Kiểu gõ ghi nhớ</th>
+                <th style="width: 100px; text-align: right;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="domainMethodsTableBody">
+              <!-- Dynamic rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Quy tắc loại trừ trường nhập liệu</h2>
+        <label class="checkbox-row">
+          <input type="checkbox" id="disablePassword" checked disabled>
+          <div>
+            <strong>Ô mật khẩu (type="password")</strong>
+            <div style="font-size: 12px; color: var(--text-muted);">Luôn luôn tắt để đảm bảo an toàn thông tin mật khẩu.</div>
+          </div>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="disableDataNoIme" checked disabled>
+          <div>
+            <strong>Thẻ có data-no-ime="true"</strong>
+            <div style="font-size: 12px; color: var(--text-muted);">Dành cho các chương trình biên soạn mã nguồn trực tuyến (Monaco, CodeMirror).</div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Macro Modal -->
+  <div id="macroModal" class="modal-backdrop">
+    <div class="modal">
+      <h3 id="modalTitle" class="modal-title">Thêm Từ Viết Tắt Mới</h3>
+      <div class="form-group">
+        <label class="form-label">Ký tự viết tắt (Trigger):</label>
+        <input type="text" id="modalTrigger" class="form-control font-mono" placeholder="ví dụ: vn, hn, dc...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cụm từ thay thế (Expanded Value):</label>
+        <input type="text" id="modalValue" class="form-control" placeholder="ví dụ: Việt Nam, Hà Nội, được...">
+      </div>
+      <div class="modal-footer">
+        <button id="modalCancelBtn" class="btn">Hủy bỏ</button>
+        <button id="modalSaveAndContinueBtn" class="btn" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">Lưu và thêm tiếp</button>
+        <button id="modalSaveBtn" class="btn btn-primary">Lưu Thay Đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="importModal" class="modal-backdrop">
+    <div class="modal">
+      <h3 class="modal-title">Nhập Dữ Liệu Bảng Gõ Tắt (JSON / CSV)</h3>
+      <div class="form-group">
+        <label class="form-label">Dán nội dung JSON hoặc CSV vào bên dưới:</label>
+        <textarea id="importTextarea" rows="8" class="form-control font-mono" placeholder="Dán nội dung JSON hoặc CSV..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="importCancelBtn" class="btn">Đóng</button>
+        <button id="importConfirmBtn" class="btn btn-primary">Nạp Dữ Liệu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import User Dictionary Modal -->
+  <div id="importDictModal" class="modal-backdrop">
+    <div class="modal">
+      <h3 class="modal-title">Nhập Dữ Liệu Từ Điển Cá Nhân (TXT / JSON)</h3>
+      <div class="form-group">
+        <label class="form-label">Dán danh sách từ (mỗi từ một dòng hoặc mảng JSON):</label>
+        <textarea id="importDictTextarea" rows="8" class="form-control font-mono" placeholder="plugin&#10;figma&#10;react&#10;docker..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="importDictCancelBtn" class="btn">Đóng</button>
+        <button id="importDictConfirmBtn" class="btn btn-primary">Nạp Vô Từ Điển</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="feedback-toast">Đã lưu cài đặt!</div>
+
+  <script src="options.bundle.js"></script>
+</body>
+</html>

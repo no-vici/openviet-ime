@@ -1,0 +1,354 @@
+# OpenViet IME - Bộ Gõ Tiếng Việt & Gõ Tắt Macro Cho Trình Duyệt
+
+<div align="center">
+    <img src="src/assets/icon128.png" alt="OpenViet IME Logo" width="128" height="128" />
+
+
+[![Bộ Gõ Tiếng Việt](https://img.shields.io/badge/IME-Ti%E1%BA%BFng%20Vi%E1%BB%87t-blue?style=flat-square)](#)
+[![Phương Pháp Gõ](https://img.shields.io/badge/Ki%E1%BB%83u%20G%C3%B5-T%E1%BB%B1%20%C4%90%E1%BB%99ng%20|%20Telex%20|%20VNI-indigo?style=flat-square)](#)
+[![Manifest V3](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-blue?style=flat-square)](#)
+[![Firefox WebExtension](https://img.shields.io/badge/Firefox-WebExtension-orange?style=flat-square)](#)
+[![Giấy Phép](https://img.shields.io/badge/Gi%E1%BA%A5y%20ph%C3%A9p-Apache%202.0-green?style=flat-square)](#)
+
+</div>
+
+Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ cao dành cho mọi trình duyệt (Google Chrome, Microsoft Edge, Brave, Opera, Arc, Firefox). Hoạt động hoàn hảo dưới cả hai hình thức: **Tiện ích mở rộng trình duyệt (Manifest V3)** và **Ứng dụng Web độc lập (Web App)**.
+
+> 🇺🇸 **English Version**: [Read English documentation at README.md](./README.md)
+
+---
+
+## Mục Lục
+
+1. [Điểm Nổi Bật & Tính Năng Vượt Trội](#điểm-nổi-bật--tính-năng-vượt-trội)
+2. [Quy Tắc Bỏ Dấu & Kiểu Gõ](#quy-tắc-bỏ-dấu--kiểu-gõ)
+   - [Chế Độ Tự Động Thích Ứng (Adaptive Auto Mode)](#chế-độ-tự-động-thích-ứng-adaptive-auto-mode)
+   - [Kiểu Gõ VNI](#kiểu-gõ-vni)
+   - [Kiểu Gõ Telex & Phím `z` Xóa Dấu Thanh](#kiểu-gõ-telex--phím-z-xóa-dấu-thanh)
+   - [Tự Động Bỏ Qua URL, Email & Cú Pháp Code](#tự-động-bỏ-qua-url-email--cú-pháp-code)
+   - [Nguyên Âm Đôi Có Móc (`ươ`)](#nguyên-âm-đôi-có-móc-ươ)
+   - [Cụm Nguyên Âm `uê` (`thuế`, `huế`, `quế`) & `ưu` (`cứu`, `cừu`)](#cụm-nguyên-âm-uê-thuế-huế-quế--ưu-cứu-cừu)
+   - [Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hòa`/`hoà`)](#chuẩn-bỏ-dấu-hiện-đại-vs-cổ-điển-hòahoà)
+   - [Bỏ Dấu Ở Cuối Từ (Late Vowel Shaping)](#bỏ-dấu-ở-cuối-từ-late-vowel-shaping)
+   - [Quy Tắc Chính Tả & Âm Khép Phụ Âm Cuối](#quy-tắc-chính-tả--âm-khép-phụ-âm-cuối)
+3. [Gợi Ý Từ Thông Minh & Dự Đoán Từ Kế Tiếp Kiểu Gboard](#gợi-ý-từ-thông-minh--dự-đoán-từ-kế-tiếp-kiểu-gboard)
+   - [Nguồn Dữ Liệu Từ Điển Đa Tầng](#nguồn-dữ-liệu-từ-điển-đa-tầng)
+   - [Dự Đoán Từ Kế Tiếp & Tối Ưu Cho Ứng Dụng Chat](#dự-đoán-từ-kế-tiếp--tối-ưu-cho-ứng-dụng-chat)
+   - [Tự Học Thói Quen Người Dùng Cục Bộ (Bảo Mật 100%)](#tự-học-thói-quen-người-dùng-cục-bộ-bảo-mật-100)
+4. [Từ Điển Cá Nhân & Danh Sách Bỏ Qua Chính Tả](#từ-điển-cá-nhân--danh-sách-bỏ-qua-chính-tả)
+5. [Bộ Gõ Tắt Macro (Theo Phong Cách xKey)](#bộ-gõ-tắt-macro-theo-phong-cách-xkey)
+   - [Kích Hoạt Theo Ranh Giới Từ & Giữ Nguyên Kiểu Chữ](#kích-hoạt-theo-ranh-giới-từ--giữ-nguyên-kiểu-chữ)
+   - [Hoàn Tác Nhanh Bằng Phím Backspace](#hoàn-tác-nhanh-bằng-phím-backspace)
+6. [Kiến Trúc Kỹ Thuật (Manifest V3)](#kiến-trúc-kỹ-thuật-manifest-v3)
+7. [Hướng Dẫn Cài Đặt](#hướng-dẫn-cài-đặt)
+   - [Cài Đặt Vào Chrome / Edge / Brave / Opera (Chromium)](#cài-đặt-vào-chrome--edge--brave--opera-chromium)
+   - [Cài Đặt Vào Mozilla Firefox](#cài-đặt-vào-mozilla-firefox)
+   - [Biên Dịch Từ Mã Nguồn](#biên-dịch-từ-mã-nguồn)
+8. [Kiểm Thử & Đảm Bảo Chất Lượng](#kiểm-thử--đảm-bảo-chất-lượng)
+9. [Triết Lý Thiết Kế: Chuẩn Hóa Unicode Hiện Đại](#triết-lý-thiết-kế-chuẩn-hóa-unicode-hiện-đại)
+10. [Bản Quyền](#bản-quyền)
+
+---
+
+## Điểm Nổi Bật & Tính Năng Vượt Trội
+
+- **Không Phụ Thuộc Hệ Điều Hành**: Hoạt động trực tiếp trên mọi tab trình duyệt, iframe, web app (Google Docs, Gmail, Slack, Notion, Facebook, Discord, web console, Figma...).
+- **Chế Độ Tự Động (Auto) Mặc Định**: Mặc định kích hoạt chế độ **Tự động thích ứng** (gõ số theo VNI, gõ chữ theo Telex), dễ dàng chuyển đổi sang Telex, VNI hoặc Tắt chỉ với 1 click.
+- **Phím `z` Xóa Dấu Thanh Chuyên Dụng**: Gõ phím `z` (Telex/Auto) hoặc phím `0` (VNI) để lập tức gỡ bỏ dấu thanh và đưa nguyên âm về dạng gốc (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
+- **Tự Động Bỏ Qua URL, Email & Code (`isUrlOrEmailOrCode`)**: Tự động nhận diện đường dẫn web (`https://`, `www.`, `.com`, `/path`), địa chỉ email (`user@gmail.com`) và cú pháp lập trình (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, thẻ HTML, `->`, `=>`, `===`), tạm ngưng biến đổi bộ gõ để giữ nguyên link và code.
+- **Bỏ Dấu Chuẩn Xác Tuyệt Đối**: Đã sửa và hoàn thiện vị trí đặt dấu cho tất cả các nguyên âm đôi, ba phức tạp: `uê` (`thuế`, `huế`, `quế`, `xuề`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), cùng 2 chuẩn hiện đại và cổ điển (`hòa`/`hoà`, `thủy`/`thuỷ`).
+- **Tối Ưu Riêng Cho Telegram Web A & Trình Soạn Thảo Rich-Text**: Xử lý triệt để xung đột con trỏ của TipTap/ProseMirror, khởi tạo Shadow Host sớm và xác định vùng chọn `TEXT_NODE` chuẩn xác, không bao giờ bị nhảy con trỏ hay lặp vòng viết hoa đầu câu.
+- **Dự Đoán Từ Thân Thiện Với Chat & Dấu Câu**: Khi nhấn phím `Enter` trong Telegram, Messenger, Zalo, Slack, thanh gợi ý next-word tự ẩn ngay và nhường quyền cho phím `Enter` gửi tin nhắn tức thì; không hiển thị từ gợi ý chữ thường ngay sau dấu kết thúc câu (`. ? !`).
+- **Gợi Ý Từ Thông Minh Thời Gian Thực (Auto-complete)**: Bảng menu nổi hiện đại gợi ý từ ngữ ngay khi bạn gõ các ký tự đầu tiên, hỗ trợ cả tìm kiếm không dấu (`cuu` -> `cứu hộ`, `cứu nạn`) lẫn có dấu (`cấp` -> `cấp cứu`).
+- **Tự Học Thói Quen Người Dùng (On-Device Machine Learning)**: Tự động ghi nhớ các cặp từ bạn hay gõ (như `họp team`, `chuyển khoản`, `gửi email`, `chúc anh`) và đưa lên đầu danh sách với huy hiệu xanh **Thói quen**. Toàn bộ dữ liệu lưu trong `localStorage` máy bạn, không gửi bất kỳ byte nào ra ngoài internet.
+- **Tự Động Khôi Phục Từ Tiếng Anh (GoNhanh Feature)**: Khi nhấn phím Cách (Space), tự động hoàn trả các từ tiếng Anh hay bị dính bẫy gõ nhầm (`text` thay vì `têt`, `user` thay vì `úẻ`, `push` thay vì `púh`, `window` thay vì `ưindoư`).
+- **Hoàn Tác Nhanh Bằng Phím ESC (Instant ESC Revert)**: Nhấn `ESC` để đưa ngay từ đang gõ dở dang về lại chuỗi phím thô ban đầu mà không cần bấm xóa lùi từng ký tự.
+- **Quy Tắc Chính Tả Chặt Chẽ**: Kiểm tra chính tả tiếng Việt (`c/k`, `g/gh`, `ng/ngh` để bảo vệ từ tiếng Anh như `center`, `city`, `get`) và kiểm soát âm khép (`-c, -ch, -p, -t` chỉ nhận dấu Sắc hoặc Nặng).
+- **Bộ Gõ Tắt Macro Cực Nhanh (Kiểu xKey)**: Thay thế từ viết tắt tức thì (`vn` -> `Việt Nam`, `dc` -> `được`, `tv` -> `Tiếng Việt`) với khả năng chuyển hoa/thường tự động và xóa lùi để hoàn tác (Backspace Undo).
+- **Phím Tắt Toàn Cục & Chuyển Nhanh Bằng Double-Ctrl**: Bấm đúp phím `Ctrl` nhanh (< 400ms) để Bật/Tắt bộ gõ tức thì trên mọi trang web kèm thông báo nổi HUD, hoặc dùng phím tắt `Ctrl+Shift+Z` (`Cmd+Shift+Z` trên macOS).
+- **Giao Diện Shadow DOM Cách Ly**: Thanh hiển thị trạng thái và gợi ý được đóng gói trong Shadow DOM, hoàn toàn không bị ảnh hưởng bởi CSS của trang web đang mở.
+
+---
+
+## Quy Tắc Bỏ Dấu & Kiểu Gõ
+
+### Chế Độ Tự Động Thích Ứng (Adaptive Auto Mode)
+
+Chế độ Tự Động kết hợp linh hoạt cả Telex lẫn VNI: các phím số (`1-9`, `0`) sẽ kích hoạt dấu theo chuẩn VNI, trong khi các phím chữ (`s, f, r, x, j, w, aa, ee, oo, dd, z`) kích hoạt dấu theo chuẩn Telex. Người dùng có thể gõ tự nhiên theo bất kỳ thói quen nào mà không cần phải vào cài đặt đổi kiểu gõ.
+
+### Kiểu Gõ VNI
+
+VNI sử dụng các phím số từ `1` đến `9` và `0` để bỏ dấu hoặc xóa dấu:
+
+| Phím Số | Tác Dụng | Tên Dấu | Ví Dụ Phím Gõ | Kết Quả Xuất Ra |
+| :---: | :--- | :--- | :--- | :--- |
+| **`1`** | Dấu Sắc (Acute) | Sắc | `a1`, `e1`, `o1` | `á`, `é`, `ó` |
+| **`2`** | Dấu Huyền (Grave) | Huyền | `a2`, `e2`, `u2` | `à`, `è`, `ù` |
+| **`3`** | Dấu Hỏi (Hook) | Hỏi | `a3`, `o3`, `i3` | `ả`, `ỏ`, `ỉ` |
+| **`4`** | Dấu Ngã (Tilde) | Ngã | `a4`, `e4`, `o4` | `ã`, `ẽ`, `õ` |
+| **`5`** | Dấu Nặng (Dot) | Nặng | `a5`, `o5`, `u5` | `ạ`, `ọ`, `ụ` |
+| **`6`** | Dấu Mũ (Circumflex) | Mũ | `a6`, `e6`, `o6` | `â`, `ê`, `ô` |
+| **`7`** | Dấu Móc (Horn) | Móc | `o7`, `u7`, `uo7` | `ơ`, `ư`, `ươ` |
+| **`8`** | Dấu Trăng (Breve) | Trăng | `a8` | `ă` |
+| **`9`** | Dấu Gạch Ngang (Bar) | Chữ Đ | `d9`, `D9` | `đ`, `Đ` |
+| **`0`** | Xóa dấu thanh | Xóa dấu | `toán0`, `thuế0` | `toan`, `thuê` |
+
+Khi gõ lại cùng một phím số dấu một lần nữa, bộ gõ sẽ gỡ dấu và xuất ra chữ số nguyên bản (ví dụ: `icon` + `6` -> `icôn` + `6` -> `icon6` + `4` -> `icon64`).
+
+### Kiểu Gõ Telex & Phím `z` Xóa Dấu Thanh
+
+Telex sử dụng các phím chữ lặp và các ký tự quy ước (`w`, `s`, `f`, `r`, `x`, `j`, `z`):
+
+| Ký Tự | Tác Dụng | Ví Dụ Phím Gõ | Kết Quả Xuất Ra |
+| :---: | :--- | :--- | :--- |
+| **`s`** | Dấu Sắc | `as`, `es`, `os` | `á`, `é`, `ó` |
+| **`f`** | Dấu Huyền | `af`, `ef`, `uf` | `à`, `è`, `ù` |
+| **`r`** | Dấu Hỏi | `ar`, `or`, `ir` | `ả`, `ỏ`, `ỉ` |
+| **`x`** | Dấu Ngã | `ax`, `ex`, `ox` | `ã`, `ẽ`, `õ` |
+| **`j`** | Dấu Nặng | `aj`, `oj`, `uj` | `ạ`, `ọ`, `ụ` |
+| **`aa` / `ee` / `oo`** | Dấu Mũ (`â`, `ê`, `ô`) | `aa`, `ee`, `oo` | `â`, `ê`, `ô` |
+| **`w`** | Dấu Móc / Trăng | `aw` -> `ă`, `ow` -> `ơ`, `uw` -> `ư`, `uow` -> `ươ` | `ă`, `ơ`, `ư`, `ươ` |
+| **`dd`** | Chữ Đ (`đ`) | `dd`, `Dd` | `đ`, `Đ` |
+| **`z`** | Xóa dấu thanh | `toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc` | Xóa sạch dấu thanh, giữ nguyên dấu mũ/móc |
+
+- Nếu từ đang có dấu thanh, gõ `z` (Telex) hoặc `0` (VNI) sẽ xóa sạch dấu thanh về nguyên âm cơ sở.
+- Nếu từ chưa có dấu thanh (ví dụ `toan`), gõ `z` sẽ xuất ra chữ `z` bình thường (`toanz`).
+
+---
+
+### Tự Động Bỏ Qua URL, Email & Cú Pháp Code
+
+Khi gõ đường link, email hoặc viết code, các bộ gõ truyền thống thường xuyên bỏ nhầm dấu tiếng Việt làm hỏng nội dung (ví dụ: gõ `search` thành `seảch`, `user_name` thành `úer_name`).
+
+OpenViet IME tích hợp cơ chế bảo vệ thông minh (`isUrlOrEmailOrCode`) tự động nhận dạng:
+- **Đường dẫn Web (URLs)**: Nhận diện `http://`, `https://`, `www.`, `localhost`, `.com`, `.vn`, `.org`, `.net`, `.io`, `.dev`, `.ai` và đường dẫn `/path/to/api`.
+- **Địa chỉ Email**: Nhận diện ký tự `@` trong từ (`contact@company.vn`, `user@gmail.com`).
+- **Cú pháp Code**: Nhận diện `snake_case` có `_`, `kebab-case` có `-`, thuộc tính object có dấu chấm (`console.log`, `user.name`), biến (`$var`, `#id`), thẻ HTML (`<div`, `</span`) và toán tử (`->`, `=>`, `===`).
+
+Khi phát hiện ngữ cảnh này, bộ gõ sẽ tự động tạm ngưng can thiệp để code và link luôn nguyên vẹn 100%.
+
+---
+
+### Nguyên Âm Đôi Có Móc (`ươ`)
+
+Trong các từ như `được`, `nước`, `bước`, `trước`, `thương`, cụm nguyên âm `uo` cần nhận dấu móc trên **cả hai chữ cái** (`u` -> `ư`, `o` -> `ơ`) để tạo thành `ươ`.
+
+- **Thao tác VNI**:
+  - Gõ `duoc` rồi nhấn `9` đổi `d` thành `đ` -> `đuoc`.
+  - Nhấn `7` tạo móc đôi cho cả `u` và `o` -> `đươc`.
+  - Nhấn `5` thêm dấu nặng vào âm chính `ơ` -> `được`.
+  - Nhập theo thứ tự `duoc975` hay `duoc759` đều cho ra kết quả chuẩn **`được`**.
+- **Thao tác Telex**:
+  - Gõ `duoc` rồi nhấn `w` chuyển `uo` -> `ươ` -> `đươc`.
+  - Nhấn thêm `j` đặt dấu nặng -> **`được`**.
+
+---
+
+### Cụm Nguyên Âm `uê` (`thuế`, `huế`, `quế`) & `ưu` (`cứu`, `cừu`)
+
+1. **Cụm `uê`**:
+   - Theo ngữ âm học tiếng Việt, `u` là âm đệm và `ê` là âm chính mang trọng âm.
+   - Dấu thanh bắt buộc phải rơi vào `ê`:
+     - `thue61` hoặc `thue16` -> **`thuế`** (tuyệt đối không bị lỗi `thúê`).
+     - `hue61` -> **`huế`**.
+     - `que61` -> **`quế`**.
+     - `xue62` -> **`xuề`**.
+2. **Cụm `ưu`**:
+   - Khi gõ `uu` kèm phím móc:
+     - `cuu` + `7` (VNI) hoặc `w` (Telex) tạo thành **`cưu`** (dấu móc nằm ở chữ `u` đầu tiên).
+     - Thêm dấu sắc (`1` hoặc `s`) cho ra **`cứu`** (`cuu71` -> `cứu`).
+     - `cuu72` -> **`cừu`**, `cuu75` -> **`cựu`**, `luu7` -> **`lưu`**, `uu7` -> **`ưu`**.
+     - Gõ lại `7` hoặc `w` một lần nữa sẽ hoàn về `uu` nguyên bản.
+
+---
+
+### Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hòa`/`hoà`)
+
+Tùy chỉnh linh hoạt trong trang cài đặt:
+
+1. **Chuẩn Hiện Đại (Mặc định)**:
+   - Với các nguyên âm đôi mở không có phụ âm cuối (`oa`, `oe`, `uy`), dấu thanh được đặt trên nguyên âm thứ hai:
+     - `hòa`, `hòe`, `thủy`, `khỏe`, `thỏa`.
+2. **Chuẩn Cổ Điển**:
+   - Dấu thanh được đặt trên nguyên âm thứ nhất:
+     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`.
+
+Khi có phụ âm cuối (như `toán`, `hoàn`, `quýt`), cả hai chuẩn đều đồng nhất đặt dấu lên nguyên âm chính trước phụ âm cuối.
+
+---
+
+### Bỏ Dấu Ở Cuối Từ (Late Vowel Shaping)
+
+Hỗ trợ thói quen gõ xong cả từ rồi mới thêm dấu mũ:
+- Gõ `chong` + `o` -> **`chông`**.
+- Gõ `kieu` + `e` -> **`kiêu`**.
+- Gõ `bien` + `e` -> **`biên`**.
+- Gõ `hang` + `a` -> **`hâng`**.
+- Gõ `dem` + `e` -> **`đêm`**.
+- Nếu từ đã có dấu thanh (ví dụ: `chóng` + `o`), dấu thanh sẽ tự động di chuyển mượt mà sang nguyên âm có mũ: `chóng` + `o` -> **`chống`**.
+- **Gõ lại để hoàn tác**: Gõ lại phím mũ một lần nữa sẽ chuyển về ký tự thô: `chông` + `o` -> **`chongo`**, `kiêu` + `e` -> **`kieue`**.
+
+---
+
+### Quy Tắc Chính Tả & Âm Khép Phụ Âm Cuối
+
+- **Âm Khép Phụ Âm Cuối (`-c, -ch, -p, -t`)**: Những âm tiết kết thúc bằng phụ âm tắc (`c`, `ch`, `p`, `t`) **chỉ có thể nhận Thanh 1 (Sắc) hoặc Thanh 5 (Nặng)**. Tuyệt đối không nhận thanh Huyền, Hỏi, Ngã (`bac` + `s` -> `bác`, nhưng `bac` + `f` -> `bacf` không bị biến thành `bàc`).
+- **Quy tắc `c/k`, `g/gh`, `ng/ngh`**: Các nguyên âm trước (`e, ê, i, y`) không đi cùng `c`, `g`, `ng`. Các từ tiếng Anh như `center`, `city`, `get` được giữ nguyên vẹn mà không bị đổi dấu sai.
+
+---
+
+## Gợi Ý Từ Thông Minh & Dự Đoán Từ Kế Tiếp Kiểu Gboard
+
+### Nguồn Dữ Liệu Từ Điển Đa Tầng
+Bộ gõ tích hợp 4 tầng dữ liệu từ điển:
+1. **Từ Ghép Tiếng Việt Chọn Lọc (`COMMON_VIETNAMESE_COMPOUNDS`)**: Hơn 150+ cụm từ ghép thông dụng trong công việc, học tập, hành chính và giao tiếp.
+2. **Kho Âm Tiết Tiếng Việt Chuẩn (`vietnamese-words.js`)**: ~6.700 âm tiết chuẩn mực từ từ điển Hunspell tiếng Việt.
+3. **Từ Điển Riêng Của Bạn (`userDictionary`)**: Các từ thuật ngữ, tên riêng được bạn thêm vào và ưu tiên hàng đầu.
+4. **Thuật Ngữ Công Nghệ & Tiếng Anh (`COMMON_ENGLISH_WORDS`)**: Các từ phổ biến như `React`, `TypeScript`, `Docker`, `GitHub`, `API`.
+
+### Dự Đoán Từ Kế Tiếp & Tối Ưu Cho Ứng Dụng Chat
+Khi bạn vừa gõ xong một từ, thanh gợi ý ribbon sẽ đưa ra các từ tiếp theo có khả năng xuất hiện cao nhất:
+- `Việt ` -> `[ Nam ]`, `[ Trì ]`, `[ dã ]`, `[ kiều ]`.
+- `công ` -> `[ nghệ ]`, `[ ty ]`, `[ việc ]`, `[ nhân ]`.
+- `chúc ` -> `[ mừng ]`, `[ bạn ]`, `[ anh ]`, `[ em ]`.
+- `nghiên ` -> `[ cứu ]`, `[ cứu sinh ]`.
+
+**Quy Tắc Thân Thiện Với Ứng Dụng Chat & Dấu Câu**:
+- **Không chiếm phím Enter**: Khi chat trong Telegram, Messenger, Zalo, Slack, việc bấm `Enter` để gửi tin nhắn sẽ **không bao giờ** bị chen ngang bởi từ gợi ý next-word. Thanh gợi ý tự ẩn ngay và tin nhắn được gửi đi tức thì.
+- **Tôn trọng dấu kết thúc câu**: Sau các dấu chấm câu (`. ? !`) hoặc dấu cách sau dấu chấm câu, bộ gõ sẽ không gợi ý các từ kế tiếp ở dạng chữ thường để tránh làm phiền mắt ở đầu câu mới.
+
+### Tự Học Thói Quen Người Dùng Cục Bộ (Bảo Mật 100%)
+- Khi bạn gõ các cặp từ liên tiếp (như `họp team`, `chuyển khoản`, `gửi email`), mô hình bigram trên máy bạn sẽ tự động tăng tần suất xuất hiện.
+- Các cặp từ hay dùng nhất sẽ được đưa lên vị trí số 1 kèm huy hiệu xanh **Thói quen**.
+- Toàn bộ dữ liệu được lưu cục bộ trong `localStorage` / `sync storage` của trình duyệt, không có telemetry, không gửi dữ liệu ra mạng internet.
+
+---
+
+## Từ Điển Cá Nhân & Danh Sách Bỏ Qua Chính Tả
+
+- Truy cập dễ dàng từ trang Cài đặt Tùy chọn (`/options.html`).
+- Cho phép thêm, tìm kiếm và xóa các từ ngữ chuyên ngành, tên riêng tiếng nước ngoài hoặc mã sản phẩm.
+- Các từ trong danh sách này sẽ được bỏ qua kiểm tra chính tả và được ưu tiên cao nhất trong bảng gợi ý auto-complete.
+- Hỗ trợ xuất/nhập hàng loạt bằng file `.txt` hoặc `.json`.
+
+---
+
+## Bộ Gõ Tắt Macro (Theo Phong Cách xKey)
+
+### Kích Hoạt Theo Ranh Giới Từ & Giữ Nguyên Kiểu Chữ
+Từ viết tắt sẽ tự động mở rộng khi bạn gõ kèm một ký tự phân cách từ (`Dấu cách`, `Enter`, `,`, `.`, `;`, `:`, `!`, `?`):
+
+1. **Chữ thường**: `vn ` -> `Việt Nam `
+2. **Chữ hoa đầu từ**: `Vn ` -> `Việt Nam `
+3. **Chữ in hoa toàn bộ**: `VN ` -> `VIỆT NAM `
+
+Các từ viết tắt mặc định sẵn có:
+- `vn` -> `Việt Nam`, `hn` -> `Hà Nội`, `sg` -> `Sài Gòn`
+- `dc` -> `được`, `ko` -> `không`, `k` -> `không`, `ntn` -> `như thế nào`, `vs` -> `với`
+- `tv` -> `Tiếng Việt`, `zia` -> `dzìa`, `zi` -> `dzí`, `zo` -> `dzô`
+- `ck` -> `chồng`, `cx` -> `cũng`, `idk` -> `tao hông biết`
+
+### Hoàn Tác Nhanh Bằng Phím Backspace
+Nếu bạn không muốn mở rộng từ viết tắt, nhấn **Backspace ngay lập tức** sẽ phục hồi lại cụm ký tự tắt ban đầu:
+```
+Bạn gõ:     "vn "
+Mở rộng ra: "Việt Nam "
+Bấm [⌫]:    "vn"
+```
+
+---
+
+## Kiến Trúc Kỹ Thuật (Manifest V3)
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Kiến Trúc OpenViet IME                          │
+├──────────────────────────────────┬─────────────────────────────────────┤
+│  Ứng Dụng React Độc Lập (App.tsx)│     Extension Trình Duyệt (MV3)     │
+│  - Bàn thử nghiệm gõ trực quan   │  - Service Worker (đồng bộ cài đặt) │
+│  - Nhật ký phím gõ thời gian thực│  - Content Script (mọi trang web)   │
+│  - Quản lý Macro & Từ điển riêng │  - Thanh HUD & Ribbon (Shadow DOM)  │
+│  - Trình chạy kiểm thử tự động   │  - Giao diện Popup & Options        │
+│  - Xuất file đóng gói .ZIP       │  - Phím tắt toàn cục (Ctrl+Shift+Z) │
+└──────────────────────────────────┴─────────────────────────────────────┘
+                                  │
+                                  ▼
+      ┌────────────────────────────────────────────────────────┐
+      │                   src/engine/                          │
+      │  ├─ avim.js       (Xử lý logic VNI, Telex, bỏ dấu)     │
+      │  ├─ macro.js      (Động cơ mở rộng gõ tắt xKey)        │
+      │  ├─ key-codes.js  (Bảng mã Unicode & bộ lọc URL/Code)  │
+      │  ├─ autocomplete.js (Động cơ gợi ý từ ngữ & Gboard)    │
+      │  ├─ dictionary.js (Từ điển cá nhân & quy tắc ngữ âm)   │
+      │  └─ vietnamese-words.js (Bộ từ vựng 6.7k âm tiết)      │
+      └────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Hướng Dẫn Cài Đặt
+
+### Cài Đặt Vào Chrome / Edge / Brave / Opera (Chromium)
+
+1. Nhấn nút **"Tải Extension (.ZIP)"** trên thanh điều hướng để tải trọn bộ extension, hoặc tự build từ mã nguồn.
+2. Giải nén file `.zip` vừa tải về vào một thư mục trên máy bạn.
+3. Mở trang quản lý tiện ích trên trình duyệt:
+   - Chrome / Brave: `chrome://extensions`
+   - Edge: `edge://extensions`
+   - Opera: `opera://extensions`
+4. Bật công tắc **Chế độ dành cho nhà phát triển (Developer mode)** ở góc trên bên phải.
+5. Nhấn nút **Tải tiện ích đã giải nén (Load unpacked)** và chọn thư mục vừa giải nén (nơi có file `manifest.json`).
+6. Biểu tượng OpenViet IME sẽ xuất hiện trên thanh công cụ của bạn với huy hiệu **`AUTO`**.
+
+### Cài Đặt Vào Mozilla Firefox
+
+1. Nhập `about:debugging#/runtime/this-firefox` vào thanh địa chỉ của Firefox.
+2. Nhấn nút **Tải tiện ích tạm thời (Load Temporary Add-on...)**.
+3. Chọn file `manifest.json` trong thư mục extension đã giải nén.
+4. OpenViet IME sẽ kích hoạt đầy đủ với quyền lưu trữ WebExtension và chạy trên mọi trang web.
+
+### Biên Dịch Từ Mã Nguồn
+
+```bash
+# 1. Cài đặt các thư viện phụ thuộc
+npm install
+
+# 2. Đóng gói script extension (esbuild IIFE)
+npm run bundle:extension
+
+# 3. Chạy server phát triển (Vite port 3000)
+npm run dev
+
+# 4. Biên dịch bản đóng gói hoàn chỉnh
+npm run build
+```
+
+---
+
+## Kiểm Thử & Đảm Bảo Chất Lượng
+
+Chạy bộ kiểm thử tự động toàn diện bao gồm các phép biến đổi dấu thanh, phím `z` xóa dấu, bộ lọc URL/Email/Code, mở rộng macro và xếp hạng gợi ý Gboard:
+
+```bash
+npm test
+```
+
+Kiểm tra cú pháp TypeScript:
+
+```bash
+npm run lint
+```
+
+---
+
+## Triết Lý Thiết Kế: Chuẩn Hóa Unicode Hiện Đại
+
+OpenViet IME được phát triển hoàn toàn cho kỷ nguyên web hiện đại. Chúng tôi **chủ động không tích hợp** các bộ chuyển đổi mã nguồn cũ kỹ từ thập niên 1990/2000 (như TCVN3 / ABC, VNI-Windows, BK HCM 1/2). Ngày nay hơn 99.9% trang web và ứng dụng máy tính đều chạy chuẩn xác trên nền UTF-8 Unicode. Việc loại bỏ các bộ chuyển mã lỗi thời giúp mã nguồn luôn gọn gàng, tăng tốc độ xử lý, giảm thiểu lỗ hổng bảo mật và tập trung toàn diện vào trải nghiệm gõ phím tiếng Việt nhanh, mượt mà và chuẩn xác nhất.
+
+---
+
+## Bản Quyền
+
+Phát hành theo [Giấy phép Apache, Phiên bản 2.0](LICENSE).  
+Kế thừa tinh hoa từ các dự án mã nguồn mở AVIM (Nguyễn Kim Kha), xKey (xmannv), và GoNhanh (Kha Phan).  
+Biểu tượng và đồ họa được thiết kế theo phong cách bàn phím hiện đại, trung tính và phù hợp sử dụng trên mọi nền tảng.

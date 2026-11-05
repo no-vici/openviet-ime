@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Production & Extension Builds
+build/
+dist/
+web-ext-artifacts/
+
+# Lock files
+package-lock.json
+yarn.lock
+bun.lock
+
+# Environment & Secret variables
+.env*
+
+# Testing & Coverage
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor & AI Tooling directories
+.vscode/
+.idea/
+.antigravity/
+.aistudio/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Playground app (Web demo)
+src/App.tsx
+src/index.css
+src/main.tsx
+src/reportWebVitals.ts
+src/vite-env.d.ts
+public/
+src/components/
+index.html
+vite.config.ts
+metadata.json
+
+vite.config.ts
+metadata.json
