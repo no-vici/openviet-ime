@@ -144,8 +144,8 @@ export class TextReplacer {
     const value = el.value || '';
     const textBefore = value.slice(0, pos);
 
-    // Find the word boundary before pos
-    const match = textBefore.match(/([\p{L}\p{N}]+)$/u);
+    // Find the word boundary before pos (allow apostrophe ' and ’ for Central Highlands names like M'Đrắk, Ea H'leo, Cư M'gar)
+    const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
     if (match) {
       return {
         word: match[1],
@@ -187,7 +187,7 @@ export class TextReplacer {
     if (node && node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent || '';
       const textBefore = text.slice(0, offset);
-      const match = textBefore.match(/([\p{L}\p{N}]+)$/u);
+      const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
       if (match) {
         return {
           word: match[1],

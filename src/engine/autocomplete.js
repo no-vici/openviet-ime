@@ -67,7 +67,29 @@ export const COMMON_VIETNAMESE_COMPOUNDS = [
   'giúp đỡ', 'hỗ trợ', 'liên hệ', 'thông báo', 'yêu cầu', 'hướng dẫn', 'sử dụng', 'thực hiện',
   'hoàn thành', 'bắt đầu', 'kết thúc', 'tiếp tục', 'dừng lại', 'quan trọng', 'cần thiết',
   'đặc biệt', 'phổ biến', 'tuyệt vời', 'xuất sắc', 'hài lòng', 'yên tâm', 'tin tưởng',
-  'hy vọng', 'quyết định', 'lựa chọn', 'thay đổi', 'cải tiến', 'khắc phục', 'giải quyết'
+  'hy vọng', 'quyết định', 'lựa chọn', 'thay đổi', 'cải tiến', 'khắc phục', 'giải quyết',
+
+  // Địa danh Tây Nguyên & Dân tộc thiểu số
+  'Đắk Lắk', 'Đắk Nông', 'Kon Tum', 'Gia Lai', 'Lâm Đồng',
+  'Buôn Ma Thuột', 'Pleiku', 'Bảo Lộc', 'Đà Lạt', 'A Yun Pa',
+  'Krông Nô', 'Krông Búk', 'Krông Pắk', 'Krông Ana', 'Krông Bông',
+  'Krông Năng', 'Krông A', "Cư M'gar", 'Cư Kuin', "Ea H'leo", 'Ea Kar',
+  'Ea Súp', "M'Đrắk", 'Đắk Mil', 'Đắk Song', 'Đắk Glong', 'Đắk Tô',
+  'Đắk Hà', 'Đắk Đoa', 'Chư Sê', 'Chư Prông', 'Chư Păh', 'Đức Cơ',
+  'Ia Grai', "Ia H'Drai", 'Sa Thầy', 'Ngọc Hồi', 'Tu Mơ Rông',
+  'Đơn Dương', 'Đam Rông', 'Lạc Dương', 'Di Linh', 'Bảo Lâm', 'Cát Tiên',
+  "Đắk R'lấp", 'Tà Nung', 'Ô Loan',
+
+  // Địa danh Bắc - Trung - Nam phổ biến
+  'Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Hạ Long', 'Sa Pa', 'Mộc Châu',
+  'Điện Biên Phủ', 'Lai Châu', 'Sơn La', 'Cao Bằng', 'Lạng Sơn',
+  'Huế', 'Đà Nẵng', 'Hội An', 'Quy Nhơn', 'Nha Trang',
+  'Phan Thiết', 'Quảng Ngãi', 'Tam Kỳ', 'Đông Hà', 'Vinh',
+  'Sài Gòn', 'TP.HCM', 'Cần Thơ', 'Vũng Tàu', 'Biên Hòa', 'Mỹ Tho',
+  'Bến Tre', 'Long Xuyên', 'Rạch Giá', 'Cà Mau', 'Bạc Liêu', 'Sóc Trăng',
+
+  // Cụm từ Hán-Việt & từ hiếm
+  'khuếch tán', 'khuynh hướng', 'ngoắt ngoéo', 'khuấy động', 'hết sẩy', 'trời ơi'
 ];
 
 /**
@@ -81,6 +103,31 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'quốc': ['tế', 'gia', 'tịch', 'phòng', 'hội'],
   'thế': ['giới', 'kỷ', 'hệ', 'lực', 'nào'],
   'đất': ['nước', 'đai', 'sét', 'vàng'],
+  'đắk': ['lắk', 'nông', 'mil', 'song', 'glong', 'tô', 'hà', 'đoa', "r'lấp"],
+  'buôn': ['ma thuột', 'mê thuột', 'làng', 'bán'],
+  'krông': ['nô', 'búk', 'pắk', 'ana', 'bông', 'năng', 'a'],
+  'kon': ['tum', 'plông'],
+  'gia': ['lai', 'đình', 'nhập', 'tăng', 'công', 'dụng'],
+  'lâm': ['đồng', 'nghiệp', 'thao', 'chung'],
+  'đà': ['lạt', 'nẵng'],
+  'bảo': ['lộc', 'lâm', 'mật', 'hiểm', 'vệ', 'quản', 'trì', 'hộ', 'an'],
+  'hà': ['nội', 'tĩnh', 'nam', 'giang', 'tiên'],
+  'hải': ['phòng', 'dương', 'sản', 'quân', 'ngoại'],
+  'sài': ['gòn'],
+  'hạ': ['long', 'tầng', 'cánh', 'bệ'],
+  'nha': ['trang', 'khoa', 'học'],
+  'phan': ['thiết', 'rang'],
+  'bến': ['tre', 'xe', 'tàu', 'đỗ'],
+  'rạch': ['giá'],
+  'cà': ['mau', 'phê', 'chua', 'pháo'],
+  'bạc': ['liêu', 'trắng', 'bẽo', 'đầu'],
+  'sóc': ['trăng', 'sơn'],
+  'chư': ['sê', 'prông', 'păh'],
+  'ea': ["h'leo", 'kar', 'súp'],
+  'cư': ["m'gar", 'kuin', 'trú', 'dân', 'xử'],
+  'ia': ['grai', "h'drai"],
+  'khuếch': ['tán', 'đại'],
+  'khuynh': ['hướng', 'đảo'],
 
   // ── Công nghệ / công việc / kinh doanh ──
   'công': ['nghệ', 'ty', 'việc', 'nhân', 'trình', 'an', 'cộng', 'dân'],
@@ -128,7 +175,6 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'giây': ['nữa', 'trước'],
 
   // ── Gia đình / quan hệ xã hội ──
-  'gia': ['đình', 'nhập', 'tăng', 'công', 'dụng'],
   'bạn': ['bè', 'thân', 'đọc', 'gái', 'trai', 'hàng'],
   'tôi': ['nghĩ', 'thấy', 'muốn', 'là', 'đang', 'đã', 'sẽ', 'biết'],
   'anh': ['em', 'ấy', 'chị', 'ta', 'trai', 'yêu', 'hai', 'ba', 'tư'],
@@ -175,7 +221,6 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'tạm': ['biệt', 'thời', 'ngưng'],
   'làm': ['việc', 'phiền', 'ơn', 'quen', 'sao', 'lại', 'gì', 'xong', 'bài', 'hư'],
   'tuyệt': ['vời', 'đối', 'mật', 'chủng', 'vọng'],
-  'bảo': ['mật', 'hiểm', 'vệ', 'quản', 'trì', 'hộ'],
   'thành': ['phố', 'công', 'viên', 'lập', 'tựu', 'phần'],
   'ý': ['tưởng', 'nghĩa', 'kiến', 'thức', 'chí'],
   'đổi': ['mới', 'thay', 'trả', 'gác'],

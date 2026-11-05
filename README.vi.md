@@ -62,6 +62,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Tối Ưu Riêng Cho Telegram Web A & Trình Soạn Thảo Rich-Text**: Xử lý triệt để xung đột con trỏ của TipTap/ProseMirror, khởi tạo Shadow Host sớm và xác định vùng chọn `TEXT_NODE` chuẩn xác, không bao giờ bị nhảy con trỏ hay lặp vòng viết hoa đầu câu.
 - **Dự Đoán Từ Thân Thiện Với Chat & Dấu Câu**: Khi nhấn phím `Enter` trong Telegram, Messenger, Zalo, Slack, thanh gợi ý next-word tự ẩn ngay và nhường quyền cho phím `Enter` gửi tin nhắn tức thì; không hiển thị từ gợi ý chữ thường ngay sau dấu kết thúc câu (`. ? !`).
 - **Gợi Ý Từ Thông Minh Thời Gian Thực (Auto-complete)**: Bảng menu nổi hiện đại gợi ý từ ngữ ngay khi bạn gõ các ký tự đầu tiên, hỗ trợ cả tìm kiếm không dấu (`cuu` -> `cứu hộ`, `cứu nạn`) lẫn có dấu (`cấp` -> `cấp cứu`).
+- **Hỗ Trợ Toàn Diện Địa Danh Tây Nguyên & Từ Hiếm**: Tích hợp sẵn bộ âm tiết đặc thù cho các địa danh Tây Nguyên (`Đắk Lắk`, `Krông Nô`, `Krông Pắk`, `Buôn Ma Thuột`, `Pleiku`, `Chư Sê`, `Chư Păh`), địa danh có dấu nháy (`M'Đrắk`, `Ea H'leo`, `Cư M'gar`, `Ia H'Drai`, `Đắk R'lấp`), cùng các từ Hán-Việt cổ / phương ngữ (`khuếch`, `khuynh`, `ngoắt`, `nguầy`, `dzô`, `dzậy`, `zị`, `mầy`) mà không bị bộ lọc chính tả chặn.
 - **Tự Học Thói Quen Người Dùng (On-Device Machine Learning)**: Tự động ghi nhớ các cặp từ bạn hay gõ (như `họp team`, `chuyển khoản`, `gửi email`, `chúc anh`) và đưa lên đầu danh sách với huy hiệu xanh **Thói quen**. Toàn bộ dữ liệu lưu trong `localStorage` máy bạn, không gửi bất kỳ byte nào ra ngoài internet.
 - **Tự Động Khôi Phục Từ Tiếng Anh (GoNhanh Feature)**: Khi nhấn phím Cách (Space), tự động hoàn trả các từ tiếng Anh hay bị dính bẫy gõ nhầm (`text` thay vì `têt`, `user` thay vì `úẻ`, `push` thay vì `púh`, `window` thay vì `ưindoư`).
 - **Hoàn Tác Nhanh Bằng Phím ESC (Instant ESC Revert)**: Nhấn `ESC` để đưa ngay từ đang gõ dở dang về lại chuỗi phím thô ban đầu mà không cần bấm xóa lùi từng ký tự.
@@ -203,13 +204,16 @@ Hỗ trợ thói quen gõ xong cả từ rồi mới thêm dấu mũ:
 
 ### Nguồn Dữ Liệu Từ Điển Đa Tầng
 Bộ gõ tích hợp 4 tầng dữ liệu từ điển:
-1. **Từ Ghép Tiếng Việt Chọn Lọc (`COMMON_VIETNAMESE_COMPOUNDS`)**: Hơn 150+ cụm từ ghép thông dụng trong công việc, học tập, hành chính và giao tiếp.
-2. **Kho Âm Tiết Tiếng Việt Chuẩn (`vietnamese-words.js`)**: ~6.700 âm tiết chuẩn mực từ từ điển Hunspell tiếng Việt.
+1. **Từ Ghép Tiếng Việt & Địa Danh Chọn Lọc (`COMMON_VIETNAMESE_COMPOUNDS`)**: Hơn 200+ cụm từ ghép thông dụng trong công việc, học tập, hành chính, cùng hệ thống địa danh các tỉnh thành khắp cả nước (Hà Nội, Sài Gòn, Đà Nẵng, Cần Thơ, Hải Phòng,...) và trọn bộ địa danh Tây Nguyên (Đắk Lắk, Buôn Ma Thuột, Krông Nô, Pleiku, Cư M'gar, Ea H'leo, M'Đrắk,...).
+2. **Kho Âm Tiết Tiếng Việt Chuẩn & Mở Rộng (`vietnamese-words.js`)**: ~6.700 âm tiết chuẩn mực từ từ điển Hunspell tiếng Việt kết hợp cùng bộ âm tiết địa danh Tây Nguyên, từ tượng thanh, phương ngữ và từ cổ (`pắk`, `búk`, `păh`, `prông`, `krông`, `đrắk`, `nguầy`, `nguậy`, `dzô`, `dzậy`, `zị`, `mầy`).
 3. **Từ Điển Riêng Của Bạn (`userDictionary`)**: Các từ thuật ngữ, tên riêng được bạn thêm vào và ưu tiên hàng đầu.
 4. **Thuật Ngữ Công Nghệ & Tiếng Anh (`COMMON_ENGLISH_WORDS`)**: Các từ phổ biến như `React`, `TypeScript`, `Docker`, `GitHub`, `API`.
 
 ### Dự Đoán Từ Kế Tiếp & Tối Ưu Cho Ứng Dụng Chat
 Khi bạn vừa gõ xong một từ, thanh gợi ý ribbon sẽ đưa ra các từ tiếp theo có khả năng xuất hiện cao nhất:
+- `Đắk ` -> `[ Lắk ]`, `[ Nông ]`, `[ Mil ]`, `[ Song ]`.
+- `Buôn ` -> `[ Ma Thuột ]`, `[ Mê Thuột ]`.
+- `Krông ` -> `[ Nô ]`, `[ Búk ]`, `[ Pắk ]`, `[ Ana ]`.
 - `Việt ` -> `[ Nam ]`, `[ Trì ]`, `[ dã ]`, `[ kiều ]`.
 - `công ` -> `[ nghệ ]`, `[ ty ]`, `[ việc ]`, `[ nhân ]`.
 - `chúc ` -> `[ mừng ]`, `[ bạn ]`, `[ anh ]`, `[ em ]`.

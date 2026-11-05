@@ -82,4 +82,16 @@ test('AutoComplete and Next-Word Prediction', () => {
   const csvImportRes = engine.importLearnedData(extraCsv, true);
   assert.strictEqual(csvImportRes.success, true, 'Import CSV should succeed');
   assert.strictEqual(engine.getLearnedStats().totalPairs, 3, 'Should merge extra pairs');
+
+  // 7. Central Highlands & Rare words place name suggestions
+  const dakSuggestions = engine.getNextWordSuggestions('Đắk', 5);
+  assert(dakSuggestions.some(s => s.word.toLowerCase() === 'lắk'), 'Should suggest "Lắk" after "Đắk"');
+  assert(dakSuggestions.some(s => s.word.toLowerCase() === 'nông'), 'Should suggest "Nông" after "Đắk"');
+
+  const buonSuggestions = engine.getNextWordSuggestions('Buôn', 5);
+  assert(buonSuggestions.some(s => s.word.toLowerCase().includes('thuột')), 'Should suggest "Ma Thuột" after "Buôn"');
+
+  const krongSuggestions = engine.getNextWordSuggestions('Krông', 5);
+  assert(krongSuggestions.some(s => s.word.toLowerCase() === 'nô'), 'Should suggest "Nô" after "Krông"');
+  assert(krongSuggestions.some(s => s.word.toLowerCase() === 'pắk'), 'Should suggest "Pắk" after "Krông"');
 });

@@ -61,6 +61,7 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
 - **Chat App & Telegram Web A Optimization**: Eager shadow host mounting and precise `TEXT_NODE` range handling prevent cursor distortion or auto-capitalization loops in ProseMirror/TipTap rich editors.
 - **Punctuation & Enter Friendly Next-Word**: Next-word predictions are automatically dismissed on `Enter` (so chat messages send instantly without intercepting) and silenced right after sentence endings (`. ? !`).
 - **Real-Time Auto-Complete**: Floating dropdown suggestions with accent-aware prefix search (`cuu` -> `cứu hộ`, `cứu nạn`; `cap` -> `cấp cứu`).
+- **Full Central Highlands Toponyms & Rare Syllables Support**: Seamless typing for non-traditional Vietnamese place names (`Đắk Lắk`, `Krông Nô`, `Krông Pắk`, `Buôn Ma Thuột`, `Pleiku`, `Chư Sê`), apostrophe toponyms (`M'Đrắk`, `Ea H'leo`, `Cư M'gar`, `Ia H'Drai`, `Đắk R'lấp`), and classical / dialect words (`khuếch`, `khuynh`, `ngoắt`, `nguầy`, `dzô`, `dzậy`, `zị`, `mầy`) without spellchecker interference.
 - **On-Device Personalized Learning**: Automatically registers frequent bigrams into local browser storage (`localStorage`), prioritizing frequently used pairs with a "Learned Habit" badge while guaranteeing zero external data transmission.
 - **Auto-Restore English Words (GoNhanh Feature)**: Reverts common English trap words when hitting Space (`text` from `têt`, `user` from `úẻ`, `push` from `púh`, `luxury` from `lủuy`, `window` from `ưindoư`).
 - **Instant ESC Revert**: Pressing `ESC` instantly reverts the currently typed word back to its raw keystrokes without needing to backspace.
@@ -203,13 +204,16 @@ Users frequently type full words before applying circumflex accents:
 
 ### Multi-Tier Dictionary Engine
 The engine integrates four distinct lexical layers:
-1. **Curated Vietnamese Compound Words (`COMMON_VIETNAMESE_COMPOUNDS`)**: Frequent multi-word collocations in administration, science, technology, and everyday conversation.
-2. **Standard Syllable Vocabulary (`vietnamese-words.js`)**: ~6,700 standard single syllables based on Hunspell Vietnamese wordlist.
+1. **Curated Vietnamese Compound Words & Toponyms (`COMMON_VIETNAMESE_COMPOUNDS`)**: 200+ frequent multi-word collocations in administration, technology, nationwide cities (Hà Nội, Sài Gòn, Đà Nẵng, Cần Thơ,...), and full Central Highlands geographic entities (Đắk Lắk, Buôn Ma Thuột, Krông Nô, Pleiku, Cư M'gar, Ea H'leo, M'Đrắk,...).
+2. **Standard & Extended Syllable Vocabulary (`vietnamese-words.js`)**: ~6,700 standard syllables from Vietnamese Hunspell enriched with Central Highlands syllables, regional onomatopoeia, and classical dialect terms (`pắk`, `búk`, `păh`, `prông`, `krông`, `đrắk`, `nguầy`, `nguậy`, `dzô`, `dzậy`, `zị`, `mầy`).
 3. **Custom User Dictionary (`userDictionary`)**: Personal terminology and whitelisted words prioritized with a special badge.
 4. **Technology & English Terms (`COMMON_ENGLISH_WORDS`)**: Common terms (`React`, `TypeScript`, `Docker`, `GitHub`, `API`).
 
 ### Gboard Next-Word AI Prediction & Chat App Protection
 Once a word is committed, the prediction ribbon displays the most probable successor words:
+- `Đắk ` -> `[ Lắk ]`, `[ Nông ]`, `[ Mil ]`, `[ Song ]`.
+- `Buôn ` -> `[ Ma Thuột ]`, `[ Mê Thuột ]`.
+- `Krông ` -> `[ Nô ]`, `[ Búk ]`, `[ Pắk ]`, `[ Ana ]`.
 - `Việt ` -> `[ Nam ]`, `[ Trì ]`, `[ dã ]`, `[ kiều ]`.
 - `công ` -> `[ nghệ ]`, `[ ty ]`, `[ việc ]`, `[ nhân ]`.
 - `chúc ` -> `[ mừng ]`, `[ bạn ]`, `[ anh ]`, `[ em ]`.

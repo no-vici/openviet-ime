@@ -23,12 +23,24 @@ export const ALL_VIETNAMESE_SINGLE_VOWELS = [
   'đ'
 ];
 
+// Special syllables for Central Highlands place names, ethnic names & regional/rare Vietnamese
+export const RARE_AND_PLACE_SYLLABLES = [
+  // Tây Nguyên & Ethnic Toponyms
+  'krông', 'pắk', 'búk', 'păh', 'prông', 'ana', 'ea', 'hleo', 'kar', 'súp',
+  'mdrắk', 'đrắk', 'mil', 'glong', 'đoa', 'grai', 'hdrai', 'ia', 'mgar', 'kuin',
+  'rlấp', "r'lấp", 'r’lấp', 'pleiku', 'kon', 'tum', 'gia', 'lai',
+
+  // Rare, Classical & Dialect Vietnamese Syllables
+  'nguầy', 'nguậy', 'dzô', 'dzậy', 'zị', 'zi', 'zia', 'hén', 'nghen', 'mầy'
+];
+
 let _vietnameseWordSet = null;
 
 export function getVietnameseWordSet() {
   if (!_vietnameseWordSet) {
     _vietnameseWordSet = new Set(VIETNAMESE_WORDS_STRING.split(" "));
     ALL_VIETNAMESE_SINGLE_VOWELS.forEach(v => _vietnameseWordSet.add(v));
+    RARE_AND_PLACE_SYLLABLES.forEach(s => _vietnameseWordSet.add(s.toLowerCase()));
   }
   return _vietnameseWordSet;
 }
