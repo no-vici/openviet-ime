@@ -8,9 +8,9 @@
   };
   var TONE_STYLE = {
     MODERN: "modern",
-    // hòa, thủy, khỏe
+    // hoà, hoá, thuỷ, khoẻ (quy chuẩn mới / BGDĐT: dấu trên âm chính a, e, y)
     CLASSIC: "classic"
-    // hoà, thuỷ, khoẻ
+    // hòa, hóa, thủy, khỏe (phong cách cũ: dấu trên âm đệm o, u)
   };
   var DELIMITERS = /* @__PURE__ */ new Set([
     " ",
@@ -242,6 +242,441 @@
       RARE_AND_PLACE_SYLLABLES.forEach((s) => _vietnameseWordSet.add(canon(s)));
     }
     return _vietnameseWordSet;
+  }
+
+  // src/engine/syllable-parser.js
+  var TONE_MARK = {
+    NONE: 0,
+    // Thanh ngang
+    ACUTE: 1,
+    // Sắc (s / 1)
+    GRAVE: 2,
+    // Huyền (f / 2)
+    HOOK_ABOVE: 3,
+    // Hỏi (r / 3)
+    TILDE: 4,
+    // Ngã (x / 4)
+    DOT_BELOW: 5
+    // Nặng (j / 5)
+  };
+  var VOWEL_DECOMPOSE_MAP = {
+    // a
+    "a": { base: "a", tone: 0 },
+    "\xE1": { base: "a", tone: 1 },
+    "\xE0": { base: "a", tone: 2 },
+    "\u1EA3": { base: "a", tone: 3 },
+    "\xE3": { base: "a", tone: 4 },
+    "\u1EA1": { base: "a", tone: 5 },
+    "A": { base: "A", tone: 0 },
+    "\xC1": { base: "A", tone: 1 },
+    "\xC0": { base: "A", tone: 2 },
+    "\u1EA2": { base: "A", tone: 3 },
+    "\xC3": { base: "A", tone: 4 },
+    "\u1EA0": { base: "A", tone: 5 },
+    // ă
+    "\u0103": { base: "\u0103", tone: 0 },
+    "\u1EAF": { base: "\u0103", tone: 1 },
+    "\u1EB1": { base: "\u0103", tone: 2 },
+    "\u1EB3": { base: "\u0103", tone: 3 },
+    "\u1EB5": { base: "\u0103", tone: 4 },
+    "\u1EB7": { base: "\u0103", tone: 5 },
+    "\u0102": { base: "\u0102", tone: 0 },
+    "\u1EAE": { base: "\u0102", tone: 1 },
+    "\u1EB0": { base: "\u0102", tone: 2 },
+    "\u1EB2": { base: "\u0102", tone: 3 },
+    "\u1EB4": { base: "\u0102", tone: 4 },
+    "\u1EB6": { base: "\u0102", tone: 5 },
+    // â
+    "\xE2": { base: "\xE2", tone: 0 },
+    "\u1EA5": { base: "\xE2", tone: 1 },
+    "\u1EA7": { base: "\xE2", tone: 2 },
+    "\u1EA9": { base: "\xE2", tone: 3 },
+    "\u1EAB": { base: "\xE2", tone: 4 },
+    "\u1EAD": { base: "\xE2", tone: 5 },
+    "\xC2": { base: "\xC2", tone: 0 },
+    "\u1EA4": { base: "\xC2", tone: 1 },
+    "\u1EA6": { base: "\xC2", tone: 2 },
+    "\u1EA8": { base: "\xC2", tone: 3 },
+    "\u1EAA": { base: "\xC2", tone: 4 },
+    "\u1EAC": { base: "\xC2", tone: 5 },
+    // e
+    "e": { base: "e", tone: 0 },
+    "\xE9": { base: "e", tone: 1 },
+    "\xE8": { base: "e", tone: 2 },
+    "\u1EBB": { base: "e", tone: 3 },
+    "\u1EBD": { base: "e", tone: 4 },
+    "\u1EB9": { base: "e", tone: 5 },
+    "E": { base: "E", tone: 0 },
+    "\xC9": { base: "E", tone: 1 },
+    "\xC8": { base: "E", tone: 2 },
+    "\u1EBA": { base: "E", tone: 3 },
+    "\u1EBC": { base: "E", tone: 4 },
+    "\u1EB8": { base: "E", tone: 5 },
+    // ê
+    "\xEA": { base: "\xEA", tone: 0 },
+    "\u1EBF": { base: "\xEA", tone: 1 },
+    "\u1EC1": { base: "\xEA", tone: 2 },
+    "\u1EC3": { base: "\xEA", tone: 3 },
+    "\u1EC5": { base: "\xEA", tone: 4 },
+    "\u1EC7": { base: "\xEA", tone: 5 },
+    "\xCA": { base: "\xCA", tone: 0 },
+    "\u1EBE": { base: "\xCA", tone: 1 },
+    "\u1EC0": { base: "\xCA", tone: 2 },
+    "\u1EC2": { base: "\xCA", tone: 3 },
+    "\u1EC4": { base: "\xCA", tone: 4 },
+    "\u1EC6": { base: "\xCA", tone: 5 },
+    // i
+    "i": { base: "i", tone: 0 },
+    "\xED": { base: "i", tone: 1 },
+    "\xEC": { base: "i", tone: 2 },
+    "\u1EC9": { base: "i", tone: 3 },
+    "\u0129": { base: "i", tone: 4 },
+    "\u1ECB": { base: "i", tone: 5 },
+    "I": { base: "I", tone: 0 },
+    "\xCD": { base: "I", tone: 1 },
+    "\xCC": { base: "I", tone: 2 },
+    "\u1EC8": { base: "I", tone: 3 },
+    "\u0128": { base: "I", tone: 4 },
+    "\u1ECA": { base: "I", tone: 5 },
+    // o
+    "o": { base: "o", tone: 0 },
+    "\xF3": { base: "o", tone: 1 },
+    "\xF2": { base: "o", tone: 2 },
+    "\u1ECF": { base: "o", tone: 3 },
+    "\xF5": { base: "o", tone: 4 },
+    "\u1ECD": { base: "o", tone: 5 },
+    "O": { base: "O", tone: 0 },
+    "\xD3": { base: "O", tone: 1 },
+    "\xD2": { base: "O", tone: 2 },
+    "\u1ECE": { base: "O", tone: 3 },
+    "\xD5": { base: "O", tone: 4 },
+    "\u1ECC": { base: "O", tone: 5 },
+    // ô
+    "\xF4": { base: "\xF4", tone: 0 },
+    "\u1ED1": { base: "\xF4", tone: 1 },
+    "\u1ED3": { base: "\xF4", tone: 2 },
+    "\u1ED5": { base: "\xF4", tone: 3 },
+    "\u1ED7": { base: "\xF4", tone: 4 },
+    "\u1ED9": { base: "\xF4", tone: 5 },
+    "\xD4": { base: "\xD4", tone: 0 },
+    "\u1ED0": { base: "\xD4", tone: 1 },
+    "\u1ED2": { base: "\xD4", tone: 2 },
+    "\u1ED4": { base: "\xD4", tone: 3 },
+    "\u1ED6": { base: "\xD4", tone: 4 },
+    "\u1ED8": { base: "\xD4", tone: 5 },
+    // ơ
+    "\u01A1": { base: "\u01A1", tone: 0 },
+    "\u1EDB": { base: "\u01A1", tone: 1 },
+    "\u1EDD": { base: "\u01A1", tone: 2 },
+    "\u1EDF": { base: "\u01A1", tone: 3 },
+    "\u1EE1": { base: "\u01A1", tone: 4 },
+    "\u1EE3": { base: "\u01A1", tone: 5 },
+    "\u01A0": { base: "\u01A0", tone: 0 },
+    "\u1EDA": { base: "\u01A0", tone: 1 },
+    "\u1EDC": { base: "\u01A0", tone: 2 },
+    "\u1EDE": { base: "\u01A0", tone: 3 },
+    "\u1EE0": { base: "\u01A0", tone: 4 },
+    "\u1EE2": { base: "\u01A0", tone: 5 },
+    // u
+    "u": { base: "u", tone: 0 },
+    "\xFA": { base: "u", tone: 1 },
+    "\xF9": { base: "u", tone: 2 },
+    "\u1EE7": { base: "u", tone: 3 },
+    "\u0169": { base: "u", tone: 4 },
+    "\u1EE5": { base: "u", tone: 5 },
+    "U": { base: "U", tone: 0 },
+    "\xDA": { base: "U", tone: 1 },
+    "\xD9": { base: "U", tone: 2 },
+    "\u1EE6": { base: "U", tone: 3 },
+    "\u0168": { base: "U", tone: 4 },
+    "\u1EE4": { base: "U", tone: 5 },
+    // ư
+    "\u01B0": { base: "\u01B0", tone: 0 },
+    "\u1EE9": { base: "\u01B0", tone: 1 },
+    "\u1EEB": { base: "\u01B0", tone: 2 },
+    "\u1EED": { base: "\u01B0", tone: 3 },
+    "\u1EEF": { base: "\u01B0", tone: 4 },
+    "\u1EF1": { base: "\u01B0", tone: 5 },
+    "\u01AF": { base: "\u01AF", tone: 0 },
+    "\u1EE8": { base: "\u01AF", tone: 1 },
+    "\u1EEA": { base: "\u01AF", tone: 2 },
+    "\u1EEC": { base: "\u01AF", tone: 3 },
+    "\u1EEE": { base: "\u01AF", tone: 4 },
+    "\u1EF0": { base: "\u01AF", tone: 5 },
+    // y
+    "y": { base: "y", tone: 0 },
+    "\xFD": { base: "y", tone: 1 },
+    "\u1EF3": { base: "y", tone: 2 },
+    "\u1EF7": { base: "y", tone: 3 },
+    "\u1EF9": { base: "y", tone: 4 },
+    "\u1EF5": { base: "y", tone: 5 },
+    "Y": { base: "Y", tone: 0 },
+    "\xDD": { base: "Y", tone: 1 },
+    "\u1EF2": { base: "Y", tone: 2 },
+    "\u1EF6": { base: "Y", tone: 3 },
+    "\u1EF8": { base: "Y", tone: 4 },
+    "\u1EF4": { base: "Y", tone: 5 }
+  };
+  var VOWEL_COMPOSE_TABLE = {
+    "a": ["a", "\xE1", "\xE0", "\u1EA3", "\xE3", "\u1EA1"],
+    "A": ["A", "\xC1", "\xC0", "\u1EA2", "\xC3", "\u1EA0"],
+    "\u0103": ["\u0103", "\u1EAF", "\u1EB1", "\u1EB3", "\u1EB5", "\u1EB7"],
+    "\u0102": ["\u0102", "\u1EAE", "\u1EB0", "\u1EB2", "\u1EB4", "\u1EB6"],
+    "\xE2": ["\xE2", "\u1EA5", "\u1EA7", "\u1EA9", "\u1EAB", "\u1EAD"],
+    "\xC2": ["\xC2", "\u1EA4", "\u1EA6", "\u1EA8", "\u1EAA", "\u1EAC"],
+    "e": ["e", "\xE9", "\xE8", "\u1EBB", "\u1EBD", "\u1EB9"],
+    "E": ["E", "\xC9", "\xC8", "\u1EBA", "\u1EBC", "\u1EB8"],
+    "\xEA": ["\xEA", "\u1EBF", "\u1EC1", "\u1EC3", "\u1EC5", "\u1EC7"],
+    "\xCA": ["\xCA", "\u1EBE", "\u1EC0", "\u1EC2", "\u1EC4", "\u1EC6"],
+    "i": ["i", "\xED", "\xEC", "\u1EC9", "\u0129", "\u1ECB"],
+    "I": ["I", "\xCD", "\xCC", "\u1EC8", "\u0128", "\u1ECA"],
+    "o": ["o", "\xF3", "\xF2", "\u1ECF", "\xF5", "\u1ECD"],
+    "O": ["O", "\xD3", "\xD2", "\u1ECE", "\xD5", "\u1ECC"],
+    "\xF4": ["\xF4", "\u1ED1", "\u1ED3", "\u1ED5", "\u1ED7", "\u1ED9"],
+    "\xD4": ["\xD4", "\u1ED0", "\u1ED2", "\u1ED4", "\u1ED6", "\u1ED8"],
+    "\u01A1": ["\u01A1", "\u1EDB", "\u1EDD", "\u1EDF", "\u1EE1", "\u1EE3"],
+    "\u01A0": ["\u01A0", "\u1EDA", "\u1EDC", "\u1EDE", "\u1EE0", "\u1EE2"],
+    "u": ["u", "\xFA", "\xF9", "\u1EE7", "\u0169", "\u1EE5"],
+    "U": ["U", "\xDA", "\xD9", "\u1EE6", "\u0168", "\u1EE4"],
+    "\u01B0": ["\u01B0", "\u1EE9", "\u1EEB", "\u1EED", "\u1EEF", "\u1EF1"],
+    "\u01AF": ["\u01AF", "\u1EE8", "\u1EEA", "\u1EEC", "\u1EEE", "\u1EF0"],
+    "y": ["y", "\xFD", "\u1EF3", "\u1EF7", "\u1EF9", "\u1EF5"],
+    "Y": ["Y", "\xDD", "\u1EF2", "\u1EF6", "\u1EF8", "\u1EF4"]
+  };
+  var VALID_ONSETS = [
+    // 3-char onsets
+    "ngh",
+    // 2-char onsets (traditional + ethnic / Central Highlands)
+    "ch",
+    "gh",
+    "gi",
+    "kh",
+    "nh",
+    "ng",
+    "ph",
+    "th",
+    "tr",
+    "qu",
+    "kr",
+    "pr",
+    "dr",
+    "\u0111r",
+    "br",
+    "kl",
+    "pl",
+    "bl",
+    "dz",
+    // 1-char onsets
+    "b",
+    "c",
+    "d",
+    "\u0111",
+    "g",
+    "h",
+    "k",
+    "l",
+    "m",
+    "n",
+    "p",
+    "r",
+    "s",
+    "t",
+    "v",
+    "x"
+  ];
+  var ParsedSyllable = class _ParsedSyllable {
+    constructor(opts = {}) {
+      this.onset = opts.onset || "";
+      this.glide = opts.glide || "";
+      this.nucleus = opts.nucleus || "";
+      this.coda = opts.coda || "";
+      this.tone = opts.tone || TONE_MARK.NONE;
+      this.hasApostrophe = opts.hasApostrophe || false;
+      this.apostrophePrefix = opts.apostrophePrefix || "";
+    }
+    /**
+     * Reconstruct final syllable string according to toneStyle
+     * @param {string} toneStyle TONE_STYLE.MODERN ('modern') or TONE_STYLE.CLASSIC ('classic')
+     * @returns {string} Reconstructed Vietnamese syllable
+     */
+    reconstruct(toneStyle = TONE_STYLE.MODERN) {
+      if (!this.nucleus) {
+        return (this.apostrophePrefix || "") + this.onset + this.glide + this.coda;
+      }
+      const n = this.nucleus;
+      const nLen = n.length;
+      const hasCoda = this.coda.length > 0;
+      const hasGlide = this.glide.length > 0;
+      let targetIdx = 0;
+      const isQu = this.onset.toLowerCase() === "q" && this.glide.toLowerCase() === "u";
+      if (hasGlide && !hasCoda && nLen === 1 && !isQu) {
+        if (toneStyle === TONE_STYLE.CLASSIC) {
+          const glideChar = this.glide;
+          const row = VOWEL_COMPOSE_TABLE[glideChar];
+          const accentedGlide = this.tone > 0 && row ? row[this.tone] : glideChar;
+          return (this.apostrophePrefix || "") + this.onset + accentedGlide + this.nucleus + this.coda;
+        } else {
+          targetIdx = 0;
+        }
+      } else if (nLen === 1) {
+        targetIdx = 0;
+      } else if (nLen === 2) {
+        const lowerN = n.toLowerCase();
+        if (lowerN === "\u01B0\u01A1" || lowerN === "i\xEA" || lowerN === "u\xF4" || lowerN === "y\xEA") {
+          targetIdx = 1;
+        } else if (lowerN === "\u01B0a" || lowerN === "ia" || lowerN === "ua") {
+          targetIdx = hasCoda ? 1 : 0;
+        } else if (["ai", "ao", "au", "ay", "\xE2u", "\xE2y", "eo", "\xEAu", "oi", "\xF4i", "\u01A1i", "ui"].includes(lowerN)) {
+          targetIdx = 0;
+        } else {
+          if (hasCoda) {
+            targetIdx = 1;
+          } else {
+            targetIdx = toneStyle === TONE_STYLE.CLASSIC ? 0 : 1;
+          }
+        }
+      } else if (nLen >= 3) {
+        targetIdx = 1;
+      }
+      let reconstructedNucleus = "";
+      for (let i = 0; i < n.length; i++) {
+        const ch = n[i];
+        if (i === targetIdx && this.tone > 0) {
+          const row = VOWEL_COMPOSE_TABLE[ch];
+          reconstructedNucleus += row ? row[this.tone] : ch;
+        } else {
+          reconstructedNucleus += ch;
+        }
+      }
+      return (this.apostrophePrefix || "") + this.onset + this.glide + reconstructedNucleus + this.coda;
+    }
+    /**
+     * Clone with modified tone mark
+     * @param {number} tone 
+     * @returns {ParsedSyllable}
+     */
+    withTone(tone) {
+      return new _ParsedSyllable({
+        onset: this.onset,
+        glide: this.glide,
+        nucleus: this.nucleus,
+        coda: this.coda,
+        tone,
+        hasApostrophe: this.hasApostrophe,
+        apostrophePrefix: this.apostrophePrefix
+      });
+    }
+    /**
+     * Check if syllable conforms to Vietnamese orthography / phonology:
+     * 1. Stop finals (-c, -ch, -p, -t) can only take Tone 0, Tone 1 (sắc) or Tone 5 (nặng).
+     * 2. Short vowels (ă, â) require a coda consonant.
+     */
+    isValid() {
+      const lowerCoda = this.coda.toLowerCase();
+      if (["c", "ch", "p", "t"].includes(lowerCoda)) {
+        if (this.tone !== TONE_MARK.NONE && this.tone !== TONE_MARK.ACUTE && this.tone !== TONE_MARK.DOT_BELOW) {
+          return false;
+        }
+      }
+      const lowerN = this.nucleus.toLowerCase();
+      if ((lowerN === "\u0103" || lowerN === "\xE2") && this.coda.length === 0) {
+        return false;
+      }
+      return true;
+    }
+  };
+  function parseSyllable(rawWord) {
+    if (!rawWord || typeof rawWord !== "string") return null;
+    let word = rawWord.normalize("NFC");
+    let apostrophePrefix = "";
+    const apoMatch = word.match(/^([A-Za-z]['’])/);
+    if (apoMatch) {
+      apostrophePrefix = apoMatch[1];
+      word = word.slice(apoMatch[1].length);
+    }
+    let foundTone = TONE_MARK.NONE;
+    let baseWord = "";
+    for (let i = 0; i < word.length; i++) {
+      const ch = word[i];
+      const dec = VOWEL_DECOMPOSE_MAP[ch];
+      if (dec) {
+        baseWord += dec.base;
+        if (dec.tone > 0 && foundTone === TONE_MARK.NONE) {
+          foundTone = dec.tone;
+        }
+      } else {
+        baseWord += ch;
+      }
+    }
+    const lowerBase = baseWord.toLowerCase();
+    let onset = "";
+    let rest = baseWord;
+    let lowerRest = lowerBase;
+    if (lowerRest.startsWith("qu")) {
+      onset = baseWord.slice(0, 1);
+      rest = baseWord.slice(1);
+      lowerRest = lowerBase.slice(1);
+    } else if (lowerRest.startsWith("gi")) {
+      if (lowerRest.length > 2 && VOWEL_DECOMPOSE_MAP[lowerRest[2]]) {
+        onset = baseWord.slice(0, 2);
+        rest = baseWord.slice(2);
+        lowerRest = lowerBase.slice(2);
+      } else {
+        onset = baseWord.slice(0, 1);
+        rest = baseWord.slice(1);
+        lowerRest = lowerBase.slice(1);
+      }
+    } else {
+      for (const testOnset of VALID_ONSETS) {
+        if (lowerRest.startsWith(testOnset)) {
+          onset = baseWord.slice(0, testOnset.length);
+          rest = baseWord.slice(testOnset.length);
+          lowerRest = lowerBase.slice(testOnset.length);
+          break;
+        }
+      }
+    }
+    let vowelCluster = "";
+    let coda = "";
+    let foundVowel = false;
+    for (let i = 0; i < rest.length; i++) {
+      const ch = rest[i];
+      const isV = Boolean(VOWEL_DECOMPOSE_MAP[ch]);
+      if (isV && coda.length === 0) {
+        vowelCluster += ch;
+        foundVowel = true;
+      } else {
+        coda += ch;
+      }
+    }
+    let glide = "";
+    let nucleus = vowelCluster;
+    const lowerVowels = vowelCluster.toLowerCase();
+    if (vowelCluster.length >= 2) {
+      const firstV = lowerVowels[0];
+      const secondV = lowerVowels[1];
+      if (firstV === "o" && (secondV === "a" || secondV === "e" || secondV === "\u0103")) {
+        glide = vowelCluster[0];
+        nucleus = vowelCluster.slice(1);
+      } else if (firstV === "u") {
+        if (secondV === "\xE2" || secondV === "\xEA" || secondV === "\u01A1" || secondV === "y") {
+          glide = vowelCluster[0];
+          nucleus = vowelCluster.slice(1);
+        } else if (secondV === "a" && coda.length > 0) {
+          glide = vowelCluster[0];
+          nucleus = vowelCluster.slice(1);
+        }
+      }
+    }
+    return new ParsedSyllable({
+      onset,
+      glide,
+      nucleus,
+      coda,
+      tone: foundTone,
+      hasApostrophe: Boolean(apostrophePrefix),
+      apostrophePrefix
+    });
   }
 
   // src/engine/dictionary.js
@@ -1575,9 +2010,58 @@
         this.lastTransformed = toneResult.result;
         return toneResult;
       }
+      const dynamicResult = this.checkDynamicToneShift(word, key);
+      if (dynamicResult.transformed) {
+        this.lastTransformed = dynamicResult.result;
+        return dynamicResult;
+      }
       const newWord = word + key;
       this.lastTransformed = newWord;
       return { transformed: false, result: newWord };
+    }
+    /**
+     * Dynamic Tone Shifting:
+     * Relocates tone when appending vowels or coda consonants to a syllable that already carries a tone mark.
+     * e.g.:
+     *   'tó' + 'a' -> 'tóa' (or 'toá' if modern)
+     *   'tóa' + 'n' -> 'toán' (relocating tone from glide 'o' to nucleus 'a')
+     *   'hó' + 'a' -> 'hóa' / 'hoá'
+     *   'hoá' + 'n' -> 'hoán'
+     */
+    checkDynamicToneShift(word, key) {
+      if (!word || !key || key.length !== 1) {
+        return { transformed: false, result: word + key };
+      }
+      let hasAccentedVowel = false;
+      for (let i = 0; i < word.length; i++) {
+        const tone = CHAR_TO_BASE_AND_TONE[word[i]]?.tone;
+        if (tone && tone > 0) {
+          hasAccentedVowel = true;
+          break;
+        }
+      }
+      if (!hasAccentedVowel) {
+        return { transformed: false, result: word + key };
+      }
+      const lowerKey = key.toLowerCase();
+      const isVowelKey = ["a", "e", "i", "o", "u", "y"].includes(lowerKey);
+      const isCodaKey = ["c", "h", "m", "n", "p", "t", "g"].includes(lowerKey);
+      if (!isVowelKey && !isCodaKey) {
+        return { transformed: false, result: word + key };
+      }
+      const candidate = word + key;
+      const parsed = parseSyllable(candidate);
+      if (!parsed || parsed.tone === TONE_MARK.NONE || !parsed.nucleus) {
+        return { transformed: false, result: candidate };
+      }
+      if (!parsed.isValid()) {
+        return { transformed: false, result: candidate };
+      }
+      const reconstructed = parsed.reconstruct(this.toneStyle);
+      if (reconstructed && reconstructed !== candidate) {
+        return { transformed: true, result: reconstructed };
+      }
+      return { transformed: false, result: candidate };
     }
     /**
      * Quick Consonant transformations (XKey engine feature):
@@ -2291,7 +2775,7 @@
         return effectiveIndices[0];
       }
       if (["oa", "oe", "uy"].includes(cluster)) {
-        return this.toneStyle === TONE_STYLE.MODERN ? effectiveIndices[0] : effectiveIndices[1];
+        return this.toneStyle === TONE_STYLE.MODERN ? effectiveIndices[1] : effectiveIndices[0];
       }
       return effectiveIndices[0];
     }
@@ -4615,6 +5099,7 @@
         if (this.handleBackspaceUndo(target, event)) {
           return;
         }
+        this.adoptWordBeforeBackspace(target, event);
       }
       if (key.length === 1) {
         this.handleCharacterInput(target, key, event);
@@ -4765,6 +5250,39 @@
         }
       }
       return false;
+    }
+    /**
+     * Adopt preceding word when Backspace erases a space delimiter.
+     * e.g.: user types 'toan ' then hits Backspace -> caret is now right after 'toan'.
+     * Re-adopting 'toan' allows the very next keystroke (like 's') to immediately modify
+     * the word into 'toán' without needing to re-type the whole word.
+     */
+    adoptWordBeforeBackspace(target, event) {
+      let textBefore = "";
+      const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      if (isNative) {
+        const pos = target.selectionStart ?? 0;
+        textBefore = target.value.slice(0, pos);
+      } else if (target.isContentEditable) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount) {
+          const range = sel.getRangeAt(0);
+          const node = range.startContainer;
+          if (node.nodeType === Node.TEXT_NODE) {
+            textBefore = (node.textContent || "").slice(0, range.startOffset);
+          }
+        }
+      }
+      if (textBefore && textBefore.endsWith(" ")) {
+        const trimmed = textBefore.slice(0, -1);
+        const match = trimmed.match(/([\p{L}\p{M}]+)$/u);
+        if (match) {
+          const adopted = match[1];
+          this.avimEngine.currentWordRaw = adopted;
+          this.avimEngine.lastTransformed = adopted;
+          this.lastWordBeforeDelimiter = "";
+        }
+      }
     }
     handleCharacterInput(target, key, event) {
       const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
@@ -5099,6 +5617,13 @@
     window.__AVIM_XKEY__ = new AvimContentScript();
   }
 })();
+/**
+ * Vietnamese Syllable Parser & Phonological Reconstructor
+ * Ported and adapted from the Bamboo / vnchKey 5-component linguistic model:
+ * Syllable = Onset + Glide + Nucleus + Coda + Tone
+ *
+ * @license Apache-2.0
+ */
 /**
  * Vietnamese Dictionary & User Custom Dictionary Manager
  * Integrated from Hunspell Vietnamese (OpenOffice / Hồ Ngọc Đức / xKey)

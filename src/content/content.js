@@ -699,12 +699,13 @@ class AvimContentScript {
       }
     }
 
-    // 2. Backspace: check Macro Backtracking / Undo
+    // 2. Backspace: check Macro Backtracking / Undo & Word Adoption
     if (key === 'Backspace') {
       this.hideSuggestions();
       if (this.handleBackspaceUndo(target, event)) {
         return;
       }
+      this.adoptWordBeforeBackspace(target, event);
     }
 
     // 3. Single character typing
@@ -880,6 +881,43 @@ class AvimContentScript {
     }
 
     return false;
+  }
+
+  /**
+   * Adopt preceding word when Backspace erases a space delimiter.
+   * e.g.: user types 'toan ' then hits Backspace -> caret is now right after 'toan'.
+   * Re-adopting 'toan' allows the very next keystroke (like 's') to immediately modify
+   * the word into 'toán' without needing to re-type the whole word.
+   */
+  adoptWordBeforeBackspace(target, event) {
+    let textBefore = '';
+    const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+
+    if (isNative) {
+      const pos = target.selectionStart ?? 0;
+      textBefore = target.value.slice(0, pos);
+    } else if (target.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount) {
+        const range = sel.getRangeAt(0);
+        const node = range.startContainer;
+        if (node.nodeType === Node.TEXT_NODE) {
+          textBefore = (node.textContent || '').slice(0, range.startOffset);
+        }
+      }
+    }
+
+    // Check if backspacing exactly one space following a word
+    if (textBefore && textBefore.endsWith(' ')) {
+      const trimmed = textBefore.slice(0, -1);
+      const match = trimmed.match(/([\p{L}\p{M}]+)$/u);
+      if (match) {
+        const adopted = match[1];
+        this.avimEngine.currentWordRaw = adopted;
+        this.avimEngine.lastTransformed = adopted;
+        this.lastWordBeforeDelimiter = '';
+      }
+    }
   }
 
   handleCharacterInput(target, key, event) {

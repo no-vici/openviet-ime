@@ -8,6 +8,7 @@
 
 import { IME_METHOD, TONE_STYLE } from './key-codes.js';
 import { getVietnameseWordSet } from './vietnamese-words.js';
+import { parseSyllable, ParsedSyllable, TONE_MARK } from './syllable-parser.js';
 import {
   hasForeignOnset,
   isForeignWord,
@@ -341,10 +342,73 @@ export class AvimEngine {
       return toneResult;
     }
 
+    // 4b. Dynamic Tone Shifting (vnchKey / Bamboo phonological architecture):
+    // When key is appended to an already accented word (e.g. 'tó' + 'a' -> 'tóa', 'tóa' + 'n' -> 'toán'),
+    // parse the resulting syllable and dynamically relocate the tone mark to the phonetically correct nucleus.
+    const dynamicResult = this.checkDynamicToneShift(word, key);
+    if (dynamicResult.transformed) {
+      this.lastTransformed = dynamicResult.result;
+      return dynamicResult;
+    }
+
     // 5. Default: append key
     const newWord = word + key;
     this.lastTransformed = newWord;
     return { transformed: false, result: newWord };
+  }
+
+  /**
+   * Dynamic Tone Shifting:
+   * Relocates tone when appending vowels or coda consonants to a syllable that already carries a tone mark.
+   * e.g.:
+   *   'tó' + 'a' -> 'tóa' (or 'toá' if modern)
+   *   'tóa' + 'n' -> 'toán' (relocating tone from glide 'o' to nucleus 'a')
+   *   'hó' + 'a' -> 'hóa' / 'hoá'
+   *   'hoá' + 'n' -> 'hoán'
+   */
+  checkDynamicToneShift(word, key) {
+    if (!word || !key || key.length !== 1) {
+      return { transformed: false, result: word + key };
+    }
+
+    // Fast check: word must contain at least one accented vowel
+    let hasAccentedVowel = false;
+    for (let i = 0; i < word.length; i++) {
+      const tone = CHAR_TO_BASE_AND_TONE[word[i]]?.tone;
+      if (tone && tone > 0) {
+        hasAccentedVowel = true;
+        break;
+      }
+    }
+    if (!hasAccentedVowel) {
+      return { transformed: false, result: word + key };
+    }
+
+    // Only vowel additions or valid coda additions trigger dynamic shifting
+    const lowerKey = key.toLowerCase();
+    const isVowelKey = ['a', 'e', 'i', 'o', 'u', 'y'].includes(lowerKey);
+    const isCodaKey = ['c', 'h', 'm', 'n', 'p', 't', 'g'].includes(lowerKey);
+    if (!isVowelKey && !isCodaKey) {
+      return { transformed: false, result: word + key };
+    }
+
+    const candidate = word + key;
+    const parsed = parseSyllable(candidate);
+    if (!parsed || parsed.tone === TONE_MARK.NONE || !parsed.nucleus) {
+      return { transformed: false, result: candidate };
+    }
+
+    // Check phonological validity (stop finals rule, short vowels rule)
+    if (!parsed.isValid()) {
+      return { transformed: false, result: candidate };
+    }
+
+    const reconstructed = parsed.reconstruct(this.toneStyle);
+    if (reconstructed && reconstructed !== candidate) {
+      return { transformed: true, result: reconstructed };
+    }
+
+    return { transformed: false, result: candidate };
   }
 
   /**
@@ -1205,10 +1269,12 @@ export class AvimEngine {
     }
 
     // In 'oa', 'oe', 'uy': depends on Modern vs Classic tone style
+    // Modern (BGDĐT): tone on nucleus (2nd vowel: hoà, hoè, thuỷ, hoá)
+    // Classic (VNCH): tone on glide (1st vowel: hòa, hòe, thủy, hóa)
     if (['oa', 'oe', 'uy'].includes(cluster)) {
       return this.toneStyle === TONE_STYLE.MODERN
-        ? effectiveIndices[0] // Modern: hòa, thủy, khỏe
-        : effectiveIndices[1]; // Classic: hoà, thuỷ, khoẻ
+        ? effectiveIndices[1] // Modern: hoà, thuỷ, khoẻ, hoá
+        : effectiveIndices[0]; // Classic: hòa, thủy, khỏe, hóa
     }
 
     // Other diphthongs (ai, ao, au, ay, âu, ây, eo, êu, oi, ôi, ơi, ui):

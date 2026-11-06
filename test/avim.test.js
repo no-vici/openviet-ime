@@ -56,10 +56,10 @@ export function runAvimTests() {
   const modernEngine = new AvimEngine({ method: IME_METHOD.TELEX, toneStyle: TONE_STYLE.MODERN });
   const classicEngine = new AvimEngine({ method: IME_METHOD.TELEX, toneStyle: TONE_STYLE.CLASSIC });
 
-  assert('Modern Tone: hoa + f -> hòa', modernEngine.processKey('hoa', 'f').result === 'hòa', 'hòa', modernEngine.processKey('hoa', 'f').result);
-  assert('Classic Tone: hoa + f -> hoà', classicEngine.processKey('hoa', 'f').result === 'hoà', 'hoà', classicEngine.processKey('hoa', 'f').result);
-  assert('Modern Tone: thuy + r -> thủy', modernEngine.processKey('thuy', 'r').result === 'thủy', 'thủy', modernEngine.processKey('thuy', 'r').result);
-  assert('Classic Tone: thuy + r -> thuỷ', classicEngine.processKey('thuy', 'r').result === 'thuỷ', 'thuỷ', classicEngine.processKey('thuy', 'r').result);
+  assert('Modern Tone (hoà): hoa + f -> hoà', modernEngine.processKey('hoa', 'f').result === 'hoà', 'hoà', modernEngine.processKey('hoa', 'f').result);
+  assert('Classic Tone (hòa): hoa + f -> hòa', classicEngine.processKey('hoa', 'f').result === 'hòa', 'hòa', classicEngine.processKey('hoa', 'f').result);
+  assert('Modern Tone (thuỷ): thuy + r -> thuỷ', modernEngine.processKey('thuy', 'r').result === 'thuỷ', 'thuỷ', modernEngine.processKey('thuy', 'r').result);
+  assert('Classic Tone (thủy): thuy + r -> thủy', classicEngine.processKey('thuy', 'r').result === 'thủy', 'thủy', classicEngine.processKey('thuy', 'r').result);
 
   // 6. Closed syllable tone placement (always on main vowel)
   assert('Closed Syllable: toan + s -> toán', modernEngine.processKey('toan', 's').result === 'toán', 'toán', modernEngine.processKey('toan', 's').result);
@@ -393,6 +393,29 @@ export function runAvimTests() {
   // 22. Emoji Shorthand (IBus-Bamboo & Slack feature)
   const emojiTim = autoCompleteEngine.getSuggestions(':ti', 5).map(s => s.word);
   assert('Emoji autocomplete: ":ti" suggests ":tim:" (❤️)', emojiTim.includes('❤️'), 'includes ❤️', emojiTim.join(', '));
+
+  // 23. Syllable Parser & Dynamic Tone Shifting (Bamboo / vnchKey phonological architecture)
+  const dynEngine = new AvimEngine({ method: IME_METHOD.TELEX });
+  // to + s -> tó, + a -> tóa, + n -> toán
+  let dynWord = 't';
+  dynWord = dynEngine.processKey(dynWord, 'o').result;
+  dynWord = dynEngine.processKey(dynWord, 's').result;
+  assert('Early Tone: to + s -> tó', dynWord === 'tó', 'tó', dynWord);
+  dynWord = dynEngine.processKey(dynWord, 'a').result;
+  assert('Dynamic Tone Shift vowel append: tó + a -> tóa', dynWord === 'tóa', 'tóa', dynWord);
+  dynWord = dynEngine.processKey(dynWord, 'n').result;
+  assert('Dynamic Tone Shift coda append: tóa + n -> toán', dynWord === 'toán', 'toán', dynWord);
+
+  // VNI Dynamic Tone Shifting: to + 1 -> tó, + a -> tóa, + n -> toán
+  const dynVni = new AvimEngine({ method: IME_METHOD.VNI });
+  let vniWord = 't';
+  vniWord = dynVni.processKey(vniWord, 'o').result;
+  vniWord = dynVni.processKey(vniWord, '1').result;
+  assert('VNI Early Tone: to + 1 -> tó', vniWord === 'tó', 'tó', vniWord);
+  vniWord = dynVni.processKey(vniWord, 'a').result;
+  assert('VNI Dynamic Tone Shift: tó + a -> tóa', vniWord === 'tóa', 'tóa', vniWord);
+  vniWord = dynVni.processKey(vniWord, 'n').result;
+  assert('VNI Dynamic Tone Shift: tóa + n -> toán', vniWord === 'toán', 'toán', vniWord);
 
   return results;
 }

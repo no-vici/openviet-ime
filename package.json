@@ -17,7 +17,7 @@
     "build": "esbuild src/content/content.js --bundle --outfile=src/content/content.bundle.js --format=iife && esbuild src/options/options.js --bundle --outfile=src/options/options.bundle.js --format=iife && vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "test": "node --test test/avim.test.js test/macro.test.js test/autocomplete.test.js",
+    "test": "node --test test/avim.test.js test/macro.test.js test/autocomplete.test.js test/syllable-parser.test.js",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
