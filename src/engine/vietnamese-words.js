@@ -25,13 +25,18 @@ export const ALL_VIETNAMESE_SINGLE_VOWELS = [
 
 // Special syllables for Central Highlands place names, ethnic names & regional/rare Vietnamese
 export const RARE_AND_PLACE_SYLLABLES = [
-  // Tây Nguyên & Ethnic Toponyms
-  'krông', 'pắk', 'búk', 'păh', 'prông', 'ana', 'ea', 'hleo', 'kar', 'súp',
-  'mdrắk', 'đrắk', 'mil', 'glong', 'đoa', 'grai', 'hdrai', 'ia', 'mgar', 'kuin',
-  'rlấp', "r'lấp", 'r’lấp', 'pleiku', 'kon', 'tum', 'gia', 'lai',
+  // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn
+  'đắk', 'đăk', 'lắk', 'nông',
+  'krông', 'pắk', 'búk', 'păh', 'prông', 'ana',
+  'ea', "h'leo", 'hleo', 'kar', 'súp',
+  "m'đrắk", 'mdrắk', 'đrắk', 'mil', 'glong', 'đoa',
+  'grai', "h'drai", 'hdrai', "m'gar", 'mgar', 'kuin',
+  "r'lấp", 'r’lấp', 'rlấp', 'pleiku',
+  'chư', 'cư', 'sê', 'bông', 'năng', 'đức', 'cơ',
 
   // Rare, Classical & Dialect Vietnamese Syllables
-  'nguầy', 'nguậy', 'dzô', 'dzậy', 'zị', 'zi', 'zia', 'hén', 'nghen', 'mầy'
+  'nguầy', 'nguậy', 'dzìa', 'dzí', 'dzị', 'dzô', 'dzậy',
+  'zị', 'zi', 'zia', 'hén', 'nghen'
 ];
 
 let _vietnameseWordSet = null;
