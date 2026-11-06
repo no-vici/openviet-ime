@@ -30,7 +30,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
    - [Tự Động Bỏ Qua URL, Email & Cú Pháp Code](#tự-động-bỏ-qua-url-email--cú-pháp-code)
    - [Nguyên Âm Đôi Có Móc (`ươ`)](#nguyên-âm-đôi-có-móc-ươ)
    - [Cụm Nguyên Âm `uê` (`thuế`, `huế`, `quế`) & `ưu` (`cứu`, `cừu`)](#cụm-nguyên-âm-uê-thuế-huế-quế--ưu-cứu-cừu)
-   - [Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hòa`/`hoà`)](#chuẩn-bỏ-dấu-hiện-đại-vs-cổ-điển-hòahoà)
+   - [Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hoà`/`hòa`)](#chuẩn-bỏ-dấu-hiện-đại-vs-cổ-điển-hoàhòa)
    - [Bỏ Dấu Ở Cuối Từ (Late Vowel Shaping)](#bỏ-dấu-ở-cuối-từ-late-vowel-shaping)
    - [Quy Tắc Chính Tả & Âm Khép Phụ Âm Cuối](#quy-tắc-chính-tả--âm-khép-phụ-âm-cuối)
 3. [Gợi Ý Từ Thông Minh & Dự Đoán Từ Kế Tiếp Kiểu Gboard](#gợi-ý-từ-thông-minh--dự-đoán-từ-kế-tiếp-kiểu-gboard)
@@ -58,7 +58,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Chế Độ Tự Động (Auto) Mặc Định**: Mặc định kích hoạt chế độ **Tự động thích ứng** (gõ số theo VNI, gõ chữ theo Telex), dễ dàng chuyển đổi sang Telex, VNI hoặc Tắt chỉ với 1 click.
 - **Phím `z` Xóa Dấu Thanh Chuyên Dụng**: Gõ phím `z` (Telex/Auto) hoặc phím `0` (VNI) để lập tức gỡ bỏ dấu thanh và đưa nguyên âm về dạng gốc (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Tự Động Bỏ Qua URL, Email & Code (`isUrlOrEmailOrCode`)**: Tự động nhận diện đường dẫn web (`https://`, `www.`, `.com`, `/path`), địa chỉ email (`user@gmail.com`) và cú pháp lập trình (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, thẻ HTML, `->`, `=>`, `===`), tạm ngưng biến đổi bộ gõ để giữ nguyên link và code.
-- **Bỏ Dấu Chuẩn Xác Tuyệt Đối**: Đã sửa và hoàn thiện vị trí đặt dấu cho tất cả các nguyên âm đôi, ba phức tạp: `uê` (`thuế`, `huế`, `quế`, `xuề`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), cùng 2 chuẩn hiện đại và cổ điển (`hòa`/`hoà`, `thủy`/`thuỷ`).
+- **Bỏ Dấu Chuẩn Xác Tuyệt Đối**: Đã sửa và hoàn thiện vị trí đặt dấu cho tất cả các nguyên âm đôi, ba phức tạp: `uê` (`thuế`, `huế`, `quế`, `xuề`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), cùng 2 chuẩn hiện đại và cổ điển (`hoà`/`hòa`, `thuỷ`/`thủy`).
 - **Tối Ưu Riêng Cho Telegram Web A & Trình Soạn Thảo Rich-Text**: Xử lý triệt để xung đột con trỏ của TipTap/ProseMirror, khởi tạo Shadow Host sớm và xác định vùng chọn `TEXT_NODE` chuẩn xác, không bao giờ bị nhảy con trỏ hay lặp vòng viết hoa đầu câu.
 - **Chống Nhảy Chữ & Lặp Ký Tự Khi Gõ Nhanh**: Áp dụng kỹ thuật chặn sự kiện lan truyền tức thì (`stopImmediatePropagation`) và thay thế nguyên khối (Range-based Atomic Replacement) trên các chatbox AI và editor hiện đại (Sider.ai, StackEdit, TipTap, CodeMirror, Slate), loại bỏ hoàn toàn hiện tượng nhân đôi ký tự (`vâyậy`, `thêể`) khi gõ phím ở tốc độ cao.
 - **Chuẩn Hóa Unicode NFC Tuyệt Đối & Nhất Quán Dấu Nháy**: Toàn bộ chuỗi xuất ra DOM và lưu trữ đều ở dạng dựng sẵn **NFC** chuẩn quốc tế; tích hợp hàm chuẩn hóa `canon()` tự động đồng nhất dấu nháy cong và thẳng (`’`, `‘` -> `'`), đảm bảo kiểm tra chính tả và gõ chuẩn xác 100% các địa danh như `M'Đrắk`, `Cư M'gar`, `R'lấp`.
@@ -167,16 +167,16 @@ Trong các từ như `được`, `nước`, `bước`, `trước`, `thương`, c
 
 ---
 
-### Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hòa`/`hoà`)
+### Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hoà`/`hòa`)
 
 Tùy chỉnh linh hoạt trong trang cài đặt:
 
 1. **Chuẩn Hiện Đại (Mặc định)**:
-   - Với các nguyên âm đôi mở không có phụ âm cuối (`oa`, `oe`, `uy`), dấu thanh được đặt trên nguyên âm thứ hai:
-     - `hòa`, `hòe`, `thủy`, `khỏe`, `thỏa`.
+   - Với các nguyên âm đôi mở không có phụ âm cuối (`oa`, `oe`, `uy`), dấu thanh được đặt trên nguyên âm chính (nguyên âm thứ hai):
+     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`, `hoá`.
 2. **Chuẩn Cổ Điển**:
-   - Dấu thanh được đặt trên nguyên âm thứ nhất:
-     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`.
+   - Dấu thanh được đặt trên âm đệm (nguyên âm thứ nhất):
+     - `hòa`, `hòe`, `thủy`, `khỏe`, `thỏa`, `hóa`.
 
 Khi có phụ âm cuối (như `toán`, `hoàn`, `quýt`), cả hai chuẩn đều đồng nhất đặt dấu lên nguyên âm chính trước phụ âm cuối.
 

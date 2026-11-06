@@ -10,8 +10,8 @@ export const IME_METHOD = {
   AUTO: 3
 };
 export const TONE_STYLE = {
-  MODERN: 'modern',  // hòa, thủy, khỏe
-  CLASSIC: 'classic' // hoà, thuỷ, khoẻ
+  MODERN: 'modern',  // hoà, hoá, thuỷ, khoẻ (quy chuẩn mới / BGDĐT: dấu trên âm chính a, e, y)
+  CLASSIC: 'classic' // hòa, hóa, thủy, khỏe (phong cách cũ: dấu trên âm đệm o, u)
 };
 
 export const DELIMITERS = new Set([

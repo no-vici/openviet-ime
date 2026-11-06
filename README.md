@@ -57,7 +57,7 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
 - **Adaptive Auto Mode by Default**: Starts out-of-the-box in **Auto (Adaptive)** mode (digits route to VNI, letters route to Telex), with instantaneous switching between Auto, Telex, VNI, or Off.
 - **Key `z` Tone Removal**: Tap `z` (Telex / Auto) or `0` (VNI) to instantly remove diacritical tone marks while retaining vowel shapes (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Contextual URL, Email & Code Protection (`isUrlOrEmailOrCode`)**: Automatically detects web links (`https://`, `www.`, `.com`, `/path`), email addresses (`user@domain.com`), and programming syntax (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, HTML `<tags>`, `->`, `=>`, `===`), cleanly suspending IME transformations to prevent link or code corruption.
-- **Accurate Orthography Placement**: Precise tone placement for all diphthongs and triphthongs, including `uê` (`thuế`, `huế`, `quế`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), and configurable modern vs. classic standards (`hòa`/`hoà`, `thủy`/`thuỷ`).
+- **Accurate Orthography Placement**: Precise tone placement for all diphthongs and triphthongs, including `uê` (`thuế`, `huế`, `quế`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), and configurable modern vs. classic standards (`hoà`/`hòa`, `thuỷ`/`thủy`).
 - **Chat App & Telegram Web A Optimization**: Eager shadow host mounting and precise `TEXT_NODE` range handling prevent cursor distortion or auto-capitalization loops in ProseMirror/TipTap rich editors.
 - **Race-Condition Prevention & Atomic Replacement**: Implements immediate event interception (`stopImmediatePropagation`) and Range-based atomic replacement across modern rich editors and AI chatboxes (Sider.ai, StackEdit, TipTap, CodeMirror, Slate), completely eliminating duplicated character tails (e.g. `vâyậy`, `thêể`) during high-speed typing.
 - **Strict Unicode NFC Output & Quote Canonicalization**: Guarantees standard composed **NFC** output for all DOM mutations; incorporates `canon()` normalization to unify curly and straight quotes (`’`, `‘` -> `'`), ensuring flawless typing and spellchecking for apostrophe toponyms like `M'Đrắk`, `Cư M'gar`, and `R'lấp`.
@@ -172,11 +172,11 @@ In Vietnamese words like `được`, `nước`, `bước`, `trước`, `thương
 Configurable in popup settings and options:
 
 1. **Modern Orthography (Default)**:
-   - For open diphthongs without final consonants (`oa`, `oe`, `uy`), the tone mark is placed on the second vowel:
-     - `hòa`, `hòe`, `thủy`, `khỏe`, `thỏa`.
+   - For open diphthongs without final consonants (`oa`, `oe`, `uy`), the tone mark is placed on the main nucleus vowel (the second vowel):
+     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`, `hoá`.
 2. **Classic Orthography**:
-   - The tone mark is placed on the first vowel:
-     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`.
+   - The tone mark is placed on the glide vowel (the first vowel):
+     - `hòa`, `hòe`, `thủy`, `khỏe`, `thỏa`, `hóa`.
 
 When a final consonant exists (e.g., `toán`, `hoàn`, `quýt`), both standards place the tone mark on the main nuclear vowel.
 
