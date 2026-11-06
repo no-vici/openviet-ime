@@ -47,7 +47,7 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
    - [Building from Source](#building-from-source)
 8. [Testing & Verification](#testing--verification)
 9. [Design Philosophy: Modern Unicode Focus](#design-philosophy-modern-unicode-focus)
-10. [License](#license)
+10. [License & Acknowledgements](#license--acknowledgements)
 
 ---
 
@@ -385,8 +385,18 @@ OpenViet IME is built from the ground up for the modern web ecosystem. By design
 
 ---
 
-## License
+## License & Acknowledgements
 
-Licensed under the [Apache License, Version 2.0](LICENSE).  
-Portions derived from AVIM (Nguyễn Kim Kha), xKey (xmannv), and GoNhanh (Kha Phan).  
-Icons and assets designed with a clean, neutral keyboard aesthetic for cross-platform utility.
+### License
+Licensed under the [Apache License, Version 2.0](LICENSE).
+
+### Credits & Acknowledgements
+OpenViet IME is built upon the invaluable contributions, ideas, and foundational algorithms of the Vietnamese open-source input method community:
+- **AVIM**: Created by **Đặng Minh Tuấn** (original JS version by **Nguyễn Kim Kha**).
+- **xKey**: Developed by **xmannv** (Võ Văn Mann) — inspiration for macro expansion and quick consonant shortcuts.
+- **GoNhanh**: Developed by **Kha Phan** — inspiration for instant ESC word reversal and auto-restoring English vocabulary.
+- **IBus-Bamboo / Bamboo Engine**: Developed by **Lượng Thanh Lâm** (`luongthanhlam` / BambooEngine) — core 5-component phonological syllable structure and dynamic tone placement principles.
+- **fcitx5-vmk**: Developed by **Võ Ngô Hoàng Thành** (`thanhpy2009`) — insights into non-preedit text processing on modern UI frameworks.
+- **Funput**: Developed by **P-Code Dynamics** (`@pcodedynamics`) — cross-platform lightweight Vietnamese input design philosophy.
+
+Icons and graphics designed with a clean, neutral keyboard aesthetic for cross-platform utility.

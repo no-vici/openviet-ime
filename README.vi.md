@@ -48,7 +48,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
    - [Biên Dịch Từ Mã Nguồn](#biên-dịch-từ-mã-nguồn)
 8. [Kiểm Thử & Đảm Bảo Chất Lượng](#kiểm-thử--đảm-bảo-chất-lượng)
 9. [Triết Lý Thiết Kế: Chuẩn Hóa Unicode Hiện Đại](#triết-lý-thiết-kế-chuẩn-hóa-unicode-hiện-đại)
-10. [Bản Quyền](#bản-quyền)
+10. [Bản Quyền & Lời Cảm Ơn](#bản-quyền--lời-cảm-ơn)
 
 ---
 
@@ -385,8 +385,18 @@ OpenViet IME được phát triển hoàn toàn cho kỷ nguyên web hiện đ�
 
 ---
 
-## Bản Quyền
+## Bản Quyền & Lời Cảm Ơn
 
-Phát hành theo [Giấy phép Apache, Phiên bản 2.0](LICENSE).  
-Kế thừa tinh hoa từ các dự án mã nguồn mở AVIM (Nguyễn Kim Kha), xKey (xmannv), và GoNhanh (Kha Phan).  
+### Giấy Phép
+Phát hành theo [Giấy phép Apache, Phiên bản 2.0](LICENSE).
+
+### Tri Ân & Đóng Góp Cộng Đồng
+OpenViet IME kế thừa và phát triển dựa trên những đóng góp, ý tưởng thuật toán và mã nguồn mở quý báu của cộng đồng phát triển bộ gõ tiếng Việt:
+- **AVIM**: Khởi xướng bởi **Đặng Minh Tuấn** (phiên bản JavaScript đầu tiên bởi **Nguyễn Kim Kha**).
+- **xKey**: Phát triển bởi **xmannv** (Võ Văn Mann) — nguồn cảm hứng cho cơ chế mở rộng macro và gõ tắt phụ âm nhanh.
+- **GoNhanh**: Phát triển bởi **Kha Phan** — nguồn cảm hứng cho tính năng hoàn tác tức thì bằng phím ESC và tự động khôi phục từ tiếng Anh.
+- **IBus-Bamboo / Bamboo Engine**: Phát triển bởi **Lượng Thanh Lâm** (`luongthanhlam` / BambooEngine) — cấu trúc ngữ âm học 5 thành phần (âm đầu, âm đệm, âm chính, âm cuối, dấu thanh) và cơ chế dời dấu động.
+- **fcitx5-vmk**: Phát triển bởi **Võ Ngô Hoàng Thành** (`thanhpy2009`) — bài học kinh nghiệm xử lý văn bản non-preedit mượt mà trên môi trường hiện đại.
+- **Funput**: Phát triển bởi **P-Code Dynamics** (`@pcodedynamics`) — triết lý thiết kế bộ gõ tiếng Việt đa nền tảng, gọn nhẹ và bảo mật.
+
 Biểu tượng và đồ họa được thiết kế theo phong cách bàn phím hiện đại, trung tính và phù hợp sử dụng trên mọi nền tảng.
