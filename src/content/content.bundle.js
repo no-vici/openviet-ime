@@ -2361,6 +2361,7 @@
       this.enabled = options.enabled ?? true;
       this.autoUndo = options.autoUndo ?? true;
       this.lastExpansion = null;
+      this.suppressedTrigger = null;
       this.loadMacros(macros);
     }
     loadMacros(list) {
@@ -2409,6 +2410,11 @@
         return { match: false };
       }
       const key = rawWord.toLowerCase();
+      if (this.suppressedTrigger && this.suppressedTrigger.toLowerCase() === key) {
+        this.suppressedTrigger = null;
+        return { match: false, suppressed: true };
+      }
+      this.suppressedTrigger = null;
       const entry = this.macros.get(key);
       if (!entry || !entry.enabled) {
         return { match: false };
@@ -2430,7 +2436,7 @@
     /**
      * Backtracking / Undo:
      * When user presses Backspace immediately following an expansion,
-     * revert back to rawTrigger.
+     * revert back to rawTrigger and suppress immediate re-expansion on next delimiter.
      */
     checkUndo(recentText) {
       if (!this.autoUndo || !this.lastExpansion) {
@@ -2444,6 +2450,7 @@
       const expectedSuffix = expandedText + delimiter;
       if (recentText && recentText.endsWith(expectedSuffix)) {
         this.lastExpansion = null;
+        this.suppressedTrigger = rawTrigger;
         return {
           undo: true,
           rawTrigger,
@@ -2455,6 +2462,7 @@
     }
     clearUndo() {
       this.lastExpansion = null;
+      this.suppressedTrigger = null;
     }
     /**
      * Case preservation rules:
@@ -4876,6 +4884,9 @@
                   fullReplacement
                 );
               }
+              this.avimEngine.resetWordSession();
+              return;
+            } else if (expansion.suppressed) {
               this.avimEngine.resetWordSession();
               return;
             }

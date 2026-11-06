@@ -53,9 +53,17 @@ export function runMacroTests() {
   // 4. Backtracking / Backspace Undo
   // After expanding 'vn' with ' ' -> expected text suffix is 'Việt Nam '
   const expansion = engine.checkExpansion('vn', ' ');
-  const recentText = 'Tôi yêu Việt Nam không cộng sản ';
+  const recentText = 'Tôi yêu Việt Nam ';
   const undoResult = engine.checkUndo(recentText);
   assert('Backspace Undo immediately after expansion reverts to raw trigger', undoResult.undo && undoResult.rawTrigger === 'vn', 'vn', undoResult.rawTrigger);
+
+  // 4b. Macro Undo Loop Suppression (prevent infinite expansion loop when hitting Space after undo)
+  const reExpandSuppressed = engine.checkExpansion('vn', ' ');
+  assert('Space after Backspace undo must suppress re-expansion', reExpandSuppressed.match === false && reExpandSuppressed.suppressed === true, 'false (suppressed)', String(reExpandSuppressed.match));
+
+  // Next space expands normally
+  const normalAfterSuppressed = engine.checkExpansion('vn', ' ');
+  assert('Subsequent expansion after suppression works normally', normalAfterSuppressed.match === true, 'true', String(normalAfterSuppressed.match));
 
   // 5. JSON Export & Import roundtrip
   const jsonExport = engine.exportJSON();

@@ -1028,6 +1028,11 @@ class AvimContentScript {
             }
             this.avimEngine.resetWordSession();
             return;
+          } else if (expansion.suppressed) {
+            // User previously undid this macro (e.g. 'vn' <- 'Việt Nam ' via Backspace)
+            // Allow the delimiter (space) to pass through naturally without expanding!
+            this.avimEngine.resetWordSession();
+            return;
           }
         }
       }

@@ -39,6 +39,7 @@ export class MacroEngine {
     this.enabled = options.enabled ?? true;
     this.autoUndo = options.autoUndo ?? true;
     this.lastExpansion = null; // For Backspace undo tracking
+    this.suppressedTrigger = null; // Prevents infinite loop re-expansion right after an undo
 
     this.loadMacros(macros);
   }
@@ -95,6 +96,15 @@ export class MacroEngine {
     }
 
     const key = rawWord.toLowerCase();
+
+    // Check if this trigger was just undone via Backspace (loop suppression)
+    if (this.suppressedTrigger && this.suppressedTrigger.toLowerCase() === key) {
+      // Clear suppression for future typing, but do not expand this time
+      this.suppressedTrigger = null;
+      return { match: false, suppressed: true };
+    }
+    this.suppressedTrigger = null;
+
     const entry = this.macros.get(key);
 
     if (!entry || !entry.enabled) {
@@ -122,7 +132,7 @@ export class MacroEngine {
   /**
    * Backtracking / Undo:
    * When user presses Backspace immediately following an expansion,
-   * revert back to rawTrigger.
+   * revert back to rawTrigger and suppress immediate re-expansion on next delimiter.
    */
   checkUndo(recentText) {
     if (!this.autoUndo || !this.lastExpansion) {
@@ -139,6 +149,8 @@ export class MacroEngine {
     const expectedSuffix = expandedText + delimiter;
     if (recentText && recentText.endsWith(expectedSuffix)) {
       this.lastExpansion = null;
+      // Mark trigger as suppressed so typing space next will keep rawTrigger intact
+      this.suppressedTrigger = rawTrigger;
       return {
         undo: true,
         rawTrigger,
@@ -152,6 +164,7 @@ export class MacroEngine {
 
   clearUndo() {
     this.lastExpansion = null;
+    this.suppressedTrigger = null;
   }
 
   /**
