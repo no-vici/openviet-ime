@@ -20,24 +20,15 @@ for (const size of sizes) {
 
   if (size === 16) {
     fs.writeFileSync('src/assets/icon16.png', pngBuffer);
-    fs.writeFileSync('public/src/assets/icon16.png', pngBuffer);
   } else if (size === 32) {
     fs.writeFileSync('src/assets/icon32.png', pngBuffer);
-    fs.writeFileSync('public/src/assets/icon32.png', pngBuffer);
-    fs.writeFileSync('public/favicon.png', pngBuffer);
   } else if (size === 48) {
     fs.writeFileSync('src/assets/icon48.png', pngBuffer);
-    fs.writeFileSync('public/src/assets/icon48.png', pngBuffer);
-    fs.writeFileSync('public/favicon.png', pngBuffer);
   } else if (size === 64) {
     fs.writeFileSync('src/assets/icon64.png', pngBuffer);
-    fs.writeFileSync('public/src/assets/icon64.png', pngBuffer);
-    fs.writeFileSync('public/favicon.png', pngBuffer);
   } else if (size === 128) {
     fs.writeFileSync('src/assets/icon128.png', pngBuffer);
     fs.writeFileSync('src/assets/icon.png', pngBuffer);
-    fs.writeFileSync('public/src/assets/icon128.png', pngBuffer);
-    fs.writeFileSync('public/src/assets/icon.png', pngBuffer);
   }
 }
 
