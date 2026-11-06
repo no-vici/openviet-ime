@@ -7,7 +7,7 @@
  * @license GPL / MIT
  */
 
-import { getVietnameseWordSet } from './vietnamese-words.js';
+import { getVietnameseWordSet, canon } from './vietnamese-words.js';
 
 // Non-Vietnamese initial consonant clusters (strictly English/foreign onsets)
 export const FOREIGN_INITIAL_CLUSTERS = new Set([
@@ -31,8 +31,7 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'as', 'is', 'us', 'this', 'yes', 'bus', 'plus', 'has', 'was', 'its', 'his', 'less', 'miss',
   'pass', 'boss', 'loss', 'mass', 'class', 'glass', 'press', 'cross', 'dress', 'guess',
   'basis', 'status', 'focus', 'virus', 'bonus', 'canvas', 'chaos', 'oasis', 'crisis', 'texas',
-  'paris', 'series', 'species', 'famous', 'versus', 'alias', 'radius', 'minus', 'genius', 'census',
-  'campus', 'circus', 'lotus', 'chorus', 'walrus', 'corpus', 'hiatus', 'nexus',
+  'paris', 'series', 'species', 'famous', 'fcitx', 'fcitx5', 'versus', 'alias', 'radius', 'minus', 'genius', 'census', 'campus', 'circus', 'lotus', 'chorus', 'walrus', 'corpus', 'hiatus', 'nexus',
   'news', 'always', 'sometimes', 'perhaps', 'business', 'process', 'access', 'success', 'address',
 
   // Telex trap: words with 'x' (ngã)
@@ -408,7 +407,7 @@ export class UserDictionary {
   loadWords(wordsList) {
     if (Array.isArray(wordsList)) {
       wordsList.forEach(w => {
-        const clean = (w || '').trim().toLowerCase();
+        const clean = canon(w);
         if (clean) this.words.add(clean);
       });
     }
@@ -416,11 +415,11 @@ export class UserDictionary {
 
   has(word) {
     if (!word) return false;
-    return this.words.has(word.toLowerCase().trim());
+    return this.words.has(canon(word));
   }
 
   add(word) {
-    const clean = (word || '').trim().toLowerCase();
+    const clean = canon(word);
     if (!clean) return false;
     this.words.add(clean);
     this.saveToStorage();
@@ -428,7 +427,7 @@ export class UserDictionary {
   }
 
   remove(word) {
-    const clean = (word || '').trim().toLowerCase();
+    const clean = canon(word);
     if (!clean) return false;
     const deleted = this.words.delete(clean);
     if (deleted) this.saveToStorage();
@@ -547,7 +546,7 @@ export const userDictionary = new UserDictionary();
  */
 export function checkWordSpelling(word) {
   if (!word) return true;
-  const clean = word.toLowerCase().trim().normalize('NFC');
+  const clean = canon(word.trim());
 
   // 1. User dictionary whitelist
   if (userDictionary.has(clean)) {
@@ -566,7 +565,7 @@ export function checkWordSpelling(word) {
   }
 
   // 4. If word is simple ASCII without Vietnamese marks (e.g. test, fast, chat, ok, hello)
-  if (/^[a-z0-9]+$/i.test(clean)) {
+  if (/^[a-z0-9']+$/i.test(clean)) {
     return true;
   }
 

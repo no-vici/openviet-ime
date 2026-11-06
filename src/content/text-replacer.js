@@ -14,16 +14,18 @@ export class TextReplacer {
    * @param {string} replacement New replacement text
    */
   replaceInNativeInput(el, startIndex, endIndex, replacement) {
+    // Normalize replacement strictly to Unicode NFC
+    const nfcReplacement = (replacement || '').normalize('NFC');
     const originalValue = el.value;
     const before = originalValue.slice(0, startIndex);
     const after = originalValue.slice(endIndex);
-    const newValue = before + replacement + after;
+    const newValue = before + nfcReplacement + after;
 
-    const newCaretPos = startIndex + replacement.length;
+    const newCaretPos = startIndex + nfcReplacement.length;
 
     // Use setRangeText if supported
     if (typeof el.setRangeText === 'function') {
-      el.setRangeText(replacement, startIndex, endIndex, 'end');
+      el.setRangeText(nfcReplacement, startIndex, endIndex, 'end');
     } else {
       el.value = newValue;
       el.setSelectionRange(newCaretPos, newCaretPos);
@@ -34,7 +36,7 @@ export class TextReplacer {
     el.selectionEnd = newCaretPos;
 
     // Dispatch synthetic InputEvent to trigger React / Vue / Angular change detectors
-    this.dispatchSyntheticInput(el, replacement);
+    this.dispatchSyntheticInput(el, nfcReplacement);
   }
 
   /**
@@ -47,12 +49,16 @@ export class TextReplacer {
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) return;
 
-    // For modern rich-text editors (like TipTap / ProseMirror on Telegram Web A),
+    // Strict Unicode NFC normalization for output
+    const nfcNewText = (newText || '').normalize('NFC');
+    const nfcOldText = (oldText || '').normalize('NFC');
+
+    // For modern rich-text editors (like TipTap / ProseMirror on Telegram Web A or Sider.ai / StackEdit),
     // when inserting a single character (empty oldText), try document.execCommand first
-    if (!oldText) {
+    if (!nfcOldText) {
       try {
-        if (document.execCommand('insertText', false, newText)) {
-          this.dispatchSyntheticInput(root, newText);
+        if (document.execCommand('insertText', false, nfcNewText)) {
+          this.dispatchSyntheticInput(root, nfcNewText);
           return;
         }
       } catch {}
@@ -62,7 +68,7 @@ export class TextReplacer {
     let node = range.startContainer;
     let offset = range.startOffset;
 
-    // If node is an ELEMENT_NODE (e.g. <p> container in TipTap), locate the text node
+    // If node is an ELEMENT_NODE (e.g. <p> container in TipTap / ProseMirror), locate the text node
     if (node.nodeType === Node.ELEMENT_NODE && node.childNodes.length > 0) {
       if (offset > 0 && node.childNodes[offset - 1]) {
         const prev = node.childNodes[offset - 1];
@@ -80,17 +86,34 @@ export class TextReplacer {
     }
 
     if (node && node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent || '';
+      const rawText = node.textContent || '';
+      const text = rawText.normalize('NFC');
 
       // Find where oldText occurred right before cursor
       const textBeforeCursor = text.slice(0, offset);
-      if (textBeforeCursor.endsWith(oldText)) {
-        const replaceStart = offset - oldText.length;
-        const newContent = text.slice(0, replaceStart) + newText + text.slice(offset);
+      if (textBeforeCursor.endsWith(nfcOldText)) {
+        const replaceStart = offset - nfcOldText.length;
+        const newContent = text.slice(0, replaceStart) + nfcNewText + text.slice(offset);
+
+        // Atomic replace via Range if supported (preferred by TipTap / Slate / Draft / CodeMirror)
+        try {
+          const replaceRange = document.createRange();
+          replaceRange.setStart(node, replaceStart);
+          replaceRange.setEnd(node, offset);
+          sel.removeAllRanges();
+          sel.addRange(replaceRange);
+
+          if (document.execCommand('insertText', false, nfcNewText)) {
+            this.dispatchSyntheticInput(root, nfcNewText);
+            return;
+          }
+        } catch {}
+
+        // Fallback DOM manipulation
         node.textContent = newContent;
 
         // Reposition caret INSIDE the text node
-        const newOffset = replaceStart + newText.length;
+        const newOffset = replaceStart + nfcNewText.length;
         const newRange = document.createRange();
         newRange.setStart(node, Math.min(newOffset, newContent.length));
         newRange.collapse(true);
@@ -98,13 +121,13 @@ export class TextReplacer {
         sel.removeAllRanges();
         sel.addRange(newRange);
 
-        this.dispatchSyntheticInput(root, newText);
+        this.dispatchSyntheticInput(root, nfcNewText);
         return;
       }
     }
 
     // Fallback: insert text node & position cursor INSIDE the textNode
-    const textNode = document.createTextNode(newText);
+    const textNode = document.createTextNode(nfcNewText);
     range.deleteContents();
     range.insertNode(textNode);
     const newRange = document.createRange();
@@ -113,7 +136,7 @@ export class TextReplacer {
     sel.removeAllRanges();
     sel.addRange(newRange);
 
-    this.dispatchSyntheticInput(root, newText);
+    this.dispatchSyntheticInput(root, nfcNewText);
   }
 
   /**

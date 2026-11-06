@@ -19,6 +19,14 @@ export class DomObserver {
   isCurrentDomainBlacklisted() {
     if (typeof window === 'undefined' || !window.location) return false;
     const hostname = window.location.hostname.toLowerCase();
+
+    // 1. Google Docs / Sheets / Slides proprietary canvas editor bypass
+    // Google Docs uses an offscreen canvas rendering engine that conflicts with DOM key replacements
+    if (hostname === 'docs.google.com') {
+      return true;
+    }
+
+    // 2. User configurable blacklisted domains
     for (const domain of this.blacklistedDomains) {
       if (domain && (hostname === domain || hostname.endsWith('.' + domain))) {
         return true;

@@ -342,7 +342,11 @@
     "\u0111"
   ];
   var RARE_AND_PLACE_SYLLABLES = [
-    // Tây Nguyên & Ethnic Toponyms
+    // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn
+    "\u0111\u1EAFk",
+    "\u0111\u0103k",
+    "l\u1EAFk",
+    "n\xF4ng",
     "kr\xF4ng",
     "p\u1EAFk",
     "b\xFAk",
@@ -350,45 +354,62 @@
     "pr\xF4ng",
     "ana",
     "ea",
+    "h'leo",
     "hleo",
     "kar",
     "s\xFAp",
+    "m'\u0111r\u1EAFk",
     "mdr\u1EAFk",
     "\u0111r\u1EAFk",
     "mil",
     "glong",
     "\u0111oa",
     "grai",
+    "h'drai",
     "hdrai",
-    "ia",
+    "m'gar",
     "mgar",
     "kuin",
-    "rl\u1EA5p",
     "r'l\u1EA5p",
     "r\u2019l\u1EA5p",
+    "rl\u1EA5p",
     "pleiku",
-    "kon",
-    "tum",
-    "gia",
-    "lai",
+    "ch\u01B0",
+    "c\u01B0",
+    "s\xEA",
+    "b\xF4ng",
+    "n\u0103ng",
+    "\u0111\u1EE9c",
+    "c\u01A1",
     // Rare, Classical & Dialect Vietnamese Syllables
     "ngu\u1EA7y",
     "ngu\u1EADy",
+    "dz\xECa",
+    "dz\xED",
+    "dz\u1ECB",
     "dz\xF4",
     "dz\u1EADy",
     "z\u1ECB",
     "zi",
     "zia",
     "h\xE9n",
-    "nghen",
-    "m\u1EA7y"
+    "nghen"
   ];
+  function canon(str) {
+    if (!str) return "";
+    return str.normalize("NFC").replace(/[\u2018\u2019\u201B\u02BC\u02B9]/g, "'").toLowerCase();
+  }
   var _vietnameseWordSet = null;
   function getVietnameseWordSet() {
     if (!_vietnameseWordSet) {
-      _vietnameseWordSet = new Set(VIETNAMESE_WORDS_STRING.split(" "));
-      ALL_VIETNAMESE_SINGLE_VOWELS.forEach((v) => _vietnameseWordSet.add(v));
-      RARE_AND_PLACE_SYLLABLES.forEach((s) => _vietnameseWordSet.add(s.toLowerCase()));
+      _vietnameseWordSet = /* @__PURE__ */ new Set();
+      const rawTokens = VIETNAMESE_WORDS_STRING.split(" ");
+      for (let i = 0; i < rawTokens.length; i++) {
+        const c = canon(rawTokens[i]);
+        if (c) _vietnameseWordSet.add(c);
+      }
+      ALL_VIETNAMESE_SINGLE_VOWELS.forEach((v) => _vietnameseWordSet.add(canon(v)));
+      RARE_AND_PLACE_SYLLABLES.forEach((s) => _vietnameseWordSet.add(canon(s)));
     }
     return _vietnameseWordSet;
   }
@@ -433,6 +454,8 @@
     "series",
     "species",
     "famous",
+    "fcitx",
+    "fcitx5",
     "versus",
     "alias",
     "radius",
@@ -993,24 +1016,24 @@
     loadWords(wordsList) {
       if (Array.isArray(wordsList)) {
         wordsList.forEach((w) => {
-          const clean = (w || "").trim().toLowerCase();
+          const clean = canon(w);
           if (clean) this.words.add(clean);
         });
       }
     }
     has(word) {
       if (!word) return false;
-      return this.words.has(word.toLowerCase().trim());
+      return this.words.has(canon(word));
     }
     add(word) {
-      const clean = (word || "").trim().toLowerCase();
+      const clean = canon(word);
       if (!clean) return false;
       this.words.add(clean);
       this.saveToStorage();
       return true;
     }
     remove(word) {
-      const clean = (word || "").trim().toLowerCase();
+      const clean = canon(word);
       if (!clean) return false;
       const deleted = this.words.delete(clean);
       if (deleted) this.saveToStorage();

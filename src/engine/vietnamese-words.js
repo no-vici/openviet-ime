@@ -39,13 +39,32 @@ export const RARE_AND_PLACE_SYLLABLES = [
   'zị', 'zi', 'zia', 'hén', 'nghen'
 ];
 
+/**
+ * Canonicalize text for consistent Vietnamese comparison:
+ * 1. Normalize to Unicode NFC (composed)
+ * 2. Unify curly/apostrophe marks (’, ‘, ʹ, ʼ) into ASCII straight quote (')
+ * 3. Lowercase
+ */
+export function canon(str) {
+  if (!str) return '';
+  return str
+    .normalize('NFC')
+    .replace(/[\u2018\u2019\u201B\u02BC\u02B9]/g, "'")
+    .toLowerCase();
+}
+
 let _vietnameseWordSet = null;
 
 export function getVietnameseWordSet() {
   if (!_vietnameseWordSet) {
-    _vietnameseWordSet = new Set(VIETNAMESE_WORDS_STRING.split(" "));
-    ALL_VIETNAMESE_SINGLE_VOWELS.forEach(v => _vietnameseWordSet.add(v));
-    RARE_AND_PLACE_SYLLABLES.forEach(s => _vietnameseWordSet.add(s.toLowerCase()));
+    _vietnameseWordSet = new Set();
+    const rawTokens = VIETNAMESE_WORDS_STRING.split(" ");
+    for (let i = 0; i < rawTokens.length; i++) {
+      const c = canon(rawTokens[i]);
+      if (c) _vietnameseWordSet.add(c);
+    }
+    ALL_VIETNAMESE_SINGLE_VOWELS.forEach(v => _vietnameseWordSet.add(canon(v)));
+    RARE_AND_PLACE_SYLLABLES.forEach(s => _vietnameseWordSet.add(canon(s)));
   }
   return _vietnameseWordSet;
 }

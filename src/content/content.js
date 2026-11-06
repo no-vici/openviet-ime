@@ -1125,7 +1125,13 @@ class AvimContentScript {
         const result = this.avimEngine.processKey(currentWord, key);
 
         if (result.transformed) {
+          // Immediately prevent default and stop immediate propagation to prevent race conditions with frameworks (React/Vue/TipTap)
           event.preventDefault();
+          event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === 'function') {
+            event.stopImmediatePropagation();
+          }
+
           if (isNative) {
             this.textReplacer.replaceInNativeInput(
               target,

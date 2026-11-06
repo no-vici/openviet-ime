@@ -172,7 +172,11 @@
     "\u0111"
   ];
   var RARE_AND_PLACE_SYLLABLES = [
-    // Tây Nguyên & Ethnic Toponyms
+    // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn
+    "\u0111\u1EAFk",
+    "\u0111\u0103k",
+    "l\u1EAFk",
+    "n\xF4ng",
     "kr\xF4ng",
     "p\u1EAFk",
     "b\xFAk",
@@ -180,45 +184,62 @@
     "pr\xF4ng",
     "ana",
     "ea",
+    "h'leo",
     "hleo",
     "kar",
     "s\xFAp",
+    "m'\u0111r\u1EAFk",
     "mdr\u1EAFk",
     "\u0111r\u1EAFk",
     "mil",
     "glong",
     "\u0111oa",
     "grai",
+    "h'drai",
     "hdrai",
-    "ia",
+    "m'gar",
     "mgar",
     "kuin",
-    "rl\u1EA5p",
     "r'l\u1EA5p",
     "r\u2019l\u1EA5p",
+    "rl\u1EA5p",
     "pleiku",
-    "kon",
-    "tum",
-    "gia",
-    "lai",
+    "ch\u01B0",
+    "c\u01B0",
+    "s\xEA",
+    "b\xF4ng",
+    "n\u0103ng",
+    "\u0111\u1EE9c",
+    "c\u01A1",
     // Rare, Classical & Dialect Vietnamese Syllables
     "ngu\u1EA7y",
     "ngu\u1EADy",
+    "dz\xECa",
+    "dz\xED",
+    "dz\u1ECB",
     "dz\xF4",
     "dz\u1EADy",
     "z\u1ECB",
     "zi",
     "zia",
     "h\xE9n",
-    "nghen",
-    "m\u1EA7y"
+    "nghen"
   ];
+  function canon(str) {
+    if (!str) return "";
+    return str.normalize("NFC").replace(/[\u2018\u2019\u201B\u02BC\u02B9]/g, "'").toLowerCase();
+  }
   var _vietnameseWordSet = null;
   function getVietnameseWordSet() {
     if (!_vietnameseWordSet) {
-      _vietnameseWordSet = new Set(VIETNAMESE_WORDS_STRING.split(" "));
-      ALL_VIETNAMESE_SINGLE_VOWELS.forEach((v) => _vietnameseWordSet.add(v));
-      RARE_AND_PLACE_SYLLABLES.forEach((s) => _vietnameseWordSet.add(s.toLowerCase()));
+      _vietnameseWordSet = /* @__PURE__ */ new Set();
+      const rawTokens = VIETNAMESE_WORDS_STRING.split(" ");
+      for (let i = 0; i < rawTokens.length; i++) {
+        const c = canon(rawTokens[i]);
+        if (c) _vietnameseWordSet.add(c);
+      }
+      ALL_VIETNAMESE_SINGLE_VOWELS.forEach((v) => _vietnameseWordSet.add(canon(v)));
+      RARE_AND_PLACE_SYLLABLES.forEach((s) => _vietnameseWordSet.add(canon(s)));
     }
     return _vietnameseWordSet;
   }
@@ -298,6 +319,8 @@
     "series",
     "species",
     "famous",
+    "fcitx",
+    "fcitx5",
     "versus",
     "alias",
     "radius",
@@ -1188,24 +1211,24 @@
     loadWords(wordsList) {
       if (Array.isArray(wordsList)) {
         wordsList.forEach((w) => {
-          const clean = (w || "").trim().toLowerCase();
+          const clean = canon(w);
           if (clean) this.words.add(clean);
         });
       }
     }
     has(word) {
       if (!word) return false;
-      return this.words.has(word.toLowerCase().trim());
+      return this.words.has(canon(word));
     }
     add(word) {
-      const clean = (word || "").trim().toLowerCase();
+      const clean = canon(word);
       if (!clean) return false;
       this.words.add(clean);
       this.saveToStorage();
       return true;
     }
     remove(word) {
-      const clean = (word || "").trim().toLowerCase();
+      const clean = canon(word);
       if (!clean) return false;
       const deleted = this.words.delete(clean);
       if (deleted) this.saveToStorage();
@@ -1304,7 +1327,7 @@
   var userDictionary = new UserDictionary();
   function checkWordSpelling(word) {
     if (!word) return true;
-    const clean = word.toLowerCase().trim().normalize("NFC");
+    const clean = canon(word.trim());
     if (userDictionary.has(clean)) {
       return true;
     }
@@ -1315,7 +1338,7 @@
     if (vnSet.has(clean)) {
       return true;
     }
-    if (/^[a-z0-9]+$/i.test(clean)) {
+    if (/^[a-z0-9']+$/i.test(clean)) {
       return true;
     }
     return false;
@@ -2545,6 +2568,9 @@
     isCurrentDomainBlacklisted() {
       if (typeof window === "undefined" || !window.location) return false;
       const hostname = window.location.hostname.toLowerCase();
+      if (hostname === "docs.google.com") {
+        return true;
+      }
       for (const domain of this.blacklistedDomains) {
         if (domain && (hostname === domain || hostname.endsWith("." + domain))) {
           return true;
@@ -2606,20 +2632,21 @@
      * @param {string} replacement New replacement text
      */
     replaceInNativeInput(el, startIndex, endIndex, replacement) {
+      const nfcReplacement = (replacement || "").normalize("NFC");
       const originalValue = el.value;
       const before = originalValue.slice(0, startIndex);
       const after = originalValue.slice(endIndex);
-      const newValue = before + replacement + after;
-      const newCaretPos = startIndex + replacement.length;
+      const newValue = before + nfcReplacement + after;
+      const newCaretPos = startIndex + nfcReplacement.length;
       if (typeof el.setRangeText === "function") {
-        el.setRangeText(replacement, startIndex, endIndex, "end");
+        el.setRangeText(nfcReplacement, startIndex, endIndex, "end");
       } else {
         el.value = newValue;
         el.setSelectionRange(newCaretPos, newCaretPos);
       }
       el.selectionStart = newCaretPos;
       el.selectionEnd = newCaretPos;
-      this.dispatchSyntheticInput(el, replacement);
+      this.dispatchSyntheticInput(el, nfcReplacement);
     }
     /**
      * Replace text in a ContentEditable container (handles regular editors and ProseMirror/TipTap)
@@ -2630,10 +2657,12 @@
     replaceInContentEditable(root, oldText, newText) {
       const sel = window.getSelection();
       if (!sel || !sel.rangeCount) return;
-      if (!oldText) {
+      const nfcNewText = (newText || "").normalize("NFC");
+      const nfcOldText = (oldText || "").normalize("NFC");
+      if (!nfcOldText) {
         try {
-          if (document.execCommand("insertText", false, newText)) {
-            this.dispatchSyntheticInput(root, newText);
+          if (document.execCommand("insertText", false, nfcNewText)) {
+            this.dispatchSyntheticInput(root, nfcNewText);
             return;
           }
         } catch {
@@ -2658,23 +2687,36 @@
         }
       }
       if (node && node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent || "";
+        const rawText = node.textContent || "";
+        const text = rawText.normalize("NFC");
         const textBeforeCursor = text.slice(0, offset);
-        if (textBeforeCursor.endsWith(oldText)) {
-          const replaceStart = offset - oldText.length;
-          const newContent = text.slice(0, replaceStart) + newText + text.slice(offset);
+        if (textBeforeCursor.endsWith(nfcOldText)) {
+          const replaceStart = offset - nfcOldText.length;
+          const newContent = text.slice(0, replaceStart) + nfcNewText + text.slice(offset);
+          try {
+            const replaceRange = document.createRange();
+            replaceRange.setStart(node, replaceStart);
+            replaceRange.setEnd(node, offset);
+            sel.removeAllRanges();
+            sel.addRange(replaceRange);
+            if (document.execCommand("insertText", false, nfcNewText)) {
+              this.dispatchSyntheticInput(root, nfcNewText);
+              return;
+            }
+          } catch {
+          }
           node.textContent = newContent;
-          const newOffset = replaceStart + newText.length;
+          const newOffset = replaceStart + nfcNewText.length;
           const newRange2 = document.createRange();
           newRange2.setStart(node, Math.min(newOffset, newContent.length));
           newRange2.collapse(true);
           sel.removeAllRanges();
           sel.addRange(newRange2);
-          this.dispatchSyntheticInput(root, newText);
+          this.dispatchSyntheticInput(root, nfcNewText);
           return;
         }
       }
-      const textNode = document.createTextNode(newText);
+      const textNode = document.createTextNode(nfcNewText);
       range.deleteContents();
       range.insertNode(textNode);
       const newRange = document.createRange();
@@ -2682,7 +2724,7 @@
       newRange.collapse(true);
       sel.removeAllRanges();
       sel.addRange(newRange);
-      this.dispatchSyntheticInput(root, newText);
+      this.dispatchSyntheticInput(root, nfcNewText);
     }
     /**
      * Dispatch synthetic InputEvent and Event('change')
@@ -4919,6 +4961,10 @@
           const result = this.avimEngine.processKey(currentWord2, key);
           if (result.transformed) {
             event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === "function") {
+              event.stopImmediatePropagation();
+            }
             if (isNative) {
               this.textReplacer.replaceInNativeInput(
                 target,
