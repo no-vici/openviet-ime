@@ -14,7 +14,7 @@
     "bundle:firefox": "npm run build:firefox",
     "bundle:edge": "npm run build:edge",
     "build": "npm run bundle:extension",
-    "test": "node --test test/avim.test.js test/macro.test.js test/autocomplete.test.js test/syllable-parser.test.js"
+    "test": "node --test test/avim.test.js test/macro.test.js test/autocomplete.test.js test/syllable-parser.test.js test/vietc-regression.test.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

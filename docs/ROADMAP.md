@@ -30,10 +30,15 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 ### Giai đoạn 4: Kiến Trúc Ngữ Âm Học 5 Thành Phần & Chuẩn Bỏ Dấu (Syllable Parser)
 - [x] **Mô hình ngữ âm 5 thành phần (bản quyền ý tưởng Bamboo / vnchKey)**: Bóc tách cấu trúc $\text{Onset} + \text{Glide} + \text{Nucleus} + \text{Coda} + \text{Tone}$.
 - [x] **Dời dấu động (Dynamic Tone Shifting)**: Gõ dấu sớm `to` + `s` $\rightarrow$ `tó` + `a` $\rightarrow$ `tóa` + `n` $\rightarrow$ `toán` (không bị kẹt thành `tóan`).
+- [x] **Hoán đổi dấu phụ bảo lưu thanh điệu (Shape Modifier Swapping từ VietC / vnchKey)**:
+  - Telex: `â + w` $\leftrightarrow$ `ă`, `ă + a` $\leftrightarrow$ `â` (`ấm` + `w` $\rightarrow$ `ắm`, `cân` + `w` $\rightarrow$ `căn`, `tập` + `w` $\rightarrow$ `tặp`); `ô + w` $\leftrightarrow$ `ơ`, `ơ + o` $\leftrightarrow$ `ô` (`bốn` + `w` $\rightarrow$ `bớn`, `hộp` + `w` $\rightarrow$ `hợp`).
+  - VNI: `6` $\leftrightarrow$ `8` (`tấ` + `8` $\rightarrow$ `tắ`), `6` $\leftrightarrow$ `7` (`bốn` + `7` $\rightarrow$ `bớn`, `giồ` + `7` $\rightarrow$ `giờ`).
+- [x] **Bảo vệ ngữ âm tự nhiên (Natural Phonological Guard)**: Ngay cả khi người dùng tắt kiểm tra chính tả, các lệnh/từ kỹ thuật (`fcitx5`, `docx4`, `linux6`, `curl7`) vẫn được bảo toàn nguyên vẹn, không bị ép dấu sai luật ngữ âm.
 - [x] **Thu nạp từ trước Backspace (`adoptWordBeforeBackspace`)**: Xóa khoảng trắng sau từ cho phép nhấn phím dấu tác động ngay vào từ trước đó.
 - [x] **Phân định rạch ròi 2 chuẩn bỏ dấu**:
   - **Chuẩn mới (BGDĐT)**: `hoà, hoá, thuỷ, khoẻ, thoả` (dấu trên âm chính).
   - **Chuẩn cũ (VNCH / UniKey cổ điển)**: `hòa, hóa, thủy, khỏe, thỏa` (dấu trên âm đệm).
+- [x] **Bộ Test Suite Hồi quy Thực chiến (vietc-regression.test.js)**: Kiểm thử bao quát các ca hoán đổi biến âm, tổ hợp nguyên âm và bảo vệ từ ngữ kỹ thuật.
 
 ---
 

@@ -2015,6 +2015,11 @@
         this.lastTransformed = shapeResult.result;
         return shapeResult;
       }
+      const swapResult = this.checkShapeModifierSwapping(word, key);
+      if (swapResult.transformed) {
+        this.lastTransformed = swapResult.result;
+        return swapResult;
+      }
       const toneResult = this.checkTone(word, key);
       if (toneResult.transformed) {
         this.lastTransformed = toneResult.result;
@@ -2072,6 +2077,61 @@
         return { transformed: true, result: reconstructed };
       }
       return { transformed: false, result: candidate };
+    }
+    /**
+     * Shape Modifier Swapping (VietC / Bamboo innovation):
+     * Allows users to swap between circumflex, horn, and breve while preserving existing tone marks:
+     * Telex:
+     *   â + w -> ă (ấm + w -> ắm, cân + w -> căn, tập + w -> tặp)
+     *   ă + a -> â (ắm + a -> ấm, căn + a -> cân, tặp + a -> tập)
+     *   ô + w -> ơ (bốn + w -> bớn, hộp + w -> hợp, cột + w -> cợt)
+     *   ơ + o -> ô (bớn + o -> bốn, hợp + o -> hộp, cợt + o -> cột)
+     * VNI:
+     *   '8' (breve) on 'â' -> 'ă' (tấ + 8 -> tắ)
+     *   '6' (circumflex) on 'ă' -> 'â' (tắ + 6 -> tấ)
+     *   '7' (horn) on 'ô' -> 'ơ' (bốn + 7 -> bớn, giồ + 7 -> giờ)
+     *   '6' (circumflex) on 'ơ' -> 'ô' (bớn + 6 -> bốn, giờ + 6 -> giồ)
+     */
+    checkShapeModifierSwapping(word, key) {
+      if (!word || !key || key.length !== 1) {
+        return { transformed: false, result: word + key };
+      }
+      const method = this.getEffectiveMethod(key);
+      const lowerKey = key.toLowerCase();
+      const parsed = parseSyllable(word);
+      if (!parsed || !parsed.nucleus) {
+        return { transformed: false, result: word + key };
+      }
+      const lowerNucleus = parsed.nucleus.toLowerCase();
+      const isUpper = parsed.nucleus === parsed.nucleus.toUpperCase();
+      let newNucleusBase = null;
+      if (method === IME_METHOD.TELEX) {
+        if (lowerKey === "w" && lowerNucleus === "\xE2") {
+          newNucleusBase = isUpper ? "\u0102" : "\u0103";
+        } else if (lowerKey === "a" && lowerNucleus === "\u0103") {
+          newNucleusBase = isUpper ? "\xC2" : "\xE2";
+        } else if (lowerKey === "w" && lowerNucleus === "\xF4") {
+          newNucleusBase = isUpper ? "\u01A0" : "\u01A1";
+        } else if (lowerKey === "o" && lowerNucleus === "\u01A1") {
+          newNucleusBase = isUpper ? "\xD4" : "\xF4";
+        }
+      } else if (method === IME_METHOD.VNI) {
+        if (key === "8" && lowerNucleus === "\xE2") {
+          newNucleusBase = isUpper ? "\u0102" : "\u0103";
+        } else if (key === "6" && lowerNucleus === "\u0103") {
+          newNucleusBase = isUpper ? "\xC2" : "\xE2";
+        } else if (key === "7" && lowerNucleus === "\xF4") {
+          newNucleusBase = isUpper ? "\u01A0" : "\u01A1";
+        } else if (key === "6" && lowerNucleus === "\u01A1") {
+          newNucleusBase = isUpper ? "\xD4" : "\xF4";
+        }
+      }
+      if (newNucleusBase) {
+        parsed.nucleus = newNucleusBase;
+        const reconstructed = parsed.reconstruct(this.toneStyle);
+        return { transformed: true, result: reconstructed };
+      }
+      return { transformed: false, result: word + key };
     }
     /**
      * Quick Consonant transformations (XKey engine feature):
@@ -2516,7 +2576,9 @@
         return { transformed: true, result: "\u01B0" };
       }
       const lastChar = word.slice(-1);
-      if (/^[a-zA-Z]$/.test(lastChar) && !CHAR_TO_BASE_AND_TONE[lastChar] && lastChar.toLowerCase() !== "w") {
+      const parsedWord = parseSyllable(word);
+      const hasVowelNucleus = Boolean(parsedWord && parsedWord.nucleus);
+      if (!hasVowelNucleus && /^[a-zA-Z]$/.test(lastChar) && !CHAR_TO_BASE_AND_TONE[lastChar] && lastChar.toLowerCase() !== "w") {
         const isUpper = lastChar === lastChar.toUpperCase();
         return {
           transformed: true,

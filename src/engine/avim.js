@@ -335,6 +335,22 @@ export class AvimEngine {
       return shapeResult;
     }
 
+    // 3b. Shape Modifier Swapping (VietC / Bamboo innovation):
+    // Swap between transformed vowel shapes while preserving existing tone marks:
+    // Telex:
+    //   â + w -> ă (e.g. ấm + w -> ắm, cân + w -> căn, tập + w -> tặp)
+    //   ă + a -> â (e.g. ắm + a -> ấm, căn + a -> cân, tặp + a -> tập)
+    //   ô + w -> ơ (e.g. bốn + w -> bớn, hộp + w -> hợp, cột + w -> cợt)
+    //   ơ + o -> ô (e.g. bớn + o -> bốn, hợp + o -> hộp, cợt + o -> cột)
+    // VNI:
+    //   '6' (circumflex) <-> '8' (breve): tấ + 8 -> tắ, tắ + 6 -> tấ
+    //   '6' (circumflex) <-> '7' (horn):  bốn + 7 -> bớn, bớn + 6 -> bốn, giồ + 7 -> giờ, giờ + 6 -> giồ
+    const swapResult = this.checkShapeModifierSwapping(word, key);
+    if (swapResult.transformed) {
+      this.lastTransformed = swapResult.result;
+      return swapResult;
+    }
+
     // 4. Try tone mark placement / toggle (e.g. 'toan' + 's' -> 'toán')
     const toneResult = this.checkTone(word, key);
     if (toneResult.transformed) {
@@ -409,6 +425,73 @@ export class AvimEngine {
     }
 
     return { transformed: false, result: candidate };
+  }
+
+  /**
+   * Shape Modifier Swapping (VietC / Bamboo innovation):
+   * Allows users to swap between circumflex, horn, and breve while preserving existing tone marks:
+   * Telex:
+   *   â + w -> ă (ấm + w -> ắm, cân + w -> căn, tập + w -> tặp)
+   *   ă + a -> â (ắm + a -> ấm, căn + a -> cân, tặp + a -> tập)
+   *   ô + w -> ơ (bốn + w -> bớn, hộp + w -> hợp, cột + w -> cợt)
+   *   ơ + o -> ô (bớn + o -> bốn, hợp + o -> hộp, cợt + o -> cột)
+   * VNI:
+   *   '8' (breve) on 'â' -> 'ă' (tấ + 8 -> tắ)
+   *   '6' (circumflex) on 'ă' -> 'â' (tắ + 6 -> tấ)
+   *   '7' (horn) on 'ô' -> 'ơ' (bốn + 7 -> bớn, giồ + 7 -> giờ)
+   *   '6' (circumflex) on 'ơ' -> 'ô' (bớn + 6 -> bốn, giờ + 6 -> giồ)
+   */
+  checkShapeModifierSwapping(word, key) {
+    if (!word || !key || key.length !== 1) {
+      return { transformed: false, result: word + key };
+    }
+
+    const method = this.getEffectiveMethod(key);
+    const lowerKey = key.toLowerCase();
+    const parsed = parseSyllable(word);
+    if (!parsed || !parsed.nucleus) {
+      return { transformed: false, result: word + key };
+    }
+
+    const lowerNucleus = parsed.nucleus.toLowerCase();
+    const isUpper = parsed.nucleus === parsed.nucleus.toUpperCase();
+    let newNucleusBase = null;
+
+    if (method === IME_METHOD.TELEX) {
+      // 1. â <-> ă via 'w' and 'a'
+      if (lowerKey === 'w' && lowerNucleus === 'â') {
+        newNucleusBase = isUpper ? 'Ă' : 'ă';
+      } else if (lowerKey === 'a' && lowerNucleus === 'ă') {
+        newNucleusBase = isUpper ? 'Â' : 'â';
+      }
+      // 2. ô <-> ơ via 'w' and 'o'
+      else if (lowerKey === 'w' && lowerNucleus === 'ô') {
+        newNucleusBase = isUpper ? 'Ơ' : 'ơ';
+      } else if (lowerKey === 'o' && lowerNucleus === 'ơ') {
+        newNucleusBase = isUpper ? 'Ô' : 'ô';
+      }
+    } else if (method === IME_METHOD.VNI) {
+      // 1. â <-> ă via '8' (breve) and '6' (circumflex)
+      if (key === '8' && lowerNucleus === 'â') {
+        newNucleusBase = isUpper ? 'Ă' : 'ă';
+      } else if (key === '6' && lowerNucleus === 'ă') {
+        newNucleusBase = isUpper ? 'Â' : 'â';
+      }
+      // 2. ô <-> ơ via '7' (horn) and '6' (circumflex)
+      else if (key === '7' && lowerNucleus === 'ô') {
+        newNucleusBase = isUpper ? 'Ơ' : 'ơ';
+      } else if (key === '6' && lowerNucleus === 'ơ') {
+        newNucleusBase = isUpper ? 'Ô' : 'ô';
+      }
+    }
+
+    if (newNucleusBase) {
+      parsed.nucleus = newNucleusBase;
+      const reconstructed = parsed.reconstruct(this.toneStyle);
+      return { transformed: true, result: reconstructed };
+    }
+
+    return { transformed: false, result: word + key };
   }
 
   /**
@@ -943,9 +1026,12 @@ export class AvimEngine {
       return { transformed: true, result: 'ư' };
     }
 
-    // 5. If word ends with a consonant (e.g. 'th', 'm', 'b'), 'w' acts as 'ư'
+    // 5. If word has NO vowel yet and ends with a consonant (e.g. 'th', 'm', 'b'), 'w' acts as 'ư'
     const lastChar = word.slice(-1);
-    if (/^[a-zA-Z]$/.test(lastChar) && !CHAR_TO_BASE_AND_TONE[lastChar] && lastChar.toLowerCase() !== 'w') {
+    const parsedWord = parseSyllable(word);
+    const hasVowelNucleus = Boolean(parsedWord && parsedWord.nucleus);
+
+    if (!hasVowelNucleus && /^[a-zA-Z]$/.test(lastChar) && !CHAR_TO_BASE_AND_TONE[lastChar] && lastChar.toLowerCase() !== 'w') {
       const isUpper = lastChar === lastChar.toUpperCase();
       return {
         transformed: true,
