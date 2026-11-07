@@ -1761,13 +1761,71 @@
     "xem": ["phim", "b\xE1o", "tin", "l\u1EA1i", "x\xE9t", "b\xF3i", "t\u1EED vi"],
     "coi": ["phim", "b\xE1o", "tin", "l\u1EA1i", "b\xF3i", "t\u1EED vi"]
   };
+  var DEFAULT_VIETNAMESE_TRIGRAMS = {
+    // Y tế / Cấp cứu / Bệnh viện
+    "xe c\u1EA5p": ["c\u1EE9u"],
+    "ph\xF2ng c\u1EA5p": ["c\u1EE9u"],
+    "\u0111\u1ED9i c\u1EA5p": ["c\u1EE9u"],
+    "b\u1EC7nh vi\u1EC7n": ["\u0111a khoa", "b\u1EA1ch mai", "ch\u1EE3 r\u1EABy", "nhi \u0111\u1ED3ng", "huy\u1EBFt h\u1ECDc", "ung b\u01B0\u1EDBu"],
+    "b\xE1c s\u0129": ["chuy\xEAn khoa", "gia \u0111\xECnh", "tr\u01B0\u1EDFng khoa"],
+    // Lao động / Tài chính / Kinh doanh
+    "ph\u1EE5 c\u1EA5p": ["th\xE2m ni\xEAn", "\u0103n tr\u01B0a", "tr\xE1ch nhi\u1EC7m", "\u0111\u1EB7c bi\u1EC7t", "khu v\u1EF1c"],
+    "ti\u1EC1n ph\u1EE5": ["c\u1EA5p"],
+    "c\xF4ng ty": ["tnhh", "c\u1ED5 ph\u1EA7n", "tr\xE1ch nhi\u1EC7m h\u1EEFu h\u1EA1n", "c\xF4ng ngh\u1EC7"],
+    "t\xE0i kho\u1EA3n": ["ng\xE2n h\xE0ng", "c\xE1 nh\xE2n", "doanh nghi\u1EC7p"],
+    "chuy\u1EC3n kho\u1EA3n": ["ng\xE2n h\xE0ng", "th\xE0nh c\xF4ng", "ngay"],
+    // Địa danh / Quốc gia / Hành chính
+    "b\u1ED9 giao": ["th\xF4ng"],
+    "giao th\xF4ng": ["v\u1EADn t\u1EA3i", "\u0111\u01B0\u1EDDng b\u1ED9", "h\xE0o hi\u1EC7p"],
+    "b\u1ED9 gi\xE1o": ["d\u1EE5c"],
+    "gi\xE1o d\u1EE5c": ["v\xE0 \u0111\xE0o t\u1EA1o", "\u0111\u1EA1i h\u1ECDc", "ph\u1ED5 th\xF4ng"],
+    "b\u1ED9 t\xE0i": ["ch\xEDnh"],
+    "b\u1ED9 y": ["t\u1EBF"],
+    "b\u1ED9 c\xF4ng": ["an", "th\u01B0\u01A1ng"],
+    "h\u1ED3 ch\xED": ["minh"],
+    "th\xE0nh ph\u1ED1": ["h\u1ED3 ch\xED minh", "h\xE0 n\u1ED9i", "\u0111\xE0 n\u1EB5ng", "c\u1EA7n th\u01A1", "h\u1EA3i ph\xF2ng"],
+    "c\u1ED9ng h\xF2a": ["x\xE3 h\u1ED9i ch\u1EE7 ngh\u0129a vi\u1EC7t nam"],
+    "vi\u1EC7t nam": ["c\u1ED9ng h\xF2a", "v\xF4 \u0111\u1ECBch"],
+    // Công nghệ / Lập trình
+    "tr\xED tu\u1EC7": ["nh\xE2n t\u1EA1o"],
+    "m\u1EA1ng m\xE1y": ["t\xEDnh"],
+    "c\u01A1 s\u1EDF": ["d\u1EEF li\u1EC7u"],
+    "h\u1EC7 \u0111i\u1EC1u": ["h\xE0nh"],
+    "m\xE3 ngu\u1ED3n": ["m\u1EDF"],
+    "ph\u1EA7n m\u1EC1m": ["m\xE3 ngu\u1ED3n m\u1EDF", "\u0111\u1ED9c h\u1EA1i", "ti\u1EC7n \xEDch"],
+    // Giao tiếp / Xã giao
+    "ch\xFAc m\u1EEBng": ["sinh nh\u1EADt", "n\u0103m m\u1EDBi", "th\xE0nh c\xF4ng", "b\u1EA1n"],
+    "c\u1EA3m \u01A1n": ["b\u1EA1n", "r\u1EA5t nhi\u1EC1u", "anh", "ch\u1ECB", "em"],
+    "h\u1EB9n g\u1EB7p": ["l\u1EA1i", "nhau"],
+    "r\u1EA5t vui": ["\u0111\u01B0\u1EE3c g\u1EB7p b\u1EA1n", "\u0111\u01B0\u1EE3c l\xE0m quen"],
+    "ch\xFAc ng\u1EE7": ["ngon"],
+    "xin ch\xE2n": ["th\xE0nh"],
+    "ch\xE2n th\xE0nh": ["c\u1EA3m \u01A1n"]
+  };
   var GboardLearnedModel = class {
     constructor() {
       this.storageKey = "avim_gboard_habit_model";
       this.learningEnabled = true;
+      this.userTrigrams = {};
       this.userBigrams = {};
       this.userUnigrams = {};
       this.loadFromStorage();
+    }
+    /**
+     * Calculate score incorporating Recency and Frequency (Exponential Decay):
+     * Score = count * exp(-lambda * delta_hours)
+     * Half-life ~ 14 days (lambda = 0.002 per hour)
+     */
+    calculateRecencyFrequencyScore(entry, now = Date.now()) {
+      if (!entry) return 0;
+      if (typeof entry === "number") {
+        return entry;
+      }
+      const count = entry.count || 1;
+      const lastUsed = entry.lastUsed || now;
+      const hoursElapsed = Math.max(0, (now - lastUsed) / (1e3 * 60 * 60));
+      const decay = Math.exp(-2e-3 * hoursElapsed);
+      return count * decay;
     }
     async loadFromStorage() {
       try {
@@ -1775,6 +1833,7 @@
           const stored = await chrome.storage.local.get([this.storageKey]);
           if (stored && stored[this.storageKey]) {
             const parsed = stored[this.storageKey];
+            this.userTrigrams = parsed.trigrams || {};
             this.userBigrams = parsed.bigrams || {};
             this.userUnigrams = parsed.unigrams || {};
             if (typeof parsed.learningEnabled === "boolean") {
@@ -1791,6 +1850,7 @@
         const saved = localStorage.getItem(this.storageKey);
         if (saved) {
           const parsed = JSON.parse(saved);
+          this.userTrigrams = parsed.trigrams || {};
           this.userBigrams = parsed.bigrams || {};
           this.userUnigrams = parsed.unigrams || {};
           if (typeof parsed.learningEnabled === "boolean") {
@@ -1817,6 +1877,7 @@
       }
       const payload = {
         learningEnabled: this.learningEnabled,
+        trigrams: this.userTrigrams,
         bigrams: this.userBigrams,
         unigrams: this.userUnigrams,
         updatedAt: Date.now()
@@ -1837,6 +1898,28 @@
       }
     }
     /**
+     * Record a trigram transition (word1 + word2 -> word3)
+     */
+    recordTrigramTransition(w1, w2, w3) {
+      if (!this.learningEnabled) return;
+      const word1 = (w1 || "").trim().toLowerCase();
+      const word2 = (w2 || "").trim().toLowerCase();
+      const word3 = (w3 || "").trim().toLowerCase();
+      if (!word1 || !word2 || !word3) return;
+      if (word1.length > 30 || word2.length > 30 || word3.length > 30) return;
+      const trigramKey = `${word1} ${word2}`;
+      if (!this.userTrigrams[trigramKey]) {
+        this.userTrigrams[trigramKey] = {};
+      }
+      const current = this.userTrigrams[trigramKey][word3];
+      const prevCount = typeof current === "number" ? current : current?.count || 0;
+      this.userTrigrams[trigramKey][word3] = {
+        count: prevCount + 1,
+        lastUsed: Date.now()
+      };
+      this.saveToStorage();
+    }
+    /**
      * Record a bigram transition (word1 -> word2)
      */
     recordTransition(prevWord, nextWord) {
@@ -1848,8 +1931,18 @@
       if (!this.userBigrams[prev]) {
         this.userBigrams[prev] = {};
       }
-      this.userBigrams[prev][next] = (this.userBigrams[prev][next] || 0) + 1;
-      this.userUnigrams[next] = (this.userUnigrams[next] || 0) + 1;
+      const current = this.userBigrams[prev][next];
+      const prevCount = typeof current === "number" ? current : current?.count || 0;
+      this.userBigrams[prev][next] = {
+        count: prevCount + 1,
+        lastUsed: Date.now()
+      };
+      const curUnigram = this.userUnigrams[next];
+      const unigramCount = typeof curUnigram === "number" ? curUnigram : curUnigram?.count || 0;
+      this.userUnigrams[next] = {
+        count: unigramCount + 1,
+        lastUsed: Date.now()
+      };
       this.saveToStorage();
     }
     /**
@@ -1859,13 +1952,19 @@
       if (!this.learningEnabled) return;
       const w = (word || "").trim().toLowerCase();
       if (!w) return;
-      this.userUnigrams[w] = (this.userUnigrams[w] || 0) + 1;
+      const curUnigram = this.userUnigrams[w];
+      const unigramCount = typeof curUnigram === "number" ? curUnigram : curUnigram?.count || 0;
+      this.userUnigrams[w] = {
+        count: unigramCount + 1,
+        lastUsed: Date.now()
+      };
       this.saveToStorage();
     }
     /**
      * Reset all learned habits
      */
     clear() {
+      this.userTrigrams = {};
       this.userBigrams = {};
       this.userUnigrams = {};
       this.flushSaveToStorage();
@@ -1892,12 +1991,24 @@
         ["c\u1EA5p", "c\u1EE9u", 4],
         ["vi\u1EC7t", "nam", 4]
       ];
+      const now = Date.now();
       for (const [w1, w2, times] of samples) {
         if (!this.userBigrams[w1]) {
           this.userBigrams[w1] = {};
         }
-        this.userBigrams[w1][w2] = (this.userBigrams[w1][w2] || 0) + times;
-        this.userUnigrams[w2] = (this.userUnigrams[w2] || 0) + times;
+        this.userBigrams[w1][w2] = { count: times, lastUsed: now };
+        this.userUnigrams[w2] = { count: times, lastUsed: now };
+      }
+      const sampleTrigrams = [
+        ["xe", "c\u1EA5p", "c\u1EE9u", 5],
+        ["h\u1ED3", "ch\xED", "minh", 5],
+        ["b\u1ED9", "giao", "th\xF4ng", 4],
+        ["tr\xED", "tu\u1EC7", "nh\xE2n t\u1EA1o", 4]
+      ];
+      for (const [w1, w2, w3, times] of sampleTrigrams) {
+        const k = `${w1} ${w2}`;
+        if (!this.userTrigrams[k]) this.userTrigrams[k] = {};
+        this.userTrigrams[k][w3] = { count: times, lastUsed: now };
       }
       this.flushSaveToStorage();
       return samples.length;
@@ -1909,7 +2020,8 @@
       let totalTransitions = 0;
       const topPairs = [];
       for (const [from, toMap] of Object.entries(this.userBigrams)) {
-        for (const [to, count] of Object.entries(toMap)) {
+        for (const [to, entry] of Object.entries(toMap)) {
+          const count = typeof entry === "number" ? entry : entry?.count || 0;
           totalTransitions += count;
           topPairs.push({ from, to, count });
         }
@@ -1917,6 +2029,7 @@
       topPairs.sort((a, b) => b.count - a.count);
       return {
         totalPairs: Object.keys(this.userBigrams).length,
+        totalTrigrams: Object.keys(this.userTrigrams).length,
         totalTransitions,
         topPairs: topPairs.slice(0, 30),
         totalWordsLearned: Object.keys(this.userUnigrams).length
@@ -1928,8 +2041,9 @@
      */
     exportJSON() {
       const payload = {
-        version: "1.0",
+        version: "2.0",
         exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+        trigrams: this.userTrigrams,
         bigrams: this.userBigrams,
         unigrams: this.userUnigrams
       };
@@ -1943,7 +2057,8 @@
     exportCSV() {
       const rows = ["Tu_bat_dau,Tu_ke_tiep,So_lan_go"];
       for (const [w1, toMap] of Object.entries(this.userBigrams)) {
-        for (const [w2, count] of Object.entries(toMap)) {
+        for (const [w2, entry] of Object.entries(toMap)) {
+          const count = typeof entry === "number" ? entry : entry?.count || 0;
           rows.push(`"${w1.replace(/"/g, '""')}","${w2.replace(/"/g, '""')}",${count}`);
         }
       }
@@ -1970,22 +2085,40 @@
         try {
           const parsed = JSON.parse(trimmed);
           const bigramsSrc = parsed.bigrams || parsed.userBigrams || (typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null);
+          const trigramsSrc = parsed.trigrams || parsed.userTrigrams || {};
           const unigramsSrc = parsed.unigrams || parsed.userUnigrams || {};
           if (!bigramsSrc || typeof bigramsSrc !== "object") {
             return { success: false, count: 0, error: "C\u1EA5u tr\xFAc JSON kh\xF4ng ch\u1EE9a thu\u1ED9c t\xEDnh bigrams h\u1EE3p l\u1EC7." };
           }
+          const now = Date.now();
           for (const [w1, toMap] of Object.entries(bigramsSrc)) {
             if (toMap && typeof toMap === "object") {
-              for (const [w2, count] of Object.entries(toMap)) {
-                const num = parseInt(count, 10);
+              for (const [w2, entry] of Object.entries(toMap)) {
+                const num = typeof entry === "number" ? entry : parseInt(entry?.count, 10);
+                const lastUsed = typeof entry === "object" && entry?.lastUsed ? entry.lastUsed : now;
                 if (!isNaN(num) && num > 0) {
                   const k1 = w1.trim().toLowerCase();
                   const k2 = w2.trim().toLowerCase();
                   if (k1 && k2) {
                     if (!importedBigrams[k1]) importedBigrams[k1] = {};
-                    importedBigrams[k1][k2] = num;
-                    importedUnigrams[k2] = (importedUnigrams[k2] || 0) + num;
+                    importedBigrams[k1][k2] = { count: num, lastUsed };
+                    importedUnigrams[k2] = { count: (importedUnigrams[k2]?.count || 0) + num, lastUsed };
                     pairCount++;
+                  }
+                }
+              }
+            }
+          }
+          if (trigramsSrc && typeof trigramsSrc === "object") {
+            if (!this.userTrigrams) this.userTrigrams = {};
+            for (const [tKey, toMap] of Object.entries(trigramsSrc)) {
+              if (toMap && typeof toMap === "object") {
+                if (!this.userTrigrams[tKey]) this.userTrigrams[tKey] = {};
+                for (const [w3, entry] of Object.entries(toMap)) {
+                  const num = typeof entry === "number" ? entry : parseInt(entry?.count, 10);
+                  const lastUsed = typeof entry === "object" && entry?.lastUsed ? entry.lastUsed : now;
+                  if (!isNaN(num) && num > 0) {
+                    this.userTrigrams[tKey][w3.trim().toLowerCase()] = { count: num, lastUsed };
                   }
                 }
               }
@@ -2016,9 +2149,10 @@
             const count = parts[2] ? parseInt(parts[2].replace(/^["']|["']$/g, "").trim(), 10) : 1;
             const validCount = isNaN(count) || count <= 0 ? 1 : count;
             if (w1 && w2) {
+              const now = Date.now();
               if (!importedBigrams[w1]) importedBigrams[w1] = {};
-              importedBigrams[w1][w2] = (importedBigrams[w1][w2] || 0) + validCount;
-              importedUnigrams[w2] = (importedUnigrams[w2] || 0) + validCount;
+              importedBigrams[w1][w2] = { count: validCount, lastUsed: now };
+              importedUnigrams[w2] = { count: validCount, lastUsed: now };
               pairCount++;
             }
           }
@@ -2031,14 +2165,21 @@
         this.userBigrams = importedBigrams;
         this.userUnigrams = importedUnigrams;
       } else {
+        const now = Date.now();
         for (const [w1, toMap] of Object.entries(importedBigrams)) {
           if (!this.userBigrams[w1]) this.userBigrams[w1] = {};
-          for (const [w2, count] of Object.entries(toMap)) {
-            this.userBigrams[w1][w2] = (this.userBigrams[w1][w2] || 0) + count;
+          for (const [w2, entry] of Object.entries(toMap)) {
+            const addCount = typeof entry === "number" ? entry : entry?.count || 1;
+            const cur = this.userBigrams[w1][w2];
+            const curCount = typeof cur === "number" ? cur : cur?.count || 0;
+            this.userBigrams[w1][w2] = { count: curCount + addCount, lastUsed: now };
           }
         }
-        for (const [w, count] of Object.entries(importedUnigrams)) {
-          this.userUnigrams[w] = (this.userUnigrams[w] || 0) + count;
+        for (const [w, entry] of Object.entries(importedUnigrams)) {
+          const addCount = typeof entry === "number" ? entry : entry?.count || 1;
+          const cur = this.userUnigrams[w];
+          const curCount = typeof cur === "number" ? cur : cur?.count || 0;
+          this.userUnigrams[w] = { count: curCount + addCount, lastUsed: now };
         }
       }
       this.flushSaveToStorage();
@@ -2050,6 +2191,7 @@
       this.compounds = [...COMMON_VIETNAMESE_COMPOUNDS];
       this.compoundIndex = this.buildCompoundIndex();
       this.bigrams = { ...DEFAULT_VIETNAMESE_BIGRAMS };
+      this.trigrams = { ...DEFAULT_VIETNAMESE_TRIGRAMS };
       this.learnedModel = new GboardLearnedModel();
       this.enabled = true;
       this.nextWordEnabled = true;
@@ -2101,9 +2243,13 @@
     }
     /**
      * Record word transition when user types or chooses word sequence
+     * Supports both bigram (w1 -> w2) and trigram (w0 -> w1 -> w2) learning
      */
-    recordWordTransition(prevWord, nextWord) {
+    recordWordTransition(prevWord, nextWord, priorWord = "") {
       this.learnedModel.recordTransition(prevWord, nextWord);
+      if (priorWord) {
+        this.learnedModel.recordTrigramTransition(priorWord, prevWord, nextWord);
+      }
     }
     /**
      * Record word usage
@@ -2148,30 +2294,79 @@
       return this.learnedModel.importData(rawText, merge);
     }
     /**
-     * Predict Next Word(s) based on previous word, learning history, and Vietnamese collocations
-     * @param {string} previousWord The word preceding the current cursor
-     * @param {number} limit Maximum number of candidates to return (default: 4)
-     * @returns {Array<{ word: string, displayType: string, type: 'learned' | 'bigram' | 'compound', count?: number }>}
+     * Predict Next Word(s) based on 2-word prior context (Trigram), 1-word prior context (Bigram),
+     * exponential recency-frequency decay, and Vietnamese compound collocations (Gboard style).
+     *
+     * @param {string} previousWord The immediate word preceding the cursor (W_n-1)
+     * @param {number} limit Maximum number of candidates to return (default: 5)
+     * @param {string} priorWord Optional 2nd word preceding the cursor (W_n-2) for Trigram inference
+     * @returns {Array<{ word: string, displayType: string, type: 'learned' | 'trigram' | 'bigram' | 'compound', count?: number, score?: number }>}
      */
-    getNextWordSuggestions(previousWord, limit = 5) {
+    getNextWordSuggestions(previousWord, limit = 5, priorWord = "") {
       if (!this.enabled || !this.nextWordEnabled || !previousWord) return [];
       const raw = previousWord.trim();
       if (!raw) return [];
       const prevLower = raw.toLowerCase();
+      const priorLower = (priorWord || "").trim().toLowerCase();
       const isFirstUpper = raw[0] === raw[0].toUpperCase() && raw[0] !== raw[0].toLowerCase();
       const isAllUpper = raw.length > 1 && raw === raw.toUpperCase();
       const candidates = [];
       const seen = /* @__PURE__ */ new Set();
+      const now = Date.now();
+      if (priorLower) {
+        const trigramKey = `${priorLower} ${prevLower}`;
+        const userTrigramFollowers = this.learnedModel.userTrigrams[trigramKey];
+        if (userTrigramFollowers) {
+          const sortedTrigrams = Object.entries(userTrigramFollowers).map(([w, entry]) => ({
+            w,
+            score: this.learnedModel.calculateRecencyFrequencyScore(entry, now),
+            rawCount: typeof entry === "number" ? entry : entry?.count || 1
+          })).sort((a, b) => b.score - a.score);
+          for (const { w, rawCount, score } of sortedTrigrams) {
+            if (!seen.has(w)) {
+              candidates.push({
+                word: this.formatWordCase(w, isFirstUpper, isAllUpper),
+                displayType: "Th\xF3i quen s\xE2u",
+                type: "learned",
+                count: rawCount,
+                score
+              });
+              seen.add(w);
+            }
+            if (candidates.length >= limit) break;
+          }
+        }
+        const baseTrigramFollowers = this.trigrams[trigramKey];
+        if (baseTrigramFollowers && candidates.length < limit) {
+          for (const w of baseTrigramFollowers) {
+            const wLower = w.toLowerCase();
+            if (!seen.has(wLower)) {
+              candidates.push({
+                word: this.formatWordCase(w, isFirstUpper, isAllUpper),
+                displayType: "Ng\u1EEF c\u1EA3nh s\xE2u",
+                type: "trigram"
+              });
+              seen.add(wLower);
+            }
+            if (candidates.length >= limit) break;
+          }
+        }
+      }
       const userFollowers = this.learnedModel.userBigrams[prevLower];
-      if (userFollowers) {
-        const sortedUserFollowers = Object.entries(userFollowers).sort((a, b) => b[1] - a[1]);
-        for (const [w, count] of sortedUserFollowers) {
+      if (userFollowers && candidates.length < limit) {
+        const sortedUserFollowers = Object.entries(userFollowers).map(([w, entry]) => ({
+          w,
+          score: this.learnedModel.calculateRecencyFrequencyScore(entry, now),
+          rawCount: typeof entry === "number" ? entry : entry?.count || 1
+        })).sort((a, b) => b.score - a.score);
+        for (const { w, rawCount, score } of sortedUserFollowers) {
           if (!seen.has(w)) {
             candidates.push({
               word: this.formatWordCase(w, isFirstUpper, isAllUpper),
               displayType: "Th\xF3i quen",
               type: "learned",
-              count
+              count: rawCount,
+              score
             });
             seen.add(w);
           }
@@ -2235,10 +2430,13 @@
       const results = [];
       const seenWords = /* @__PURE__ */ new Set();
       const userWords = userDictionary.getWords();
+      const now = Date.now();
       for (const uWord of userWords) {
         const uLower = uWord.toLowerCase();
         const uStripped = stripVietnameseAccents(uWord);
-        const learnedBoost = Math.min((this.learnedModel.userUnigrams[uLower] || 0) * 4, 30);
+        const learnedEntry = this.learnedModel.userUnigrams[uLower];
+        const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
+        const learnedBoost = Math.min(learnedScore * 4, 30);
         if (uLower.startsWith(prefixLower)) {
           results.push({
             word: this.formatWordCase(uWord, isFirstUpper, isAllUpper),
@@ -2260,7 +2458,9 @@
       }
       for (const item of this.compoundIndex) {
         if (seenWords.has(item.lower)) continue;
-        const learnedBoost = Math.min((this.learnedModel.userUnigrams[item.lower] || 0) * 4, 30);
+        const learnedEntry = this.learnedModel.userUnigrams[item.lower];
+        const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
+        const learnedBoost = Math.min(learnedScore * 4, 30);
         if (item.lower.startsWith(prefixLower)) {
           results.push({
             word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
@@ -2286,7 +2486,9 @@
           if (sWord.length <= prefix.length && sWord.toLowerCase() === prefixLower) continue;
           const sLower = sWord.toLowerCase();
           if (seenWords.has(sLower)) continue;
-          const learnedBoost = Math.min((this.learnedModel.userUnigrams[sLower] || 0) * 4, 30);
+          const learnedEntry = this.learnedModel.userUnigrams[sLower];
+          const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
+          const learnedBoost = Math.min(learnedScore * 4, 30);
           const sStripped = stripVietnameseAccents(sWord);
           if (sLower.startsWith(prefixLower)) {
             results.push({
@@ -2312,7 +2514,9 @@
         for (const eWord of COMMON_ENGLISH_WORDS) {
           const eLower = eWord.toLowerCase();
           if (seenWords.has(eLower)) continue;
-          const learnedBoost = Math.min((this.learnedModel.userUnigrams[eLower] || 0) * 4, 30);
+          const learnedEntry = this.learnedModel.userUnigrams[eLower];
+          const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
+          const learnedBoost = Math.min(learnedScore * 4, 30);
           if (eLower.startsWith(prefixLower)) {
             results.push({
               word: this.formatWordCase(eWord, isFirstUpper, isAllUpper),

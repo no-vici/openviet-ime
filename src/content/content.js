@@ -51,6 +51,7 @@ class AvimContentScript {
     this.activeSuggestionType = 'autocomplete'; // 'autocomplete' | 'nextword'
     this.activeWordPrefix = '';
     this.lastWordBeforeDelimiter = '';
+    this.secondLastWordBeforeDelimiter = '';
     this.currentTarget = null;
     this.suggestionHost = null;
     this.suggestionShadow = null;
@@ -526,11 +527,12 @@ class AvimContentScript {
       }
 
       autoCompleteEngine.recordWordUsage(chosenWord);
+      this.secondLastWordBeforeDelimiter = this.lastWordBeforeDelimiter;
       this.lastWordBeforeDelimiter = chosenWord;
 
       // Predict next word for the completed word!
       if (this.settings.nextWordEnabled !== false) {
-        const nextWords = autoCompleteEngine.getNextWordSuggestions(chosenWord, 4);
+        const nextWords = autoCompleteEngine.getNextWordSuggestions(chosenWord, 4, this.secondLastWordBeforeDelimiter);
         if (nextWords.length > 0) {
           this.showSuggestions(target, nextWords, 'nextword');
           return;
@@ -567,14 +569,15 @@ class AvimContentScript {
 
       // Record learned transition: lastWord -> chosenWord
       if (this.lastWordBeforeDelimiter) {
-        autoCompleteEngine.recordWordTransition(this.lastWordBeforeDelimiter, chosenWord);
+        autoCompleteEngine.recordWordTransition(this.lastWordBeforeDelimiter, chosenWord, this.secondLastWordBeforeDelimiter);
       }
       autoCompleteEngine.recordWordUsage(chosenWord);
+      this.secondLastWordBeforeDelimiter = this.lastWordBeforeDelimiter;
       this.lastWordBeforeDelimiter = chosenWord;
 
       // Continuously predict the subsequent word
       if (this.settings.nextWordEnabled !== false) {
-        const nextWords = autoCompleteEngine.getNextWordSuggestions(chosenWord, 4);
+        const nextWords = autoCompleteEngine.getNextWordSuggestions(chosenWord, 4, this.secondLastWordBeforeDelimiter);
         if (nextWords.length > 0) {
           this.showSuggestions(target, nextWords, 'nextword');
           return;
@@ -632,6 +635,7 @@ class AvimContentScript {
       if (this.activeSuggestionType === 'nextword') {
         this.hideSuggestions();
         this.lastWordBeforeDelimiter = '';
+      this.secondLastWordBeforeDelimiter = '';
         return; // Allow native Enter event to proceed and send message!
       }
 
@@ -649,6 +653,7 @@ class AvimContentScript {
     if (event.key === 'Enter') {
       this.hideSuggestions();
       this.lastWordBeforeDelimiter = '';
+      this.secondLastWordBeforeDelimiter = '';
       const activeTarget = this.domObserver.getActiveElement();
       if (this.domObserver.isEligibleTarget(activeTarget)) {
         const isNative = activeTarget instanceof HTMLInputElement || activeTarget instanceof HTMLTextAreaElement;
@@ -730,6 +735,7 @@ class AvimContentScript {
         this.textReplacer.replaceInNativeInput(target, startReplace, pos, '');
         this.avimEngine.resetWordSession();
         this.lastWordBeforeDelimiter = '';
+      this.secondLastWordBeforeDelimiter = '';
         this.hideSuggestions();
         return true;
       }
@@ -757,6 +763,7 @@ class AvimContentScript {
             this.textReplacer.dispatchSyntheticInput(target, '');
             this.avimEngine.resetWordSession();
             this.lastWordBeforeDelimiter = '';
+      this.secondLastWordBeforeDelimiter = '';
             this.hideSuggestions();
             return true;
           }
@@ -916,6 +923,7 @@ class AvimContentScript {
         this.avimEngine.currentWordRaw = adopted;
         this.avimEngine.lastTransformed = adopted;
         this.lastWordBeforeDelimiter = '';
+      this.secondLastWordBeforeDelimiter = '';
       }
     }
   }
@@ -990,11 +998,12 @@ class AvimContentScript {
           }
         }
 
-        // Record bigram transition & usage for Gboard learning on EVERY website
+        // Record bigram & trigram transition & usage for Gboard learning on EVERY website
         if (this.lastWordBeforeDelimiter) {
-          autoCompleteEngine.recordWordTransition(this.lastWordBeforeDelimiter, currentWord);
+          autoCompleteEngine.recordWordTransition(this.lastWordBeforeDelimiter, currentWord, this.secondLastWordBeforeDelimiter);
         }
         autoCompleteEngine.recordWordUsage(currentWord);
+        this.secondLastWordBeforeDelimiter = this.lastWordBeforeDelimiter;
         this.lastWordBeforeDelimiter = currentWord;
 
         // Next-Word Prediction:
@@ -1007,9 +1016,10 @@ class AvimContentScript {
         if (isAfterSentenceEnd) {
           this.hideSuggestions();
           this.lastWordBeforeDelimiter = '';
+          this.secondLastWordBeforeDelimiter = '';
         } else if (this.settings.nextWordEnabled !== false) {
           setTimeout(() => {
-            const nextList = autoCompleteEngine.getNextWordSuggestions(currentWord, 4);
+            const nextList = autoCompleteEngine.getNextWordSuggestions(currentWord, 4, this.secondLastWordBeforeDelimiter);
             if (nextList && nextList.length > 0) {
               this.showSuggestions(target, nextList, 'nextword');
             } else {

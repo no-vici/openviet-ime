@@ -94,4 +94,31 @@ test('AutoComplete and Next-Word Prediction', () => {
   const krongSuggestions = engine.getNextWordSuggestions('Krông', 5);
   assert(krongSuggestions.some(s => s.word.toLowerCase() === 'nô'), 'Should suggest "Nô" after "Krông"');
   assert(krongSuggestions.some(s => s.word.toLowerCase() === 'pắk'), 'Should suggest "Pắk" after "Krông"');
+
+  // 8. Trigram Deep Context Prediction (Gboard style: priorWord + previousWord -> nextWord)
+  // 'xe' + 'cấp' -> 'cứu'
+  const xeCapSuggestions = engine.getNextWordSuggestions('cấp', 5, 'xe');
+  assert(xeCapSuggestions.some(s => s.word.toLowerCase() === 'cứu'), 'Trigram: "xe cấp" should strongly predict "cứu"');
+  assert.strictEqual(xeCapSuggestions[0].word.toLowerCase(), 'cứu', 'Trigram: "cứu" should be #1 candidate for "xe cấp"');
+
+  // 'bộ' + 'giao' -> 'thông'
+  const boGiaoSuggestions = engine.getNextWordSuggestions('giao', 5, 'bộ');
+  assert(boGiaoSuggestions.some(s => s.word.toLowerCase() === 'thông'), 'Trigram: "bộ giao" should predict "thông"');
+
+  // 'hồ' + 'chí' -> 'minh'
+  const hoChiSuggestions = engine.getNextWordSuggestions('chí', 5, 'hồ');
+  assert(hoChiSuggestions.some(s => s.word.toLowerCase() === 'minh'), 'Trigram: "hồ chí" should predict "minh"');
+
+  // 9. User-Learned Trigram Recording
+  engine.recordWordTransition('máy', 'tính', 'mô hình');
+  const userTrigramSuggestions = engine.getNextWordSuggestions('máy', 5, 'mô hình');
+  assert(userTrigramSuggestions.some(s => s.word.toLowerCase() === 'tính'), 'User learned trigram "mô hình máy" -> "tính"');
+
+  // 10. Recency & Frequency Decay Ranking
+  const oldEntry = { count: 10, lastUsed: Date.now() - 30 * 24 * 3600 * 1000 }; // 30 days old
+  const newEntry = { count: 3, lastUsed: Date.now() }; // Just typed now
+  const oldScore = engine.learnedModel.calculateRecencyFrequencyScore(oldEntry);
+  const newScore = engine.learnedModel.calculateRecencyFrequencyScore(newEntry);
+  assert(newScore > 0 && oldScore > 0, 'Scores should be positive numbers');
+  assert(oldScore < oldEntry.count, 'Old entry should experience exponential decay');
 });
