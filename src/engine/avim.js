@@ -761,10 +761,28 @@ export class AvimEngine {
               }
 
               // If candidate is ALREADY circumflexed ('ô', 'ê', 'â') and user presses the key again at end of word:
-              // e.g. 'chông' + 'o' -> reverts 'ô' to 'o' and appends 'o' -> 'chongo'
-              // e.g. 'kiêu' + 'e' -> reverts 'ê' to 'e' and appends 'e' -> 'kieue'
-              // e.g. 'hâng' + 'a' -> reverts 'â' to 'a' and appends 'a' -> 'hanga'
+              // Special French loanword rule: if word ends with 'ng' (e.g. 'xông', 'bông', 'gông', 'gồng'),
+              // pressing 'o' should turn 'ô/ồ/ố' into 'oo/oò/oó' -> 'xoong', 'boong', 'goong', 'goòng'
               if (charBase === circumflexTarget) {
+                if (lowerKey === 'o' && word.toLowerCase().endsWith('ng')) {
+                  const endsWithNg = word.toLowerCase().endsWith('ng');
+                  const target = SHAPE_MAP[baseInfo.base]?.circumflex;
+                  if (target && endsWithNg) {
+                    const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
+                    const tone = baseInfo.tone;
+                    const o1 = isUpper ? 'O' : 'o';
+                    const o2Base = isUpper ? 'O' : 'o';
+                    const o2Accented = VOWEL_TABLE[o2Base][tone];
+                    const doubleO = o1 + o2Accented;
+                    const newWord = word.slice(0, charIndex) + doubleO + word.slice(charIndex + 1);
+                    return { transformed: true, result: newWord };
+                  }
+                }
+
+                // Default circumflex toggle:
+                // e.g. 'chông' + 'o' -> reverts 'ô' to 'o' and appends 'o' -> 'chongo'
+                // e.g. 'kiêu' + 'e' -> reverts 'ê' to 'e' and appends 'e' -> 'kieue'
+                // e.g. 'hâng' + 'a' -> reverts 'â' to 'a' and appends 'a' -> 'hanga'
                 const target = SHAPE_MAP[baseInfo.base]?.circumflex;
                 if (target) {
                   const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
@@ -844,33 +862,54 @@ export class AvimEngine {
     const isUpper2 = c2 === c2.toUpperCase() && c2 !== c2.toLowerCase();
     const tone = Math.max(info1.tone, info2.tone);
 
-    // AVIM Rule: Special exception for "thuở":
-    // "thuở is the one word spelt with a bare u, so a th onset keeps it while the pair ends the word"
-    if (index >= 2) {
-      const onset = word.slice(index - 2, index).toLowerCase();
-      const endsWord = (index + 2 === word.length);
-      if (onset === 'th' && endsWord) {
-        if (c2.toLowerCase() === 'ơ' || isHorned) {
-          // Toggle back to plain 'thuo'
-          const base1 = isUpper1 ? 'U' : 'u';
-          const base2 = isUpper2 ? 'O' : 'o';
-          const char1 = VOWEL_TABLE[base1][0];
-          const char2 = VOWEL_TABLE[base2][tone];
-          return {
-            transformed: true,
-            result: word.slice(0, index) + char1 + char2
-          };
-        } else {
-          // Horn ONLY the 'o' -> 'ơ', keeping bare 'u' -> 'thuơ' (thuở)
-          const base1 = isUpper1 ? 'U' : 'u';
-          const base2 = isUpper2 ? 'Ơ' : 'ơ';
-          const char1 = VOWEL_TABLE[base1][0];
-          const char2 = VOWEL_TABLE[base2][tone];
-          return {
-            transformed: true,
-            result: word.slice(0, index) + char1 + char2
-          };
-        }
+    // ── The Trio of uơ Exceptions (thuở, quởn/quỡn/quơ, huơ) ──
+    // In Vietnamese phonology:
+    // 1. 'thuở' (muôn thuở, thuở xưa): onset 'th' keeps bare 'u', only 'o' takes horn when ends word.
+    // 2. 'quơ', 'quởn', 'quỡn' (quơ tay, quởn đời): onset 'q' never combines with 'ư' (qư/qươ is impossible).
+    //    'qu' is the onset cluster where 'u' is glide, so only 'o' takes horn -> 'quơ', 'quơn' (quởn).
+    // 3. 'huơ' (huơ tay, huơ dao): when ending with 'o', bare 'huo' becomes 'huơ' (never 'hươ').
+    const endsWord = (index + 2 === word.length);
+    const hasCodaN = (index + 3 === word.length && word[index + 2].toLowerCase() === 'n');
+    let isTrioException = false;
+
+    // Check onset before 'uo'
+    if (index >= 1) {
+      const charBefore = word[index - 1].toLowerCase();
+      // Onset 'q' (quơ, quơn/quởn)
+      if (charBefore === 'q' && (endsWord || hasCodaN)) {
+        isTrioException = true;
+      }
+      // Onset 'h' (huơ - only when ends word without coda, as hươu ends with u)
+      else if (charBefore === 'h' && endsWord) {
+        isTrioException = true;
+      }
+      // Onset 'th' (thuở - only when ends word)
+      else if (index >= 2 && word.slice(index - 2, index).toLowerCase() === 'th' && endsWord) {
+        isTrioException = true;
+      }
+    }
+
+    if (isTrioException) {
+      if (info2.base.toLowerCase() === 'ơ' || isHorned) {
+        // Toggle back to plain 'uo'
+        const base1 = isUpper1 ? 'U' : 'u';
+        const base2 = isUpper2 ? 'O' : 'o';
+        const char1 = VOWEL_TABLE[base1][0];
+        const char2 = VOWEL_TABLE[base2][tone];
+        return {
+          transformed: true,
+          result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+        };
+      } else {
+        // Horn ONLY the 'o' -> 'ơ', keeping bare 'u' -> 'thuơ', 'quơ', 'quơn', 'huơ'
+        const base1 = isUpper1 ? 'U' : 'u';
+        const base2 = isUpper2 ? 'Ơ' : 'ơ';
+        const char1 = VOWEL_TABLE[base1][0];
+        const char2 = VOWEL_TABLE[base2][tone];
+        return {
+          transformed: true,
+          result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+        };
       }
     }
 

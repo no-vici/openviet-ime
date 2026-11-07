@@ -238,7 +238,21 @@
     "t\u1ECFn",
     "hum",
     "ch\xE1c",
-    "ch\xE1o"
+    "ch\xE1o",
+    "qu\u1EE1n",
+    "hu\u1EE1",
+    "goong",
+    "go\xF2ng",
+    "go\xF3ng",
+    "xoong",
+    "xo\xF2ng",
+    "xo\xF3ng",
+    "xo\u1ECDng",
+    "boong",
+    "bo\xF2ng",
+    "bo\xF3ng",
+    "moong",
+    "toong"
   ];
   function canon(str) {
     if (!str) return "";
@@ -2361,6 +2375,20 @@
                   }
                 }
                 if (charBase === circumflexTarget) {
+                  if (lowerKey === "o" && word.toLowerCase().endsWith("ng")) {
+                    const endsWithNg = word.toLowerCase().endsWith("ng");
+                    const target2 = SHAPE_MAP[baseInfo.base]?.circumflex;
+                    if (target2 && endsWithNg) {
+                      const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
+                      const tone = baseInfo.tone;
+                      const o1 = isUpper ? "O" : "o";
+                      const o2Base = isUpper ? "O" : "o";
+                      const o2Accented = VOWEL_TABLE[o2Base][tone];
+                      const doubleO = o1 + o2Accented;
+                      const newWord = word.slice(0, charIndex) + doubleO + word.slice(charIndex + 1);
+                      return { transformed: true, result: newWord };
+                    }
+                  }
                   const target = SHAPE_MAP[baseInfo.base]?.circumflex;
                   if (target) {
                     const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
@@ -2433,29 +2461,38 @@
       const isUpper1 = c1 === c1.toUpperCase() && c1 !== c1.toLowerCase();
       const isUpper2 = c2 === c2.toUpperCase() && c2 !== c2.toLowerCase();
       const tone = Math.max(info1.tone, info2.tone);
-      if (index >= 2) {
-        const onset = word.slice(index - 2, index).toLowerCase();
-        const endsWord = index + 2 === word.length;
-        if (onset === "th" && endsWord) {
-          if (c2.toLowerCase() === "\u01A1" || isHorned) {
-            const base1 = isUpper1 ? "U" : "u";
-            const base2 = isUpper2 ? "O" : "o";
-            const char1 = VOWEL_TABLE[base1][0];
-            const char2 = VOWEL_TABLE[base2][tone];
-            return {
-              transformed: true,
-              result: word.slice(0, index) + char1 + char2
-            };
-          } else {
-            const base1 = isUpper1 ? "U" : "u";
-            const base2 = isUpper2 ? "\u01A0" : "\u01A1";
-            const char1 = VOWEL_TABLE[base1][0];
-            const char2 = VOWEL_TABLE[base2][tone];
-            return {
-              transformed: true,
-              result: word.slice(0, index) + char1 + char2
-            };
-          }
+      const endsWord = index + 2 === word.length;
+      const hasCodaN = index + 3 === word.length && word[index + 2].toLowerCase() === "n";
+      let isTrioException = false;
+      if (index >= 1) {
+        const charBefore = word[index - 1].toLowerCase();
+        if (charBefore === "q" && (endsWord || hasCodaN)) {
+          isTrioException = true;
+        } else if (charBefore === "h" && endsWord) {
+          isTrioException = true;
+        } else if (index >= 2 && word.slice(index - 2, index).toLowerCase() === "th" && endsWord) {
+          isTrioException = true;
+        }
+      }
+      if (isTrioException) {
+        if (info2.base.toLowerCase() === "\u01A1" || isHorned) {
+          const base1 = isUpper1 ? "U" : "u";
+          const base2 = isUpper2 ? "O" : "o";
+          const char1 = VOWEL_TABLE[base1][0];
+          const char2 = VOWEL_TABLE[base2][tone];
+          return {
+            transformed: true,
+            result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+          };
+        } else {
+          const base1 = isUpper1 ? "U" : "u";
+          const base2 = isUpper2 ? "\u01A0" : "\u01A1";
+          const char1 = VOWEL_TABLE[base1][0];
+          const char2 = VOWEL_TABLE[base2][tone];
+          return {
+            transformed: true,
+            result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+          };
         }
       }
       if (isHorned) {

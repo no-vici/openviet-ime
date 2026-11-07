@@ -33,6 +33,54 @@ export const DEFAULT_MACROS = [
   { trigger: 'idk', value: 'tao hông biết', enabled: true }
 ];
 
+/**
+ * Curated Saigon Xưa / Southern Vietnamese Macro Preset
+ * Rich collection of authentic Southern idioms, daily expressions & folk terms
+ * (Trích lục từ bài sưu tập Nguyễn Cao Trường & phương ngữ Sài Gòn trước 1975).
+ */
+export const SAIGON_XUA_MACROS = [
+  { trigger: 'sgx', value: 'Sài Gòn xưa', enabled: true },
+  { trigger: 'hcm', value: 'Sài Gòn', enabled: true },
+  { trigger: 'bcbc', value: 'bá cháy bù chét', enabled: true },
+  { trigger: 'blbx', value: 'bá láp bá xàm', enabled: true },
+  { trigger: 'bxk', value: 'ba xạo ba kép', enabled: true },
+  { trigger: 'crdt', value: 'cà rịch cà tang', enabled: true },
+  { trigger: 'ccca', value: 'cà chớn cà chác', enabled: true },
+  { trigger: 'cccn', value: 'cà nhỏng cà nhỏng', enabled: true },
+  { trigger: 'cdcc', value: 'cứng đầu cứng cổ', enabled: true },
+  { trigger: 'mdo', value: 'mèn đéc ơi', enabled: true },
+  { trigger: 'mo', value: 'mèn ơi', enabled: true },
+  { trigger: 'hx', value: 'hết xẩy', enabled: true },
+  { trigger: 'hxq', value: 'hết xí quách', enabled: true },
+  { trigger: 'hghs', value: 'hết ga hết số', enabled: true },
+  { trigger: 'hd', value: 'hổng dám đâu', enabled: true },
+  { trigger: 'hcc', value: 'hổng có chi', enabled: true },
+  { trigger: 'hc', value: 'hổng chừng', enabled: true },
+  { trigger: 'sd', value: 'số dzách', enabled: true },
+  { trigger: 'sm', value: 'sức mấy', enabled: true },
+  { trigger: 'ss', value: 'sương sương', enabled: true },
+  { trigger: 'tq', value: 'trớt quớt', enabled: true },
+  { trigger: 'ts', value: 'trùm sò', enabled: true },
+  { trigger: 'tm', value: 'trúng mánh', enabled: true },
+  { trigger: 'tt', value: 'trúng tủ', enabled: true },
+  { trigger: 'tto', value: 'trời thần ơi', enabled: true },
+  { trigger: 'tdtd', value: 'trời đánh thánh đâm', enabled: true },
+  { trigger: 'qtmb', value: 'quỉ tha ma bắt', enabled: true },
+  { trigger: 'mtd', value: 'mưa thúi đất', enabled: true },
+  { trigger: 'vg', value: 'vắt giò lên cổ', enabled: true },
+  { trigger: 'vp', value: 'vô phương', enabled: true },
+  { trigger: 'tlml', value: 'tào lao mía lao', enabled: true },
+  { trigger: 'bcl', value: 'bà chằn lửa', enabled: true },
+  { trigger: 'bt', value: 'bảnh tỏn', enabled: true },
+  { trigger: 'tm', value: 'tía má', enabled: true },
+  { trigger: 'th', value: 'thầy Hai', enabled: true },
+  { trigger: 'tt2', value: 'thầy thợ', enabled: true },
+  { trigger: 'tcl', value: 'thọc cù lét', enabled: true },
+  { trigger: 'dtt', value: 'đò Thủ Thiêm', enabled: true },
+  { trigger: 'xtm', value: 'xe thổ mộ', enabled: true },
+  { trigger: 'xl', value: 'xe lam', enabled: true }
+];
+
 export class MacroEngine {
   constructor(macros = DEFAULT_MACROS, options = {}) {
     this.macros = new Map();

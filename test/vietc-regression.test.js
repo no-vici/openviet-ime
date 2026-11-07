@@ -102,6 +102,54 @@ test('VietC / vnchKey - Tone Placement on Clusters (qu, gi, uê, uơ, ươ, ưu)
   let wCuu = '';
   for (const c of 'cuuws') wCuu = telex.processKey(wCuu, c).result;
   assert.equal(wCuu, 'cứu');
+
+  // Trio of uơ exceptions (thuở, quởn, huơ):
+  // 1. thuở (thuo + w + r -> thuở)
+  let wThuo = '';
+  for (const c of 'thuowr') wThuo = telex.processKey(wThuo, c).result;
+  assert.equal(wThuo, 'thuở');
+
+  // 2. quởn / quơ (quon + w + r -> quởn, quo + w -> quơ)
+  let wQuon = '';
+  for (const c of 'quonwr') wQuon = telex.processKey(wQuon, c).result;
+  assert.equal(wQuon, 'quởn');
+
+  let wQuo = '';
+  for (const c of 'quow') wQuo = telex.processKey(wQuo, c).result;
+  assert.equal(wQuo, 'quơ');
+
+  // 3. huơ (huo + w -> huơ)
+  let wHuo = '';
+  for (const c of 'huow') wHuo = telex.processKey(wHuo, c).result;
+  assert.equal(wHuo, 'huơ');
+
+  // VNI for the Trio:
+  const vni = new AvimEngine({ method: IME_METHOD.VNI });
+  let vThuo = '';
+  for (const c of 'thuo73') vThuo = vni.processKey(vThuo, c).result;
+  assert.equal(vThuo, 'thuở');
+
+  let vQuon = '';
+  for (const c of 'quon73') vQuon = vni.processKey(vQuon, c).result;
+  assert.equal(vQuon, 'quởn');
+
+  let vQuo = '';
+  for (const c of 'quo7') vQuo = vni.processKey(vQuo, c).result;
+  assert.equal(vQuo, 'quơ');
+
+  let vHuo = '';
+  for (const c of 'huo7') vHuo = vni.processKey(vHuo, c).result;
+  assert.equal(vHuo, 'huơ');
+
+  // Special French loanwords with -oong (xoong, boong, goòng):
+  assert.equal(telex.processKey('xoong', 'f').result, 'xoòng');
+  assert.equal(telex.processKey('goong', 'f').result, 'goòng');
+  assert.equal(vni.processKey('goong', '2').result, 'goòng');
+  assert.equal(vni.processKey('xoong', '2').result, 'xoòng');
+
+  // Telex double o toggle on -ong -> -oong
+  assert.equal(telex.processKey('xông', 'o').result, 'xoong');
+  assert.equal(telex.processKey('gồng', 'o').result, 'goòng');
 });
 
 test('VietC / vnchKey - Natural Phonological Guard on Tech Terms', () => {

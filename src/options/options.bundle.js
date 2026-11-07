@@ -64,6 +64,48 @@
     { trigger: "cx", value: "c\u0169ng", enabled: true },
     { trigger: "idk", value: "tao h\xF4ng bi\u1EBFt", enabled: true }
   ];
+  var SAIGON_XUA_MACROS = [
+    { trigger: "sgx", value: "S\xE0i G\xF2n x\u01B0a", enabled: true },
+    { trigger: "hcm", value: "S\xE0i G\xF2n", enabled: true },
+    { trigger: "bcbc", value: "b\xE1 ch\xE1y b\xF9 ch\xE9t", enabled: true },
+    { trigger: "blbx", value: "b\xE1 l\xE1p b\xE1 x\xE0m", enabled: true },
+    { trigger: "bxk", value: "ba x\u1EA1o ba k\xE9p", enabled: true },
+    { trigger: "crdt", value: "c\xE0 r\u1ECBch c\xE0 tang", enabled: true },
+    { trigger: "ccca", value: "c\xE0 ch\u1EDBn c\xE0 ch\xE1c", enabled: true },
+    { trigger: "cccn", value: "c\xE0 nh\u1ECFng c\xE0 nh\u1ECFng", enabled: true },
+    { trigger: "cdcc", value: "c\u1EE9ng \u0111\u1EA7u c\u1EE9ng c\u1ED5", enabled: true },
+    { trigger: "mdo", value: "m\xE8n \u0111\xE9c \u01A1i", enabled: true },
+    { trigger: "mo", value: "m\xE8n \u01A1i", enabled: true },
+    { trigger: "hx", value: "h\u1EBFt x\u1EA9y", enabled: true },
+    { trigger: "hxq", value: "h\u1EBFt x\xED qu\xE1ch", enabled: true },
+    { trigger: "hghs", value: "h\u1EBFt ga h\u1EBFt s\u1ED1", enabled: true },
+    { trigger: "hd", value: "h\u1ED5ng d\xE1m \u0111\xE2u", enabled: true },
+    { trigger: "hcc", value: "h\u1ED5ng c\xF3 chi", enabled: true },
+    { trigger: "hc", value: "h\u1ED5ng ch\u1EEBng", enabled: true },
+    { trigger: "sd", value: "s\u1ED1 dz\xE1ch", enabled: true },
+    { trigger: "sm", value: "s\u1EE9c m\u1EA5y", enabled: true },
+    { trigger: "ss", value: "s\u01B0\u01A1ng s\u01B0\u01A1ng", enabled: true },
+    { trigger: "tq", value: "tr\u1EDBt qu\u1EDBt", enabled: true },
+    { trigger: "ts", value: "tr\xF9m s\xF2", enabled: true },
+    { trigger: "tm", value: "tr\xFAng m\xE1nh", enabled: true },
+    { trigger: "tt", value: "tr\xFAng t\u1EE7", enabled: true },
+    { trigger: "tto", value: "tr\u1EDDi th\u1EA7n \u01A1i", enabled: true },
+    { trigger: "tdtd", value: "tr\u1EDDi \u0111\xE1nh th\xE1nh \u0111\xE2m", enabled: true },
+    { trigger: "qtmb", value: "qu\u1EC9 tha ma b\u1EAFt", enabled: true },
+    { trigger: "mtd", value: "m\u01B0a th\xFAi \u0111\u1EA5t", enabled: true },
+    { trigger: "vg", value: "v\u1EAFt gi\xF2 l\xEAn c\u1ED5", enabled: true },
+    { trigger: "vp", value: "v\xF4 ph\u01B0\u01A1ng", enabled: true },
+    { trigger: "tlml", value: "t\xE0o lao m\xEDa lao", enabled: true },
+    { trigger: "bcl", value: "b\xE0 ch\u1EB1n l\u1EEDa", enabled: true },
+    { trigger: "bt", value: "b\u1EA3nh t\u1ECFn", enabled: true },
+    { trigger: "tm", value: "t\xEDa m\xE1", enabled: true },
+    { trigger: "th", value: "th\u1EA7y Hai", enabled: true },
+    { trigger: "tt2", value: "th\u1EA7y th\u1EE3", enabled: true },
+    { trigger: "tcl", value: "th\u1ECDc c\xF9 l\xE9t", enabled: true },
+    { trigger: "dtt", value: "\u0111\xF2 Th\u1EE7 Thi\xEAm", enabled: true },
+    { trigger: "xtm", value: "xe th\u1ED5 m\u1ED9", enabled: true },
+    { trigger: "xl", value: "xe lam", enabled: true }
+  ];
   var MacroEngine = class {
     constructor(macros = DEFAULT_MACROS, options = {}) {
       this.macros = /* @__PURE__ */ new Map();
@@ -416,7 +458,21 @@
     "t\u1ECFn",
     "hum",
     "ch\xE1c",
-    "ch\xE1o"
+    "ch\xE1o",
+    "qu\u1EE1n",
+    "hu\u1EE1",
+    "goong",
+    "go\xF2ng",
+    "go\xF3ng",
+    "xoong",
+    "xo\xF2ng",
+    "xo\xF3ng",
+    "xo\u1ECDng",
+    "boong",
+    "bo\xF2ng",
+    "bo\xF3ng",
+    "moong",
+    "toong"
   ];
   function canon(str) {
     if (!str) return "";
@@ -2898,6 +2954,7 @@
     const tbody = document.getElementById("macroTableBody");
     const searchInput = document.getElementById("macroSearch");
     const resetBtn = document.getElementById("resetDefaultsBtn");
+    const loadSaigonBtn = document.getElementById("loadSaigonPresetBtn");
     function renderRows() {
       const query = (searchInput.value || "").toLowerCase().trim();
       const macros = macroEngine.getMacros().filter((m) => {
@@ -2992,6 +3049,16 @@
         macroEngine.loadMacros(DEFAULT_MACROS);
         renderRows();
         await saveState();
+      }
+    });
+    loadSaigonBtn?.addEventListener("click", async () => {
+      if (confirm("N\u1EA1p th\xEAm m\u1EABu vi\u1EBFt t\u1EAFt S\xE0i G\xF2n X\u01B0a / Nam B\u1ED9 v\xE0o b\u1EA3ng g\xF5 t\u1EAFt hi\u1EC7n t\u1EA1i? (C\xE1c t\u1EEB tr\xF9ng ph\xEDm t\u1EAFt s\u1EBD \u0111\u01B0\u1EE3c c\u1EADp nh\u1EADt)")) {
+        SAIGON_XUA_MACROS.forEach((m) => {
+          macroEngine.setMacro(m.trigger, m.value, m.enabled);
+        });
+        renderRows();
+        await saveState();
+        showToast("\u0110\xE3 n\u1EA1p th\xE0nh c\xF4ng 40 m\u1EABu t\u1EEB vi\u1EBFt t\u1EAFt S\xE0i G\xF2n X\u01B0a!");
       }
     });
     renderRows();

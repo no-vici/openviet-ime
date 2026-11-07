@@ -37,7 +37,9 @@ export const RARE_AND_PLACE_SYLLABLES = [
   // Rare, Classical & Dialect Vietnamese Syllables
   'nguầy', 'nguậy', 'dzìa', 'dzí', 'dzị', 'dzô', 'dzậy', 'dzách', 'dách',
   'zị', 'zi', 'zia', 'hén', 'nghen', 'hổng', 'hạp', 'quớt', 'nư', 'quỉ',
-  'lét', 'mụi', 'bẹo', 'bậu', 'tỏn', 'hum', 'chác', 'cháo'
+  'lét', 'mụi', 'bẹo', 'bậu', 'tỏn', 'hum', 'chác', 'cháo',
+  'quỡn', 'huỡ',
+  'goong', 'goòng', 'goóng', 'xoong', 'xoòng', 'xoóng', 'xoọng', 'boong', 'boòng', 'boóng', 'moong', 'toong'
 ];
 
 /**

@@ -3,7 +3,7 @@
  * Handles table rendering, filtering, modal CRUD, import/export, and preferences persistence.
  */
 
-import { DEFAULT_MACROS, MacroEngine } from '../engine/macro.js';
+import { DEFAULT_MACROS, SAIGON_XUA_MACROS, MacroEngine } from '../engine/macro.js';
 import { userDictionary } from '../engine/dictionary.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
 
@@ -192,6 +192,7 @@ function initTable() {
   const tbody = document.getElementById('macroTableBody');
   const searchInput = document.getElementById('macroSearch');
   const resetBtn = document.getElementById('resetDefaultsBtn');
+  const loadSaigonBtn = document.getElementById('loadSaigonPresetBtn');
 
   function renderRows() {
     const query = (searchInput.value || '').toLowerCase().trim();
@@ -308,6 +309,17 @@ function initTable() {
       macroEngine.loadMacros(DEFAULT_MACROS);
       renderRows();
       await saveState();
+    }
+  });
+
+  loadSaigonBtn?.addEventListener('click', async () => {
+    if (confirm('Nạp thêm mẫu viết tắt Sài Gòn Xưa / Nam Bộ vào bảng gõ tắt hiện tại? (Các từ trùng phím tắt sẽ được cập nhật)')) {
+      SAIGON_XUA_MACROS.forEach(m => {
+        macroEngine.setMacro(m.trigger, m.value, m.enabled);
+      });
+      renderRows();
+      await saveState();
+      showToast('Đã nạp thành công 40 mẫu từ viết tắt Sài Gòn Xưa!');
     }
   });
 
