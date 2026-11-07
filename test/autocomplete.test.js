@@ -117,6 +117,32 @@ test('AutoComplete and Next-Word Prediction', () => {
   const menDecSuggestions = engine.getNextWordSuggestions('đéc', 5, 'mèn');
   assert(menDecSuggestions.some(s => s.word.toLowerCase() === 'ơi'), 'Trigram: "mèn đéc" should predict "ơi"');
 
+  // Southern / Saigon Xua folk collection verification
+  // Prefix autocomplete
+  const saigonPrefix = engine.getSuggestions('bảnh', 5);
+  assert(saigonPrefix.some(s => s.word.toLowerCase() === 'bảnh tỏn'), 'Prefix: "bảnh" should suggest "bảnh tỏn"');
+
+  const caRichPrefix = engine.getSuggestions('cà rịch', 5);
+  assert(caRichPrefix.some(s => s.word.toLowerCase() === 'cà rịch cà tang'), 'Prefix: "cà rịch" should suggest "cà rịch cà tang"');
+
+  const hetSayPrefix = engine.getSuggestions('hết s', 5);
+  assert(hetSayPrefix.some(s => s.word.toLowerCase() === 'hết sẩy'), 'Prefix: "hết s" should suggest "hết sẩy"');
+
+  // Bigram next-word prediction
+  const hongSuggestions = engine.getNextWordSuggestions('hổng', 5);
+  assert(hongSuggestions.some(s => s.word.toLowerCase().includes('chừng')), 'Bigram: "hổng" should suggest "chừng"');
+  assert(hongSuggestions.some(s => s.word.toLowerCase().includes('dám đâu')), 'Bigram: "hổng" should suggest "dám đâu"');
+
+  const trotSuggestions = engine.getNextWordSuggestions('trớt', 5);
+  assert(trotSuggestions.some(s => s.word.toLowerCase() === 'quớt'), 'Bigram: "trớt" should suggest "quớt"');
+
+  // Trigram next-word prediction
+  const caChonChao = engine.getNextWordSuggestions('chớn', 5, 'cà');
+  assert(caChonChao.some(s => s.word.toLowerCase() === 'cà cháo'), 'Trigram: "cà chớn" should predict "cà cháo"');
+
+  const troiDanh = engine.getNextWordSuggestions('đánh', 5, 'trời');
+  assert(troiDanh.some(s => s.word.toLowerCase() === 'thánh đâm'), 'Trigram: "trời đánh" should predict "thánh đâm"');
+
   // 9. User-Learned Trigram Recording
   engine.recordWordTransition('máy', 'tính', 'mô hình');
   const userTrigramSuggestions = engine.getNextWordSuggestions('máy', 5, 'mô hình');
