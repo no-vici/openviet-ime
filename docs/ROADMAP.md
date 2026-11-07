@@ -61,9 +61,10 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 - [ ] **Biên dịch bộ phân tích âm tiết sang WebAssembly**: Port `syllable-parser` và `avim` sang Rust để đạt tốc độ xử lý sub-millisecond, hoàn toàn không sinh rác bộ nhớ (Zero GC Pause) trong các tác vụ gõ văn bản hàng triệu ký tự.
 - [ ] **Bảng tra nén DAFSA (Deterministic Acyclic Finite State Automaton)**: Nén toàn bộ từ điển tiếng Việt 40,000 từ và từ điển địa danh thành một khối nhị phân dưới 150KB.
 
-### v1.3.0: Ngữ Cảnh AI Sâu & Tự Động Phục Hồi Dấu (Deep Context & Auto-Diacritic)
+### v1.3.0: Ngữ Cảnh AI Sâu & Trí Tuệ Dự Đoán Kiểu Gboard (Deep Context & Prediction)
+- [ ] **Mô hình Trigram Context Prediction (Lấy cảm hứng từ Gboard)**: Mở rộng bộ suy luận từ Bigram ($W_{n-1} \rightarrow W_n$) lên Trigram ($W_{n-2} + W_{n-1} \rightarrow W_n$). Ví dụ: `xe` + `cấp` $\rightarrow$ gợi ý `cứu`; `lương` + `phụ` $\rightarrow$ gợi ý `cấp`; `Bộ` + `Giao` $\rightarrow$ gợi ý `thông`.
+- [ ] **Thuật toán Trọng số Kép Recency & Frequency (Exponential Decay Ranking)**: Học thói quen cá nhân theo thời gian thực kết hợp giữa tần suất gõ (Frequency) và độ mới của từ (Recency) bằng công thức suy giảm thời gian $e^{-\lambda \Delta t}$. Tránh việc từ cũ dùng nhiều trong quá khứ đè bẹp các thuật ngữ người dùng đang tập trung gõ gần đây.
 - [ ] **Khôi phục dấu tự động cho văn bản không dấu**: Gõ nguyên câu không dấu (ví dụ: `toi dang o san bay`) và nhấn tổ hợp phím để AI trên trình duyệt tự động điền dấu đầy đủ (`Tôi đang ở sân bay`).
-- [ ] **Mô hình N-gram ngữ cảnh (Trigram Prediction)**: Nâng cấp gợi ý từ tiếp theo dựa trên 2 từ liền trước thay vì chỉ 1 từ (Bigram).
 
 ### v1.4.0: Đồng Bộ Hóa Đám Mây Mã Hóa Đầu-Cuối (Encrypted Cloud Sync)
 - [ ] **Đồng bộ danh sách Macro qua Google Drive / GitHub Gist**: Cho phép xuất/nhập và đồng bộ tự động danh mục gõ tắt cá nhân hóa giữa các máy tính với cơ chế mã hóa E2E.
