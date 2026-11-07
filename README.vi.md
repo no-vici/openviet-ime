@@ -32,7 +32,8 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
    - [Cụm Nguyên Âm `uê` (`thuế`, `huế`, `quế`) & `ưu` (`cứu`, `cừu`)](#cụm-nguyên-âm-uê-thuế-huế-quế--ưu-cứu-cừu)
    - [Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hoà`/`hòa`)](#chuẩn-bỏ-dấu-hiện-đại-vs-cổ-điển-hoàhòa)
    - [Bỏ Dấu Ở Cuối Từ (Late Vowel Shaping)](#bỏ-dấu-ở-cuối-từ-late-vowel-shaping)
-   - [Quy Tắc Chính Tả & Âm Khép Phụ Âm Cuối](#quy-tắc-chính-tả--âm-khép-phụ-âm-cuối)
+   - [Hoán Đổi Dấu Phụ Bảo Lưu Thanh Điệu (VietC / Bamboo)](#hoán-đổi-dấu-phụ-bảo-lưu-thanh-điệu-vietc--bamboo)
+   - [Quy Tắc Ngữ Âm & Bảo Vệ Lệnh Kỹ Thuật Tự Nhiên](#quy-tắc-ngữ-âm--bảo-vệ-lệnh-kỹ-thuật-tự-nhiên)
 3. [Gợi Ý Từ Thông Minh & Dự Đoán Từ Kế Tiếp Kiểu Gboard](#gợi-ý-từ-thông-minh--dự-đoán-từ-kế-tiếp-kiểu-gboard)
    - [Nguồn Dữ Liệu Từ Điển Đa Tầng](#nguồn-dữ-liệu-từ-điển-đa-tầng)
    - [Dự Đoán Từ Kế Tiếp & Tối Ưu Cho Ứng Dụng Chat](#dự-đoán-từ-kế-tiếp--tối-ưu-cho-ứng-dụng-chat)
@@ -195,10 +196,29 @@ Hỗ trợ thói quen gõ xong cả từ rồi mới thêm dấu mũ:
 
 ---
 
-### Quy Tắc Chính Tả & Âm Khép Phụ Âm Cuối
+### Hoán Đổi Dấu Phụ Bảo Lưu Thanh Điệu (VietC / Bamboo)
+
+Học hỏi từ tinh hoa kỹ thuật của VietC và Bamboo, OpenViet IME hỗ trợ tính năng **hoán đổi linh hoạt dấu phụ nguyên âm (`â ↔ ă`, `ô ơ`) mà vẫn giữ nguyên trọn vẹn dấu thanh hiện tại**. Người dùng khi gõ phím ở tốc độ cao nếu lỡ tay bấm nhầm dấu mũ thay vì trăng/móc (hoặc ngược lại) có thể sửa ngay lập tức mà không sợ bị rớt hoặc mất dấu thanh:
+
+- **Kiểu Telex**:
+  - `â + w` $\rightarrow$ `ă` (ví dụ: `ấm` + `w` $\rightarrow$ `ắm`, `cân` + `w` $\rightarrow$ `căn`, `tập` + `w` $\rightarrow$ `tặp`).
+  - `ă + a` $\rightarrow$ `â` (ví dụ: `ắm` + `a` $\rightarrow$ `ấm`, `căn` + `a` $\rightarrow$ `cân`, `tặp` + `a` $\rightarrow$ `tập`).
+  - `ô + w` $\rightarrow$ `ơ` (ví dụ: `bốn` + `w` $\rightarrow$ `bớn`, `hộp` + `w` $\rightarrow$ `hợp`, `cột` + `w` $\rightarrow$ `cợt`).
+  - `ơ + o` $\rightarrow$ `ô` (ví dụ: `bớn` + `o` $\rightarrow$ `bốn`, `hợp` + `o` $\rightarrow$ `hộp`, `cợt` + `o` $\rightarrow$ `cột`).
+  - Các tổ hợp kép như `aaw` tự động cho ra `ă`, `oow` cho ra `ơ`.
+- **Kiểu VNI**:
+  - Phím `8` (trăng) trên `â` $\rightarrow$ `ă` (ví dụ: `tấ` + `8` $\rightarrow$ `tắ`).
+  - Phím `6` (mũ) trên `ă` $\rightarrow$ `â` (ví dụ: `tắ` + `6` $\rightarrow$ `tấ`).
+  - Phím `7` (móc) trên `ô` $\rightarrow$ `ơ` (ví dụ: `bốn` + `7` $\rightarrow$ `bớn`, `giồ` + `7` $\rightarrow$ `giờ`).
+  - Phím `6` (mũ) trên `ơ` $\rightarrow$ `ô` (ví dụ: `bớn` + `6` $\rightarrow$ `bốn`, `giờ` + `6` $\rightarrow$ `giồ`).
+
+---
+
+### Quy Tắc Ngữ Âm & Bảo Vệ Lệnh Kỹ Thuật Tự Nhiên
 
 - **Âm Khép Phụ Âm Cuối (`-c, -ch, -p, -t`)**: Những âm tiết kết thúc bằng phụ âm tắc (`c`, `ch`, `p`, `t`) **chỉ có thể nhận Thanh 1 (Sắc) hoặc Thanh 5 (Nặng)**. Tuyệt đối không nhận thanh Huyền, Hỏi, Ngã (`bac` + `s` -> `bác`, nhưng `bac` + `f` -> `bacf` không bị biến thành `bàc`).
 - **Quy tắc `c/k`, `g/gh`, `ng/ngh`**: Các nguyên âm trước (`e, ê, i, y`) không đi cùng `c`, `g`, `ng`. Các từ tiếng Anh như `center`, `city`, `get` được giữ nguyên vẹn mà không bị đổi dấu sai.
+- **Lớp Bảo Vệ Ngữ Âm Tự Nhiên (Bảo Vệ Lệnh CLI & Từ Kỹ Thuật)**: Ngay cả khi người dùng **tắt tính năng kiểm tra chính tả**, Syllable Parser của OpenViet IME vẫn luôn thực thi luật cấu trúc âm tiết tự nhiên (bảo vệ các phụ âm cuối lạ ngoại ngữ như `-tx`, `-cx`, `-rl`, `-sh`,...). Nhờ đó, các câu lệnh shell, tên file, thư viện lập trình (như `fcitx5`, `docx4`, `linux6`) **hoàn toàn không bị biến dạng** (ví dụ `fcitx5` được giữ nguyên vẹn thay vì bị biến thành `fcịtx`).
 
 ---
 

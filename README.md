@@ -31,7 +31,8 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
    - [Diphthong `ưu` & Tone Placement on `uê` (`thuế`, `huế`)](#diphthong-ưu--tone-placement-on-uê-thuế-huế)
    - [Modern vs. Classic Tone Placement](#modern-vs-classic-tone-placement)
    - [Late Vowel Shaping & Toggle Mechanics](#late-vowel-shaping--toggle-mechanics)
-   - [Phonology Validation & Stop Consonants](#phonology-validation--stop-consonants)
+   - [Shape Modifier Swapping (VietC / Bamboo)](#shape-modifier-swapping-vietc--bamboo)
+   - [Phonology Validation & Natural Command Protection](#phonology-validation--natural-command-protection)
 3. [Smart Auto-Complete & Gboard-Style Prediction](#smart-auto-complete--gboard-style-prediction)
    - [Multi-Tier Dictionary Engine](#multi-tier-dictionary-engine)
    - [Gboard Next-Word AI Prediction & Chat App Protection](#gboard-next-word-ai-prediction--chat-app-protection)
@@ -195,10 +196,29 @@ Users frequently type full words before applying circumflex accents:
 
 ---
 
-### Phonology Validation & Stop Consonants
+### Shape Modifier Swapping (VietC / Bamboo)
+
+Inspired by VietC and Bamboo, OpenViet IME supports **seamless vowel shape modifier swapping (`â ↔ ă`, `ô ↔ ơ`) while strictly preserving existing tone marks**. When typing quickly, users often mistype a circumflex when they intended a breve/horn (or vice versa); this engine enables instantaneous shape switching without losing or having to retype the tone:
+
+- **Telex Mode**:
+  - `â + w` $\rightarrow$ `ă` (e.g., `ấm` + `w` $\rightarrow$ `ắm`, `cân` + `w` $\rightarrow$ `căn`, `tập` + `w` $\rightarrow$ `tặp`).
+  - `ă + a` $\rightarrow$ `â` (e.g., `ắm` + `a` $\rightarrow$ `ấm`, `căn` + `a` $\rightarrow$ `cân`, `tặp` + `a` $\rightarrow$ `tập`).
+  - `ô + w` $\rightarrow$ `ơ` (e.g., `bốn` + `w` $\rightarrow$ `bớn`, `hộp` + `w` $\rightarrow$ `hợp`, `cột` + `w` $\rightarrow$ `cợt`).
+  - `ơ + o` $\rightarrow$ `ô` (e.g., `bớn` + `o` $\rightarrow$ `bốn`, `hợp` + `o` $\rightarrow$ `hộp`, `cợt` + `o` $\rightarrow$ `cột`).
+  - Double modifiers such as `aaw` naturally resolve to `ă`, and `oow` to `ơ`.
+- **VNI Mode**:
+  - `8` (breve) on `â` $\rightarrow$ `ă` (e.g., `tấ` + `8` $\rightarrow$ `tắ`).
+  - `6` (circumflex) on `ă` $\rightarrow$ `â` (e.g., `tắ` + `6` $\rightarrow$ `tấ`).
+  - `7` (horn) on `ô` $\rightarrow$ `ơ` (e.g., `bốn` + `7` $\rightarrow$ `bớn`, `giồ` + `7` $\rightarrow$ `giờ`).
+  - `6` (circumflex) on `ơ` $\rightarrow$ `ô` (e.g., `bớn` + `6` $\rightarrow$ `bốn`, `giờ` + `6` $\rightarrow$ `giồ`).
+
+---
+
+### Phonology Validation & Natural Command Protection
 
 - **Checked Tone Stop Finals (`-c, -ch, -p, -t`)**: Syllables ending with stop consonants (`c`, `ch`, `p`, `t`) can **only take Tone 1 (Acute / Sắc) or Tone 5 (Dot below / Nặng)**. Tones 2 (Huyền), 3 (Hỏi), and 4 (Ngã) are rejected (`bac` + `s` -> `bác`, but `bac` + `f` -> `bacf`).
 - **`c/k`, `g/gh`, `ng/ngh` Rules**: Front vowels (`e, ê, i, y`) cannot follow `c`, `g`, or `ng`. Foreign words such as `center`, `city`, `get` are preserved without unintended diacritic alteration.
+- **Natural Phonological Guard (Technical Word & CLI Protection)**: Even when dictionary spellcheck is disabled by the user, OpenViet IME's syllable parser enforces structural phonological coda and nucleus constraints. Technical commands, filenames, and packages (e.g. `fcitx5`, `docx4`, `linux6`) will **never** be corrupted into spurious accented forms (e.g., `fcitx5` stays intact instead of mutating into `fcịtx`).
 
 ---
 
