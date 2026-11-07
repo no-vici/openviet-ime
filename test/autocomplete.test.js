@@ -95,19 +95,27 @@ test('AutoComplete and Next-Word Prediction', () => {
   assert(krongSuggestions.some(s => s.word.toLowerCase() === 'nô'), 'Should suggest "Nô" after "Krông"');
   assert(krongSuggestions.some(s => s.word.toLowerCase() === 'pắk'), 'Should suggest "Pắk" after "Krông"');
 
-  // 8. Trigram Deep Context Prediction (Gboard style: priorWord + previousWord -> nextWord)
-  // 'xe' + 'cấp' -> 'cứu'
-  const xeCapSuggestions = engine.getNextWordSuggestions('cấp', 5, 'xe');
-  assert(xeCapSuggestions.some(s => s.word.toLowerCase() === 'cứu'), 'Trigram: "xe cấp" should strongly predict "cứu"');
-  assert.strictEqual(xeCapSuggestions[0].word.toLowerCase(), 'cứu', 'Trigram: "cứu" should be #1 candidate for "xe cấp"');
+  // 8. Trigram Deep Context Prediction (Gboard style: Sài Gòn xưa & Nam Bộ folk idioms)
+  // 'sài' + 'gòn' -> 'xưa'
+  const saiGonSuggestions = engine.getNextWordSuggestions('gòn', 5, 'sài');
+  assert(saiGonSuggestions.some(s => s.word.toLowerCase() === 'xưa'), 'Trigram: "sài gòn" should predict "xưa"');
+  assert.strictEqual(saiGonSuggestions[0].word.toLowerCase(), 'xưa', 'Trigram: "xưa" should be #1 candidate for "sài gòn"');
 
-  // 'bộ' + 'giao' -> 'thông'
-  const boGiaoSuggestions = engine.getNextWordSuggestions('giao', 5, 'bộ');
-  assert(boGiaoSuggestions.some(s => s.word.toLowerCase() === 'thông'), 'Trigram: "bộ giao" should predict "thông"');
+  // 'bá' + 'cháy' -> 'bù chét'
+  const baChaySuggestions = engine.getNextWordSuggestions('cháy', 5, 'bá');
+  assert(baChaySuggestions.some(s => s.word.toLowerCase() === 'bù chét'), 'Trigram: "bá cháy" should predict "bù chét"');
 
-  // 'hồ' + 'chí' -> 'minh'
-  const hoChiSuggestions = engine.getNextWordSuggestions('chí', 5, 'hồ');
-  assert(hoChiSuggestions.some(s => s.word.toLowerCase() === 'minh'), 'Trigram: "hồ chí" should predict "minh"');
+  // 'cà' + 'rịch' -> 'cà tang'
+  const caRichSuggestions = engine.getNextWordSuggestions('rịch', 5, 'cà');
+  assert(caRichSuggestions.some(s => s.word.toLowerCase() === 'cà tang'), 'Trigram: "cà rịch" should predict "cà tang"');
+
+  // 'cà' + 'chớn' -> 'cà chác'
+  const caChonSuggestions = engine.getNextWordSuggestions('chớn', 5, 'cà');
+  assert(caChonSuggestions.some(s => s.word.toLowerCase() === 'cà chác'), 'Trigram: "cà chớn" should predict "cà chác"');
+
+  // 'mèn' + 'đéc' -> 'ơi'
+  const menDecSuggestions = engine.getNextWordSuggestions('đéc', 5, 'mèn');
+  assert(menDecSuggestions.some(s => s.word.toLowerCase() === 'ơi'), 'Trigram: "mèn đéc" should predict "ơi"');
 
   // 9. User-Learned Trigram Recording
   engine.recordWordTransition('máy', 'tính', 'mô hình');

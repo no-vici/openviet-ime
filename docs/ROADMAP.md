@@ -62,7 +62,7 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 - [ ] **Bảng tra nén DAFSA (Deterministic Acyclic Finite State Automaton)**: Nén toàn bộ từ điển tiếng Việt 40,000 từ và từ điển địa danh thành một khối nhị phân dưới 150KB.
 
 ### v1.3.0: Ngữ Cảnh AI Sâu & Trí Tuệ Dự Đoán Kiểu Gboard (Deep Context & Prediction)
-- [x] **Mô hình Trigram Context Prediction (Lấy cảm hứng từ Gboard)**: Mở rộng bộ suy luận từ Bigram ($W_{n-1} \rightarrow W_n$) lên Trigram ($W_{n-2} + W_{n-1} \rightarrow W_n$). Ví dụ: `xe` + `cấp` $\rightarrow$ gợi ý `cứu`; `lương` + `phụ` $\rightarrow$ gợi ý `cấp`; `Bộ` + `Giao` $\rightarrow$ gợi ý `thông`.
+- [x] **Mô hình Trigram Context Prediction (Lấy cảm hứng từ Gboard)**: Mở rộng bộ suy luận từ Bigram ($W_{n-1} \rightarrow W_n$) lên Trigram ($W_{n-2} + W_{n-1} \rightarrow W_n$). Ví dụ phương ngữ miền Nam và văn hóa Sài Gòn xưa: `sài` + `gòn` $\rightarrow$ gợi ý `xưa`; `bá` + `cháy` $\rightarrow$ gợi ý `bù chét`; `cà` + `rịch` $\rightarrow$ gợi ý `cà tang`; `cà` + `chớn` $\rightarrow$ gợi ý `cà chác`; `mèn` + `đéc` $\rightarrow$ gợi ý `ơi`.
 - [x] **Thuật toán Trọng số Kép Recency & Frequency (Exponential Decay Ranking)**: Học thói quen cá nhân theo thời gian thực kết hợp giữa tần suất gõ (Frequency) và độ mới của từ (Recency) bằng công thức suy giảm thời gian $e^{-\lambda \Delta t}$. Tránh việc từ cũ dùng nhiều trong quá khứ đè bẹp các thuật ngữ người dùng đang tập trung gõ gần đây.
 - [ ] **Khôi phục dấu tự động cho văn bản không dấu**: Gõ nguyên câu không dấu (ví dụ: `toi dang o san bay`) và nhấn tổ hợp phím để AI trên trình duyệt tự động điền dấu đầy đủ (`Tôi đang ở sân bay`).
 

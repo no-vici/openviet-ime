@@ -281,35 +281,47 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
 
 /**
  * Curated Vietnamese Trigram Collocations (Word_A + " " + Word_B -> [Word_C1, Word_C2, ...])
- * 2-word prior context for deep next-word prediction (Gboard style)
+ * 2-word prior context for deep next-word prediction (Gboard style).
+ * Đặc biệt gìn giữ các thành ngữ dân gian, cụm từ ba chữ đặc trưng của Sài Gòn xưa và phương ngữ Nam Bộ.
  */
 export const DEFAULT_VIETNAMESE_TRIGRAMS = {
-  // Y tế / Cấp cứu / Bệnh viện
+  // Phương ngữ Sài Gòn xưa & Nam Bộ dân gian
+  'sài gòn': ['xưa', 'đẹp lắm', 'hoa lệ'],
+  'bá cháy': ['bù chét'],
+  'bá láp': ['bá xàm'],
+  'ba la': ['ba xạo'],
+  'ba xạo': ['ba kép'],
+  'cà rịch': ['cà tang'],
+  'cà chớn': ['cà chác'],
+  'cà nhỏng': ['cà nhỏng'],
+  'cứng đầu': ['cứng cổ'],
+  'mèn đéc': ['ơi'],
+  'hết nước': ['chấm', 'miếng'],
+  'ngon lành': ['cành đào'],
+  'ăn ngay': ['nói thật'],
+  'ăn coi': ['nồi'],
+  'ngồi coi': ['hướng'],
+  'mưa thúi': ['đất'],
+
+  // Y tế / Bệnh viện
   'xe cấp': ['cứu'],
   'phòng cấp': ['cứu'],
-  'đội cấp': ['cứu'],
-  'bệnh viện': ['đa khoa', 'bạch mai', 'chợ rẫy', 'nhi đồng', 'huyết học', 'ung bướu'],
-  'bác sĩ': ['chuyên khoa', 'gia đình', 'trưởng khoa'],
+  'bệnh viện': ['chợ rẫy', 'nhi đồng', 'từ dũ', 'bình dân'],
+  'bác sĩ': ['gia đình', 'trưởng khoa', 'chuyên khoa'],
 
-  // Lao động / Tài chính / Kinh doanh
-  'phụ cấp': ['thâm niên', 'ăn trưa', 'trách nhiệm', 'đặc biệt', 'khu vực'],
+  // Đời sống, thương mại, tài chính
   'tiền phụ': ['cấp'],
-  'công ty': ['tnhh', 'cổ phần', 'trách nhiệm hữu hạn', 'công nghệ'],
-  'tài khoản': ['ngân hàng', 'cá nhân', 'doanh nghiệp'],
   'chuyển khoản': ['ngân hàng', 'thành công', 'ngay'],
+  'tài khoản': ['ngân hàng', 'tiết kiệm'],
+  'hãng xe': ['đò', 'lôi', 'lam'],
 
-  // Địa danh / Quốc gia / Hành chính
-  'bộ giao': ['thông'],
-  'giao thông': ['vận tải', 'đường bộ', 'hào hiệp'],
-  'bộ giáo': ['dục'],
-  'giáo dục': ['và đào tạo', 'đại học', 'phổ thông'],
-  'bộ tài': ['chính'],
-  'bộ y': ['tế'],
-  'bộ công': ['an', 'thương'],
-  'hồ chí': ['minh'],
-  'thành phố': ['hồ chí minh', 'hà nội', 'đà nẵng', 'cần thơ', 'hải phòng'],
-  'cộng hòa': ['xã hội chủ nghĩa việt nam'],
-  'việt nam': ['cộng hòa', 'vô địch'],
+  // Địa danh miền Nam & Sài Gòn
+  'thành phố': ['sài gòn', 'đà lạt', 'cần thơ', 'mỹ tho', 'vũng tàu', 'nha trang', 'huế', 'đà nẵng'],
+  'chợ bến': ['thành'],
+  'bến ninh': ['kiều'],
+  'sông bến': ['nghé'],
+  'cầu sài': ['gòn'],
+  'việt nam': ['cộng hòa'],
 
   // Công nghệ / Lập trình
   'trí tuệ': ['nhân tạo'],
@@ -317,7 +329,7 @@ export const DEFAULT_VIETNAMESE_TRIGRAMS = {
   'cơ sở': ['dữ liệu'],
   'hệ điều': ['hành'],
   'mã nguồn': ['mở'],
-  'phần mềm': ['mã nguồn mở', 'độc hại', 'tiện ích'],
+  'phần mềm': ['mã nguồn mở', 'tiện ích'],
 
   // Giao tiếp / Xã giao
   'chúc mừng': ['sinh nhật', 'năm mới', 'thành công', 'bạn'],
@@ -939,7 +951,7 @@ export class AutoCompleteEngine {
         }
       }
 
-      // 1b. Curated Base Trigrams (xe cấp -> cứu, hồ chí -> minh, bộ giao -> thông)
+      // 1b. Curated Base Trigrams (e.g. 'sài gòn' -> 'xưa', 'bá cháy' -> 'bù chét', 'cà rịch' -> 'cà tang')
       const baseTrigramFollowers = this.trigrams[trigramKey];
       if (baseTrigramFollowers && candidates.length < limit) {
         for (const w of baseTrigramFollowers) {

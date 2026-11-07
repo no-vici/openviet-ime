@@ -4028,37 +4028,47 @@
     "coi": ["phim", "b\xE1o", "tin", "l\u1EA1i", "b\xF3i", "t\u1EED vi"]
   };
   var DEFAULT_VIETNAMESE_TRIGRAMS = {
-    // Y tế / Cấp cứu / Bệnh viện
+    // Phương ngữ Sài Gòn xưa & Nam Bộ dân gian
+    "s\xE0i g\xF2n": ["x\u01B0a", "\u0111\u1EB9p l\u1EAFm", "hoa l\u1EC7"],
+    "b\xE1 ch\xE1y": ["b\xF9 ch\xE9t"],
+    "b\xE1 l\xE1p": ["b\xE1 x\xE0m"],
+    "ba la": ["ba x\u1EA1o"],
+    "ba x\u1EA1o": ["ba k\xE9p"],
+    "c\xE0 r\u1ECBch": ["c\xE0 tang"],
+    "c\xE0 ch\u1EDBn": ["c\xE0 ch\xE1c"],
+    "c\xE0 nh\u1ECFng": ["c\xE0 nh\u1ECFng"],
+    "c\u1EE9ng \u0111\u1EA7u": ["c\u1EE9ng c\u1ED5"],
+    "m\xE8n \u0111\xE9c": ["\u01A1i"],
+    "h\u1EBFt n\u01B0\u1EDBc": ["ch\u1EA5m", "mi\u1EBFng"],
+    "ngon l\xE0nh": ["c\xE0nh \u0111\xE0o"],
+    "\u0103n ngay": ["n\xF3i th\u1EADt"],
+    "\u0103n coi": ["n\u1ED3i"],
+    "ng\u1ED3i coi": ["h\u01B0\u1EDBng"],
+    "m\u01B0a th\xFAi": ["\u0111\u1EA5t"],
+    // Y tế / Bệnh viện
     "xe c\u1EA5p": ["c\u1EE9u"],
     "ph\xF2ng c\u1EA5p": ["c\u1EE9u"],
-    "\u0111\u1ED9i c\u1EA5p": ["c\u1EE9u"],
-    "b\u1EC7nh vi\u1EC7n": ["\u0111a khoa", "b\u1EA1ch mai", "ch\u1EE3 r\u1EABy", "nhi \u0111\u1ED3ng", "huy\u1EBFt h\u1ECDc", "ung b\u01B0\u1EDBu"],
-    "b\xE1c s\u0129": ["chuy\xEAn khoa", "gia \u0111\xECnh", "tr\u01B0\u1EDFng khoa"],
-    // Lao động / Tài chính / Kinh doanh
-    "ph\u1EE5 c\u1EA5p": ["th\xE2m ni\xEAn", "\u0103n tr\u01B0a", "tr\xE1ch nhi\u1EC7m", "\u0111\u1EB7c bi\u1EC7t", "khu v\u1EF1c"],
+    "b\u1EC7nh vi\u1EC7n": ["ch\u1EE3 r\u1EABy", "nhi \u0111\u1ED3ng", "t\u1EEB d\u0169", "b\xECnh d\xE2n"],
+    "b\xE1c s\u0129": ["gia \u0111\xECnh", "tr\u01B0\u1EDFng khoa", "chuy\xEAn khoa"],
+    // Đời sống, thương mại, tài chính
     "ti\u1EC1n ph\u1EE5": ["c\u1EA5p"],
-    "c\xF4ng ty": ["tnhh", "c\u1ED5 ph\u1EA7n", "tr\xE1ch nhi\u1EC7m h\u1EEFu h\u1EA1n", "c\xF4ng ngh\u1EC7"],
-    "t\xE0i kho\u1EA3n": ["ng\xE2n h\xE0ng", "c\xE1 nh\xE2n", "doanh nghi\u1EC7p"],
     "chuy\u1EC3n kho\u1EA3n": ["ng\xE2n h\xE0ng", "th\xE0nh c\xF4ng", "ngay"],
-    // Địa danh / Quốc gia / Hành chính
-    "b\u1ED9 giao": ["th\xF4ng"],
-    "giao th\xF4ng": ["v\u1EADn t\u1EA3i", "\u0111\u01B0\u1EDDng b\u1ED9", "h\xE0o hi\u1EC7p"],
-    "b\u1ED9 gi\xE1o": ["d\u1EE5c"],
-    "gi\xE1o d\u1EE5c": ["v\xE0 \u0111\xE0o t\u1EA1o", "\u0111\u1EA1i h\u1ECDc", "ph\u1ED5 th\xF4ng"],
-    "b\u1ED9 t\xE0i": ["ch\xEDnh"],
-    "b\u1ED9 y": ["t\u1EBF"],
-    "b\u1ED9 c\xF4ng": ["an", "th\u01B0\u01A1ng"],
-    "h\u1ED3 ch\xED": ["minh"],
-    "th\xE0nh ph\u1ED1": ["h\u1ED3 ch\xED minh", "h\xE0 n\u1ED9i", "\u0111\xE0 n\u1EB5ng", "c\u1EA7n th\u01A1", "h\u1EA3i ph\xF2ng"],
-    "c\u1ED9ng h\xF2a": ["x\xE3 h\u1ED9i ch\u1EE7 ngh\u0129a vi\u1EC7t nam"],
-    "vi\u1EC7t nam": ["c\u1ED9ng h\xF2a", "v\xF4 \u0111\u1ECBch"],
+    "t\xE0i kho\u1EA3n": ["ng\xE2n h\xE0ng", "ti\u1EBFt ki\u1EC7m"],
+    "h\xE3ng xe": ["\u0111\xF2", "l\xF4i", "lam"],
+    // Địa danh miền Nam & Sài Gòn
+    "th\xE0nh ph\u1ED1": ["s\xE0i g\xF2n", "\u0111\xE0 l\u1EA1t", "c\u1EA7n th\u01A1", "m\u1EF9 tho", "v\u0169ng t\xE0u", "nha trang", "hu\u1EBF", "\u0111\xE0 n\u1EB5ng"],
+    "ch\u1EE3 b\u1EBFn": ["th\xE0nh"],
+    "b\u1EBFn ninh": ["ki\u1EC1u"],
+    "s\xF4ng b\u1EBFn": ["ngh\xE9"],
+    "c\u1EA7u s\xE0i": ["g\xF2n"],
+    "vi\u1EC7t nam": ["c\u1ED9ng h\xF2a"],
     // Công nghệ / Lập trình
     "tr\xED tu\u1EC7": ["nh\xE2n t\u1EA1o"],
     "m\u1EA1ng m\xE1y": ["t\xEDnh"],
     "c\u01A1 s\u1EDF": ["d\u1EEF li\u1EC7u"],
     "h\u1EC7 \u0111i\u1EC1u": ["h\xE0nh"],
     "m\xE3 ngu\u1ED3n": ["m\u1EDF"],
-    "ph\u1EA7n m\u1EC1m": ["m\xE3 ngu\u1ED3n m\u1EDF", "\u0111\u1ED9c h\u1EA1i", "ti\u1EC7n \xEDch"],
+    "ph\u1EA7n m\u1EC1m": ["m\xE3 ngu\u1ED3n m\u1EDF", "ti\u1EC7n \xEDch"],
     // Giao tiếp / Xã giao
     "ch\xFAc m\u1EEBng": ["sinh nh\u1EADt", "n\u0103m m\u1EDBi", "th\xE0nh c\xF4ng", "b\u1EA1n"],
     "c\u1EA3m \u01A1n": ["b\u1EA1n", "r\u1EA5t nhi\u1EC1u", "anh", "ch\u1ECB", "em"],
