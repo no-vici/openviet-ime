@@ -417,5 +417,15 @@ export function runAvimTests() {
   vniWord = dynVni.processKey(vniWord, 'n').result;
   assert('VNI Dynamic Tone Shift: tóa + n -> toán', vniWord === 'toán', 'toán', vniWord);
 
+  // 24. Natural Phonological Guard (Bamboo / vnchKey feature: protect foreign/tech terms even if spellCheck is OFF)
+  const noSpellEngine = new AvimEngine({ method: IME_METHOD.VNI, spellCheck: false, phonologyRules: true });
+  let fcitxRes = '';
+  ['f', 'c', 'i', 't', 'x', '5'].forEach(k => { fcitxRes = noSpellEngine.processKey(fcitxRes, k).result; });
+  assert('Natural Phonology Guard: fcitx + 5 outputs fcitx5 without spellcheck', fcitxRes === 'fcitx5', 'fcitx5', fcitxRes);
+
+  let docxRes = '';
+  ['d', 'o', 'c', 'x', '4'].forEach(k => { docxRes = noSpellEngine.processKey(docxRes, k).result; });
+  assert('Natural Phonology Guard: docx + 4 outputs docx4 without spellcheck', docxRes === 'docx4', 'docx4', docxRes);
+
   return results;
 }

@@ -1160,7 +1160,20 @@ export class AvimEngine {
     const newChar = VOWEL_TABLE[targetBase][toneMap];
     const newWord = baseWord.slice(0, targetVowelIdx) + newChar + baseWord.slice(targetVowelIdx + 1);
 
-    // Spell check validation (if enabled)
+    // Natural Phonological Guard (Bamboo / vnchKey architecture):
+    // Even if full dictionary spell checking is disabled by the user,
+    // the resulting word MUST be phonologically valid in Vietnamese:
+    // 1. Must contain a valid vowel nucleus (cannot be consonant soup).
+    // 2. Cannot have an illegal foreign coda (e.g. -tx in 'fcitx', -cx in 'docx', -rl in 'curl').
+    // 3. Cannot violate stop final checked-tone laws.
+    if (this.phonologyRules) {
+      const parsedNew = parseSyllable(newWord);
+      if (parsedNew && !parsedNew.isValid()) {
+        return { transformed: false, result: word + key };
+      }
+    }
+
+    // Spell check validation (against Hunspell dictionary, if enabled)
     if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
       // If invalid syllable, pass-through without tone
       return { transformed: false, result: word + key };

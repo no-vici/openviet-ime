@@ -568,12 +568,22 @@
     }
     /**
      * Check if syllable conforms to Vietnamese orthography / phonology:
-     * 1. Stop finals (-c, -ch, -p, -t) can only take Tone 0, Tone 1 (sắc) or Tone 5 (nặng).
-     * 2. Short vowels (ă, â) require a coda consonant.
+     * 1. Must have a valid vowel nucleus (cannot be consonant-only like 'fcitx', 'tmux').
+     * 2. If word has letters before nucleus but no valid onset, it's a foreign cluster (e.g. 'fcitx').
+     * 3. Coda must be a legitimate Vietnamese consonant coda (c, ch, m, n, ng, nh, p, t, k, l, r).
+     * 4. Stop finals (-c, -ch, -p, -t, -k) can only take Tone 0, Tone 1 (sắc) or Tone 5 (nặng).
+     * 5. Short vowels (ă, â) require a coda consonant.
      */
     isValid() {
+      if (!this.nucleus) {
+        return false;
+      }
       const lowerCoda = this.coda.toLowerCase();
-      if (["c", "ch", "p", "t"].includes(lowerCoda)) {
+      const VALID_CODAS = /* @__PURE__ */ new Set(["", "c", "ch", "m", "n", "ng", "nh", "p", "t", "k", "l", "r"]);
+      if (!VALID_CODAS.has(lowerCoda)) {
+        return false;
+      }
+      if (["c", "ch", "p", "t", "k"].includes(lowerCoda)) {
         if (this.tone !== TONE_MARK.NONE && this.tone !== TONE_MARK.ACUTE && this.tone !== TONE_MARK.DOT_BELOW) {
           return false;
         }
@@ -2674,6 +2684,12 @@
       }
       const newChar = VOWEL_TABLE[targetBase][toneMap];
       const newWord = baseWord.slice(0, targetVowelIdx) + newChar + baseWord.slice(targetVowelIdx + 1);
+      if (this.phonologyRules) {
+        const parsedNew = parseSyllable(newWord);
+        if (parsedNew && !parsedNew.isValid()) {
+          return { transformed: false, result: word + key };
+        }
+      }
       if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
         return { transformed: false, result: word + key };
       }

@@ -241,22 +241,38 @@ export class ParsedSyllable {
 
   /**
    * Check if syllable conforms to Vietnamese orthography / phonology:
-   * 1. Stop finals (-c, -ch, -p, -t) can only take Tone 0, Tone 1 (sắc) or Tone 5 (nặng).
-   * 2. Short vowels (ă, â) require a coda consonant.
+   * 1. Must have a valid vowel nucleus (cannot be consonant-only like 'fcitx', 'tmux').
+   * 2. If word has letters before nucleus but no valid onset, it's a foreign cluster (e.g. 'fcitx').
+   * 3. Coda must be a legitimate Vietnamese consonant coda (c, ch, m, n, ng, nh, p, t, k, l, r).
+   * 4. Stop finals (-c, -ch, -p, -t, -k) can only take Tone 0, Tone 1 (sắc) or Tone 5 (nặng).
+   * 5. Short vowels (ă, â) require a coda consonant.
    */
   isValid() {
-    // Stop finals rule
+    // 1. Must have a nucleus
+    if (!this.nucleus) {
+      return false;
+    }
+
+    // 2. Coda must be a recognized Vietnamese coda
     const lowerCoda = this.coda.toLowerCase();
-    if (['c', 'ch', 'p', 't'].includes(lowerCoda)) {
+    const VALID_CODAS = new Set(['', 'c', 'ch', 'm', 'n', 'ng', 'nh', 'p', 't', 'k', 'l', 'r']);
+    if (!VALID_CODAS.has(lowerCoda)) {
+      return false;
+    }
+
+    // 3. Stop finals rule
+    if (['c', 'ch', 'p', 't', 'k'].includes(lowerCoda)) {
       if (this.tone !== TONE_MARK.NONE && this.tone !== TONE_MARK.ACUTE && this.tone !== TONE_MARK.DOT_BELOW) {
         return false;
       }
     }
-    // Short vowels ă, â must have coda if word is complete
+
+    // 4. Short vowels ă, â must have coda if word is complete
     const lowerN = this.nucleus.toLowerCase();
     if ((lowerN === 'ă' || lowerN === 'â') && this.coda.length === 0) {
       return false;
     }
+
     return true;
   }
 }
