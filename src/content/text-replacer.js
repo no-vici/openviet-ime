@@ -95,7 +95,10 @@ export class TextReplacer {
         const replaceStart = offset - nfcOldText.length;
         const newContent = text.slice(0, replaceStart) + nfcNewText + text.slice(offset);
 
-        // Atomic replace via Range if supported (preferred by TipTap / Slate / Draft / CodeMirror)
+        // 1. Try atomic replacement via selection Range + execCommand('insertText')
+        // For rich editors like Telegram Web A (TipTap/ProseMirror), Slate, Notion,
+        // selecting the exact range and executing insertText is handled as a single undoable
+        // transactional step without triggering MutationObserver desync or duplicate text.
         try {
           const replaceRange = document.createRange();
           replaceRange.setStart(node, replaceStart);
@@ -103,13 +106,16 @@ export class TextReplacer {
           sel.removeAllRanges();
           sel.addRange(replaceRange);
 
+          // Dispatch beforeinput with insertReplacementText if supported
+          this.dispatchBeforeInput(root, nfcNewText, replaceRange);
+
           if (document.execCommand('insertText', false, nfcNewText)) {
             this.dispatchSyntheticInput(root, nfcNewText);
             return;
           }
         } catch {}
 
-        // Fallback DOM manipulation
+        // 2. Direct DOM manipulation fallback if execCommand fails
         node.textContent = newContent;
 
         // Reposition caret INSIDE the text node
@@ -137,6 +143,26 @@ export class TextReplacer {
     sel.addRange(newRange);
 
     this.dispatchSyntheticInput(root, nfcNewText);
+  }
+
+  /**
+   * Dispatch synthetic beforeinput event for modern rich editors (TipTap / ProseMirror)
+   */
+  dispatchBeforeInput(element, insertedText, targetRange) {
+    if (typeof InputEvent !== 'function') return;
+    try {
+      const init = {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertReplacementText',
+        data: insertedText
+      };
+      if (targetRange && typeof InputEvent.prototype.getTargetRanges === 'function') {
+        init.targetRanges = [targetRange];
+      }
+      const beforeInputEvent = new InputEvent('beforeinput', init);
+      element.dispatchEvent(beforeInputEvent);
+    } catch {}
   }
 
   /**

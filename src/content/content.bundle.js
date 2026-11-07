@@ -3269,6 +3269,7 @@
             replaceRange.setEnd(node, offset);
             sel.removeAllRanges();
             sel.addRange(replaceRange);
+            this.dispatchBeforeInput(root, nfcNewText, replaceRange);
             if (document.execCommand("insertText", false, nfcNewText)) {
               this.dispatchSyntheticInput(root, nfcNewText);
               return;
@@ -3295,6 +3296,26 @@
       sel.removeAllRanges();
       sel.addRange(newRange);
       this.dispatchSyntheticInput(root, nfcNewText);
+    }
+    /**
+     * Dispatch synthetic beforeinput event for modern rich editors (TipTap / ProseMirror)
+     */
+    dispatchBeforeInput(element, insertedText, targetRange) {
+      if (typeof InputEvent !== "function") return;
+      try {
+        const init = {
+          bubbles: true,
+          cancelable: true,
+          inputType: "insertReplacementText",
+          data: insertedText
+        };
+        if (targetRange && typeof InputEvent.prototype.getTargetRanges === "function") {
+          init.targetRanges = [targetRange];
+        }
+        const beforeInputEvent = new InputEvent("beforeinput", init);
+        element.dispatchEvent(beforeInputEvent);
+      } catch {
+      }
     }
     /**
      * Dispatch synthetic InputEvent and Event('change')
