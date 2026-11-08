@@ -64,10 +64,16 @@
     if (/\.(com|vn|net|org|io|dev|app|edu|gov|co|me|info|xyz|ai|tech|store|site)(\/|\?|#|$)/i.test(currentChunk)) {
       return true;
     }
+    if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk) || /(^|\s)(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]+/i.test(fullContext)) {
+      return true;
+    }
     if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/i.test(currentChunk)) {
       return true;
     }
     if (currentChunk.includes("@") || token.includes("@")) {
+      return true;
+    }
+    if (/^\$\{?[a-zA-Z0-9_]+/i.test(currentChunk) || /^\$\{?[a-zA-Z0-9_]+/i.test(token)) {
       return true;
     }
     if (token.includes("_") || currentChunk.includes("_")) {
@@ -5629,12 +5635,16 @@
         const rect = target.getBoundingClientRect();
         const scrollX = window.scrollX || window.pageXOffset;
         const scrollY = window.scrollY || window.pageYOffset;
+        const ribbonWidth = this.suggestionBar.offsetWidth || 340;
+        const ribbonHeight = this.suggestionBar.offsetHeight || 38;
         let top = rect.bottom + scrollY + 4;
         let left = rect.left + scrollX;
-        if (rect.bottom + 42 > window.innerHeight && rect.top > 45) {
-          top = rect.top + scrollY - 38;
+        if (rect.bottom + ribbonHeight + 8 > window.innerHeight && rect.top > ribbonHeight + 8) {
+          top = rect.top + scrollY - ribbonHeight - 4;
         }
-        left = Math.max(8, Math.min(left, window.innerWidth - 320));
+        const maxLeft = (window.scrollX || 0) + window.innerWidth - ribbonWidth - 12;
+        const minLeft = (window.scrollX || 0) + 12;
+        left = Math.max(minLeft, Math.min(left, maxLeft));
         this.suggestionBar.style.top = `${top}px`;
         this.suggestionBar.style.left = `${left}px`;
         this.suggestionBar.classList.remove("hidden");
@@ -5835,6 +5845,14 @@
           }
         }
       }
+      if (this.settings.wordRescue !== false && (event.ctrlKey && event.shiftKey && (event.key === "r" || event.key === "R") || event.altKey && !event.ctrlKey && !event.metaKey && (event.key === "r" || event.key === "R"))) {
+        const target2 = this.domObserver.getActiveElement();
+        if (this.domObserver.isEligibleTarget(target2)) {
+          if (this.handleInstantRetroRescue(target2, event)) {
+            return;
+          }
+        }
+      }
       if (event.ctrlKey || event.altKey || event.metaKey) {
         return;
       }
@@ -5991,6 +6009,92 @@
           }
           this.hideSuggestions();
           this.showHudToast(`Ho\xE0n t\xE1c: ${revert.result}`, true);
+          return true;
+        }
+      }
+      return false;
+    }
+    /**
+     * Instant Retro-Rescue Hotkey Handler (Ctrl+Shift+R or Alt+R):
+     * When user is typing and realizes they typed in raw Latin (or want to revert a word),
+     * instantly converts the word immediately before the caret (or selected text) to accented Vietnamese,
+     * or reverts an accented word back to raw keystrokes.
+     */
+    handleInstantRetroRescue(target, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === "function") {
+        event.stopImmediatePropagation();
+      }
+      const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      let selectedText = "";
+      let selStart = 0;
+      let selEnd = 0;
+      if (isNative) {
+        selStart = target.selectionStart ?? 0;
+        selEnd = target.selectionEnd ?? 0;
+        if (selStart < selEnd) {
+          selectedText = target.value.slice(selStart, selEnd);
+        }
+      } else if (target.isContentEditable) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount && !sel.isCollapsed) {
+          selectedText = sel.toString();
+        }
+      }
+      if (selectedText && selectedText.trim().length > 0) {
+        const trimmed = selectedText.trim();
+        const hasVnDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(trimmed);
+        let transformed = "";
+        if (hasVnDiacritics) {
+          const revert = this.avimEngine.revertCurrentWord(trimmed);
+          transformed = revert.reverted ? revert.result : trimmed;
+        } else {
+          transformed = this.avimEngine.rescueWord(trimmed);
+        }
+        if (transformed && transformed !== trimmed) {
+          const leadingSpace = selectedText.match(/^\s*/)[0];
+          const trailingSpace = selectedText.match(/\s*$/)[0];
+          const replacement = leadingSpace + transformed + trailingSpace;
+          if (isNative) {
+            this.textReplacer.replaceInNativeInput(target, selStart, selEnd, replacement);
+            target.setSelectionRange(selStart + leadingSpace.length, selStart + leadingSpace.length + transformed.length);
+          } else if (target.isContentEditable) {
+            this.textReplacer.replaceInContentEditable(target, selectedText, replacement);
+          }
+          this.showHudToast(`C\u1EE9u ch\u1EEF: ${transformed}`, true);
+          return true;
+        }
+        return false;
+      }
+      const wordInfo = isNative ? this.textReplacer.extractNativeWordBuffer(target) : this.textReplacer.extractContentEditableWordBuffer();
+      if (wordInfo && wordInfo.word) {
+        const currentWord = wordInfo.word;
+        const hasVnDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(currentWord);
+        let replacement = "";
+        if (hasVnDiacritics) {
+          const revert = this.avimEngine.revertCurrentWord(currentWord);
+          replacement = revert.reverted ? revert.result : currentWord;
+        } else {
+          replacement = this.avimEngine.rescueWord(currentWord);
+        }
+        if (replacement && replacement !== currentWord) {
+          if (isNative) {
+            this.textReplacer.replaceInNativeInput(
+              target,
+              wordInfo.startIndex,
+              wordInfo.endIndex,
+              replacement
+            );
+          } else {
+            this.textReplacer.replaceInContentEditable(
+              target,
+              currentWord,
+              replacement
+            );
+          }
+          this.hideSuggestions();
+          this.showHudToast(`C\u1EE9u ch\u1EEF: ${replacement}`, true);
           return true;
         }
       }

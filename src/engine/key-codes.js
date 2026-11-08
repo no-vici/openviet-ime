@@ -95,6 +95,10 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
   if (/\.(com|vn|net|org|io|dev|app|edu|gov|co|me|info|xyz|ai|tech|store|site)(\/|\?|#|$)/i.test(currentChunk)) {
     return true;
   }
+  // Unix / Linux / macOS absolute and home file paths: e.g. /usr/bin, /var/log, /etc/hosts, ~/.config, ./dist, ../src
+  if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk) || /(^|\s)(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]+/i.test(fullContext)) {
+    return true;
+  }
   // Slashes in middle of non-space token (URL path: e.g. domain/path or api/v1)
   if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/i.test(currentChunk)) {
     return true;
@@ -107,6 +111,10 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
   }
 
   // 3. Code Identifiers & Syntax
+  // Shell, Bash, PHP, Perl variables: $var, ${VAR}, $1, $_POST, $this->
+  if (/^\$\{?[a-zA-Z0-9_]+/i.test(currentChunk) || /^\$\{?[a-zA-Z0-9_]+/i.test(token)) {
+    return true;
+  }
   // snake_case or dunder: contains underscore (e.g. user_id, my_var, __init__, MAX_LEN)
   if (token.includes('_') || currentChunk.includes('_')) {
     return true;

@@ -429,21 +429,26 @@ class AvimContentScript {
       this.suggestionBar.appendChild(chip);
     });
 
-    // Positioning near target element
+    // Positioning near target element with Smart Viewport Edge Detection
     try {
       const rect = target.getBoundingClientRect();
       const scrollX = window.scrollX || window.pageXOffset;
       const scrollY = window.scrollY || window.pageYOffset;
+      const ribbonWidth = this.suggestionBar.offsetWidth || 340;
+      const ribbonHeight = this.suggestionBar.offsetHeight || 38;
 
       let top = rect.bottom + scrollY + 4;
       let left = rect.left + scrollX;
 
-      // Flip above if near bottom of viewport
-      if (rect.bottom + 42 > window.innerHeight && rect.top > 45) {
-        top = rect.top + scrollY - 38;
+      // Vertical flip: if near bottom edge of viewport, flip above the target
+      if (rect.bottom + ribbonHeight + 8 > window.innerHeight && rect.top > ribbonHeight + 8) {
+        top = rect.top + scrollY - ribbonHeight - 4;
       }
 
-      left = Math.max(8, Math.min(left, window.innerWidth - 320));
+      // Horizontal clamp: prevent overflowing off right or left edge of screen
+      const maxLeft = (window.scrollX || 0) + window.innerWidth - ribbonWidth - 12;
+      const minLeft = (window.scrollX || 0) + 12;
+      left = Math.max(minLeft, Math.min(left, maxLeft));
 
       this.suggestionBar.style.top = `${top}px`;
       this.suggestionBar.style.left = `${left}px`;
@@ -691,6 +696,21 @@ class AvimContentScript {
       }
     }
 
+    // Instant Retro-Rescue Hotkey (Ctrl+Shift+R or Alt+R):
+    // Converts the word/token immediately before caret (or current selection) into Vietnamese or vice-versa
+    if (
+      this.settings.wordRescue !== false &&
+      ((event.ctrlKey && event.shiftKey && (event.key === 'r' || event.key === 'R')) ||
+       (event.altKey && !event.ctrlKey && !event.metaKey && (event.key === 'r' || event.key === 'R')))
+    ) {
+      const target = this.domObserver.getActiveElement();
+      if (this.domObserver.isEligibleTarget(target)) {
+        if (this.handleInstantRetroRescue(target, event)) {
+          return;
+        }
+      }
+    }
+
     // Ignore modifier combinations (Ctrl, Alt, Meta) except Shift
     if (event.ctrlKey || event.altKey || event.metaKey) {
       return;
@@ -883,6 +903,110 @@ class AvimContentScript {
         return true;
       }
     }
+    return false;
+  }
+
+  /**
+   * Instant Retro-Rescue Hotkey Handler (Ctrl+Shift+R or Alt+R):
+   * When user is typing and realizes they typed in raw Latin (or want to revert a word),
+   * instantly converts the word immediately before the caret (or selected text) to accented Vietnamese,
+   * or reverts an accented word back to raw keystrokes.
+   */
+  handleInstantRetroRescue(target, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (typeof event.stopImmediatePropagation === 'function') {
+      event.stopImmediatePropagation();
+    }
+
+    const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+
+    // A. Check if user has highlighted text
+    let selectedText = '';
+    let selStart = 0;
+    let selEnd = 0;
+    if (isNative) {
+      selStart = target.selectionStart ?? 0;
+      selEnd = target.selectionEnd ?? 0;
+      if (selStart < selEnd) {
+        selectedText = target.value.slice(selStart, selEnd);
+      }
+    } else if (target.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount && !sel.isCollapsed) {
+        selectedText = sel.toString();
+      }
+    }
+
+    if (selectedText && selectedText.trim().length > 0) {
+      const trimmed = selectedText.trim();
+      const hasVnDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(trimmed);
+      let transformed = '';
+      if (hasVnDiacritics) {
+        // Revert to raw keystrokes
+        const revert = this.avimEngine.revertCurrentWord(trimmed);
+        transformed = revert.reverted ? revert.result : trimmed;
+      } else {
+        // Rescue to Vietnamese
+        transformed = this.avimEngine.rescueWord(trimmed);
+      }
+
+      if (transformed && transformed !== trimmed) {
+        const leadingSpace = selectedText.match(/^\s*/)[0];
+        const trailingSpace = selectedText.match(/\s*$/)[0];
+        const replacement = leadingSpace + transformed + trailingSpace;
+        if (isNative) {
+          this.textReplacer.replaceInNativeInput(target, selStart, selEnd, replacement);
+          target.setSelectionRange(selStart + leadingSpace.length, selStart + leadingSpace.length + transformed.length);
+        } else if (target.isContentEditable) {
+          this.textReplacer.replaceInContentEditable(target, selectedText, replacement);
+        }
+        this.showHudToast(`Cứu chữ: ${transformed}`, true);
+        return true;
+      }
+      return false;
+    }
+
+    // B. No selection: Target the active word immediately before the caret
+    const wordInfo = isNative
+      ? this.textReplacer.extractNativeWordBuffer(target)
+      : this.textReplacer.extractContentEditableWordBuffer();
+
+    if (wordInfo && wordInfo.word) {
+      const currentWord = wordInfo.word;
+      const hasVnDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(currentWord);
+      let replacement = '';
+
+      if (hasVnDiacritics) {
+        // Revert accented word back to raw keystrokes (e.g. thể -> theer, tiếng -> tieengs)
+        const revert = this.avimEngine.revertCurrentWord(currentWord);
+        replacement = revert.reverted ? revert.result : currentWord;
+      } else {
+        // Rescue unaccented raw word to Vietnamese (e.g. theer -> thể, coong -> công, tieengs -> tiếng)
+        replacement = this.avimEngine.rescueWord(currentWord);
+      }
+
+      if (replacement && replacement !== currentWord) {
+        if (isNative) {
+          this.textReplacer.replaceInNativeInput(
+            target,
+            wordInfo.startIndex,
+            wordInfo.endIndex,
+            replacement
+          );
+        } else {
+          this.textReplacer.replaceInContentEditable(
+            target,
+            currentWord,
+            replacement
+          );
+        }
+        this.hideSuggestions();
+        this.showHudToast(`Cứu chữ: ${replacement}`, true);
+        return true;
+      }
+    }
+
     return false;
   }
 
