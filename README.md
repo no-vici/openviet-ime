@@ -27,6 +27,8 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
    - [VNI Input Method](#vni-input-method)
    - [Telex Input Method & Key `z` Tone Removal](#telex-input-method--key-z-tone-removal)
    - [Smart URL, Email & Code Protection](#smart-url-email--code-protection)
+   - [Developer-Aware Mode (camelCase & PascalCase Protection)](#developer-aware-mode-camelcase--pascalcase-protection)
+   - [Phonology Edge Cases & Loanwords (uơ Trio & oo French Words)](#phonology-edge-cases--loanwords-uơ-trio--oo-french-words)
    - [Compound Vowels & Dual-Horn Engine (`ươ`)](#compound-vowels--dual-horn-engine-ươ)
    - [Diphthong `ưu` & Tone Placement on `uê` (`thuế`, `huế`)](#diphthong-ưu--tone-placement-on-uê-thuế-huế)
    - [Modern vs. Classic Tone Placement](#modern-vs-classic-tone-placement)
@@ -40,7 +42,10 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
 4. [Custom User Dictionary & Whitelist](#custom-user-dictionary--whitelist)
 5. [Macro Expansion Engine (xKey Inspired)](#macro-expansion-engine-xkey-inspired)
    - [Boundary Triggers & Casing Preservation](#boundary-triggers--casing-preservation)
-   - [Instant Backspace Undo](#instant-backspace-undo)
+   - [2-Step Backspace Undo](#2-step-backspace-undo)
+   - [Smart Punctuation Snapping](#smart-punctuation-snapping)
+   - [Dynamic Real-Time Variables ($DATE, $TIME, $DATETIME)](#dynamic-real-time-variables-date-time-datetime)
+   - [Saigon Xưa Vocabulary & Dialect Presets](#saigon-xưa-vocabulary--dialect-presets)
 6. [Architecture & WebExtensions MV3](#architecture--webextensions-mv3)
 7. [Installation & Setup](#installation--setup)
    - [Loading as an Unpacked Browser Extension (Chromium)](#loading-as-an-unpacked-browser-extension-chromium)
@@ -58,6 +63,8 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
 - **Adaptive Auto Mode by Default**: Starts out-of-the-box in **Auto (Adaptive)** mode (digits route to VNI, letters route to Telex), with instantaneous switching between Auto, Telex, VNI, or Off.
 - **Key `z` Tone Removal**: Tap `z` (Telex / Auto) or `0` (VNI) to instantly remove diacritical tone marks while retaining vowel shapes (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Contextual URL, Email & Code Protection (`isUrlOrEmailOrCode`)**: Automatically detects web links (`https://`, `www.`, `.com`, `/path`), email addresses (`user@domain.com`), and programming syntax (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, HTML `<tags>`, `->`, `=>`, `===`), cleanly suspending IME transformations to prevent link or code corruption.
+- **Developer-Aware Mode (`camelCase` & `PascalCase`)**: Dynamically detects code identifier transitions (e.g., `useState`, `isCamelCase`, `UserController`, `AppProps`). When an uppercase letter is typed right after a word prefix, it automatically unaccents the prefix and disables Vietnamese diacritics for subsequent characters, allowing developers to type code seamlessly without toggling the IME off.
+- **Phonological Edge Cases Mastery**: Accurately handles the rare **`uơ` trio** (`thuở`, `quởn`, `huơ`), triphthong traps (`khuỷu`, `ngoèo`), and French loanwords with double-o (`xoong`, `boong`, `goòng`).
 - **Accurate Orthography Placement**: Precise tone placement for all diphthongs and triphthongs, including `uê` (`thuế`, `huế`, `quế`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), and configurable modern vs. classic standards (`hoà`/`hòa`, `thuỷ`/`thủy`).
 - **Chat App & Telegram Web A Optimization**: Eager shadow host mounting and precise `TEXT_NODE` range handling prevent cursor distortion or auto-capitalization loops in ProseMirror/TipTap rich editors.
 - **Race-Condition Prevention & Atomic Replacement**: Implements immediate event interception (`stopImmediatePropagation`) and Range-based atomic replacement across modern rich editors and AI chatboxes (Sider.ai, StackEdit, TipTap, CodeMirror, Slate), completely eliminating duplicated character tails (e.g. `vâyậy`, `thêể`) during high-speed typing.
@@ -69,7 +76,9 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
 - **Auto-Restore English Words (GoNhanh Feature)**: Reverts common English trap words when hitting Space (`text` from `têt`, `user` from `úẻ`, `push` from `púh`, `luxury` from `lủuy`, `window` from `ưindoư`).
 - **Instant ESC Revert**: Pressing `ESC` instantly reverts the currently typed word back to its raw keystrokes without needing to backspace.
 - **Strict Phonology Rules**: Enforces Vietnamese spelling rules (`c/k`, `g/gh`, `ng/ngh` to protect English words like `center`, `city`, `get`) and validates checked tone stop finals (`-c, -ch, -p, -t` only allow acute/dot-below tones).
-- **xKey-Style Macro Expansions**: High-speed abbreviation replacement (`vn` -> `Việt Nam`, `dc` -> `được`, `tv` -> `Tiếng Việt`) with automatic case propagation and backspace undo.
+- **xKey-Style Macro Expansions with 2-Step Undo & Punctuation Snapping**: High-speed abbreviation replacement (`vn` -> `Việt Nam`, `dc` -> `được`, `tv` -> `Tiếng Việt`) with automatic case propagation, 2-step Backspace undo (step 1 removes trailing space; step 2 restores raw trigger), and smart punctuation snapping (`. , ; : ! ?` snaps directly to the expanded text).
+- **Dynamic Real-Time Macro Variables**: Supports live real-time variables in expansion templates: `$DATE` (local `DD/MM/YYYY`), `$TIME` (`HH:mm`), `$DATETIME`, and `$YEAR` (with safe triggers like `+today`, `+now`).
+- **Saigon Xưa Cultural Vocabulary Preset**: Curated collection of 100+ authentic pre-1975 Southern Vietnamese phrases, idioms, and colloquialisms (`bá cháy bù chét`, `cà rịch cà tang`, `mèn đéc ơi`, `quởn đời`, `hết sảy con bà bảy`), available as a one-click macro preset in settings.
 - **Double-Ctrl Quick Toggle**: Double-tap the `Ctrl` key rapidly (< 400ms) to toggle Vietnamese typing on/off on the fly, with an unobtrusive visual HUD pill indicating current state (`AVIM: BẬT (Tự động)` vs. `AVIM: TẮT`).
 - **Isolated Shadow DOM Indicator**: Floating HUD and suggestion ribbon encapsulated in Shadow DOM, completely immune to page CSS overrides or collisions.
 - **Global Keyboard Shortcut**: Toggle IME on/off instantly via `2x Ctrl` or `Ctrl+Shift+Z` (`Cmd+Shift+Z` on macOS).
@@ -132,6 +141,36 @@ OpenViet IME includes an intelligent context guard (`isUrlOrEmailOrCode`) that i
 - **Code Syntax**: Recognizes `snake_case` with `_`, `kebab-case` with `-`, dot property access (`console.log`, `user.name`), variables (`$var`, `#id`), HTML tags (`<div`, `</span`), and programming operators (`->`, `=>`, `===`).
 
 When triggered, IME modifications, quick consonants, and auto-capitalizations are suspended automatically, keeping links and code completely clean.
+
+---
+
+### Developer-Aware Mode (camelCase & PascalCase Protection)
+
+Software engineers frequently type mixed-case variable, function, and class names into code editors, web consoles, PR descriptions, and chat applications. Traditional Vietnamese IMEs break these words by inserting diacritics into prefixes (e.g. `useState` becoming `uéState`, `isCamelCase` becoming `íCamelCase`, or `UserController` becoming `UérController`).
+
+OpenViet IME implements an intelligent, zero-friction **Developer-Aware Mode**:
+- **Transition Detection**: Monitored via Unicode casing patterns (`^[\p{Ll}\p{M}]+[A-Z]` and `^[A-Z][\p{Ll}\p{M}]+[A-Z]`).
+- **Auto-Unaccenting Prefix**: When an uppercase transition character is typed (e.g., typing `S` after `ué`), the engine immediately unaccents the leading prefix (`ué` $\rightarrow$ `use`), yielding `useS`.
+- **IME Diacritic Suppression**: For the remainder of that token, Vietnamese tone transformation is smoothly suspended so you can finish typing `useState`, `isCamelCase`, `UserController`, or `AppProps` with zero interruptions.
+
+---
+
+### Phonology Edge Cases & Loanwords (uơ Trio & oo French Words)
+
+Vietnamese phonology contains rare edge cases where conventional vowel pairing rules must not be blindly applied:
+
+1. **The `uơ` Trio (`thuở`, `quởn`, `huơ`)**:
+   - Normally, `uo` + `w` creates the dual horn `ươ` (`duoc` + `w` $\rightarrow$ `được`).
+   - However, in exactly 3 root cases, `u` is an on-glide consonant sound /w/ and only `o` receives the horn (`ơ`):
+     - `thuở` (e.g., `muôn thuở`, `thuở xưa`): `thuo` + `w` $\rightarrow$ `thuơ` + `r` $\rightarrow$ `thuở` (never `thưở`).
+     - `quởn` / `quỡn` / `quơ`: `q` never pairs with `ư` in Vietnamese orthography. `quon` + `w` $\rightarrow$ `quơn` + `r` $\rightarrow$ `quởn`.
+     - `huơ` (e.g., `huơ tay`, `huơ dao`): `huo` + `w` $\rightarrow$ `huơ`.
+2. **Triphthong Traps (`khuỷu`, `ngoèo`)**:
+   - `khuỷu` (elbow): Nuclear vowel `y` correctly receives the tone hook $\rightarrow$ `khuỷu` (never `khủyu`).
+   - `ngoèo` (crooked): Nuclear vowel `e` receives the grave tone $\rightarrow$ `ngoèo` (never `ngòeo`).
+3. **French Loanwords with Double `oo` (`xoong`, `boong`, `goòng`)**:
+   - In Telex mode, typing `oo` normally produces `ô`.
+   - OpenViet IME recognizes established French loanwords (`xoong` from *casserole*, `boong` from *pont*, `goòng` from *wagon*), preserving `oo` naturally without forcing `ô`.
 
 ---
 
@@ -277,13 +316,61 @@ Default macros include popular abbreviations:
 - `tv` -> `Tiếng Việt`, `zia` -> `dzìa`, `zi` -> `dzí`, `zo` -> `dzô`
 - `ck` -> `chồng`, `cx` -> `cũng`, `idk` -> `tao hông biết`
 
-### Instant Backspace Undo
-If an expansion was not intended, pressing **Backspace immediately** reverts the expansion and restores the raw trigger key string:
+### 2-Step Backspace Undo
+
+When a macro expands, a trailing space is normally appended so you can keep typing without missing a beat. If you change your mind or want to adjust the text, the **2-Step Backspace Undo** provides smooth and intuitive control:
+
+1. **Step 1 (First Backspace)**: Deletes the trailing space, bringing the cursor directly adjacent to the expanded text. This lets you inspect or edit the word cleanly.
+2. **Step 2 (Second Backspace)**: Reverts the expanded word back to the original abbreviation trigger (`vn`), fully restoring raw keystrokes.
+3. **Loop Suppression**: If you decide to re-type space after step 1, the engine suppresses repeated macro expansion loops, preventing annoying expansion traps.
+
 ```
-Typed:      "vn "
-Expanded:   "Việt Nam "
-Hit [⌫]:    "vn"
+Typed:             "vn "
+Expanded:          "Việt Nam "
+First [⌫] (Step 1): "Việt Nam"    (removes trailing space)
+Second [⌫] (Step 2):"vn"          (reverts to raw trigger)
 ```
+
+---
+
+### Smart Punctuation Snapping
+
+Often after a macro expands, you want to attach punctuation (`.` `,` `;` `:` `!` `?` `)` `]` `}` `>`). Without smart snapping, you would end up with an unwanted space before the mark (e.g. `Việt Nam .` or `được ,`).
+
+OpenViet IME automatically detects punctuation keys typed immediately after a macro expansion:
+- It **snaps** the punctuation character directly against the expanded word.
+- The trailing space is removed and re-appended *after* the punctuation mark.
+- Example: typing `vn` + `Space` + `.` yields `Việt Nam. ` effortlessly!
+
+---
+
+### Dynamic Real-Time Variables ($DATE, $TIME, $DATETIME)
+
+Macros can generate live, localized timestamps at runtime:
+- `$DATE`: Generates current date in local format (`DD/MM/YYYY`, e.g., `08/11/2026`).
+- `$TIME`: Generates current time (`HH:mm`, e.g., `09:15`).
+- `$DATETIME`: Combines date and time (`DD/MM/YYYY HH:mm`).
+- `$YEAR`: Expands current 4-digit year (`2026`).
+
+> [!TIP]
+> To prevent accidental triggers during normal English or Vietnamese conversations, time macros use safe `+` triggers:
+> - `+today` + `Space` $\rightarrow$ `08/11/2026`
+> - `+now` + `Space` $\rightarrow$ `08/11/2026 09:15`
+> - `+time` + `Space` $\rightarrow$ `09:15`
+
+---
+
+### Saigon Xưa Vocabulary & Dialect Presets
+
+OpenViet IME includes a dedicated, authentic **Saigon Xưa (Pre-1975 Southern Vietnamese)** macro preset featuring 100+ vivid colloquial phrases, folk triplets, and traditional idioms:
+- **Colloquial Triplets & Idioms**:
+  - `bá cháy bù chét`, `bá láp bá xàm`, `ba xạo ba kép`
+  - `cà rịch cà tang`, `cà chớn cà chác`, `cà nhỏng cà nhỏng`
+  - `mèn đéc ơi`, `mèn ơi`, `quởn đời`, `chèn ơi`
+  - `hết sảy con bà bảy`, `ngon lành cành đào`
+- **Dialect Variants**: `hổng` (không), `bữa nay` (hôm nay), `thiệt tình`, `ngộ á nghen`.
+
+Users can activate this rich cultural collection with a single click from the **Macro Settings** page (`options.html`), or export/import personal custom macro collections.
 
 ---
 

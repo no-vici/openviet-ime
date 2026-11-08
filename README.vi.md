@@ -28,6 +28,8 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
    - [Kiểu Gõ VNI](#kiểu-gõ-vni)
    - [Kiểu Gõ Telex & Phím `z` Xóa Dấu Thanh](#kiểu-gõ-telex--phím-z-xóa-dấu-thanh)
    - [Tự Động Bỏ Qua URL, Email & Cú Pháp Code](#tự-động-bỏ-qua-url-email--cú-pháp-code)
+   - [Chế Độ Lập Trình Thông Minh (Bảo Vệ camelCase & PascalCase)](#chế-độ-lập-trình-thông-minh-bảo-vệ-camelcase--pascalcase)
+   - [Xử Lý Bộ Ba Vần uơ & Từ Mượn Tiếng Pháp (-oong)](#xử-lý-bộ-ba-vần-uơ--từ-mượn-tiếng-pháp--oong)
    - [Nguyên Âm Đôi Có Móc (`ươ`)](#nguyên-âm-đôi-có-móc-ươ)
    - [Cụm Nguyên Âm `uê` (`thuế`, `huế`, `quế`) & `ưu` (`cứu`, `cừu`)](#cụm-nguyên-âm-uê-thuế-huế-quế--ưu-cứu-cừu)
    - [Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hoà`/`hòa`)](#chuẩn-bỏ-dấu-hiện-đại-vs-cổ-điển-hoàhòa)
@@ -41,7 +43,10 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 4. [Từ Điển Cá Nhân & Danh Sách Bỏ Qua Chính Tả](#từ-điển-cá-nhân--danh-sách-bỏ-qua-chính-tả)
 5. [Bộ Gõ Tắt Macro (Theo Phong Cách xKey)](#bộ-gõ-tắt-macro-theo-phong-cách-xkey)
    - [Kích Hoạt Theo Ranh Giới Từ & Giữ Nguyên Kiểu Chữ](#kích-hoạt-theo-ranh-giới-từ--giữ-nguyên-kiểu-chữ)
-   - [Hoàn Tác Nhanh Bằng Phím Backspace](#hoàn-tác-nhanh-bằng-phím-backspace)
+   - [Hoàn Tác 2 Bước Bằng Phím Backspace](#hoàn-tác-2-bước-bằng-phím-backspace)
+   - [Tự Động Hút Dấu Câu (Smart Punctuation Snapping)](#tự-động-hút-dấu-câu-smart-punctuation-snapping)
+   - [Biến Động Thời Gian Thực ($DATE, $TIME, $DATETIME)](#biến-động-thời-gian-thực-date-time-datetime)
+   - [Bộ Từ Điển Gõ Tắt Sài Gòn Xưa & Phương Ngữ Nam Bộ](#bộ-từ-điển-gõ-tắt-sài-gòn-xưa--phương-ngữ-nam-bộ)
 6. [Kiến Trúc Kỹ Thuật (Manifest V3)](#kiến-trúc-kỹ-thuật-manifest-v3)
 7. [Hướng Dẫn Cài Đặt](#hướng-dẫn-cài-đặt)
    - [Cài Đặt Vào Chrome / Edge / Brave / Opera (Chromium)](#cài-đặt-vào-chrome--edge--brave--opera-chromium)
@@ -59,6 +64,8 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Chế Độ Tự Động (Auto) Mặc Định**: Mặc định kích hoạt chế độ **Tự động thích ứng** (gõ số theo VNI, gõ chữ theo Telex), dễ dàng chuyển đổi sang Telex, VNI hoặc Tắt chỉ với 1 click.
 - **Phím `z` Xóa Dấu Thanh Chuyên Dụng**: Gõ phím `z` (Telex/Auto) hoặc phím `0` (VNI) để lập tức gỡ bỏ dấu thanh và đưa nguyên âm về dạng gốc (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Tự Động Bỏ Qua URL, Email & Code (`isUrlOrEmailOrCode`)**: Tự động nhận diện đường dẫn web (`https://`, `www.`, `.com`, `/path`), địa chỉ email (`user@gmail.com`) và cú pháp lập trình (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, thẻ HTML, `->`, `=>`, `===`), tạm ngưng biến đổi bộ gõ để giữ nguyên link và code.
+- **Chế Độ Lập Trình Thông Minh (Bảo Vệ `camelCase` & `PascalCase`)**: Tự động nhận diện cú pháp đặt tên biến/hàm/lớp của lập trình viên (như `useState`, `isCamelCase`, `UserController`, `AppProps`). Khi bạn gõ ký tự in hoa nối tiếp, bộ gõ tự động khôi phục tiền tố không dấu và tạm ngưng bỏ dấu tiếng Việt, giúp anh em lập trình gõ code mượt mà mà không phải tắt bộ gõ.
+- **Làm Chủ Các Trường Hợp Ngữ Âm Đặc Biệt**: Xử lý triệt để bộ ba ngoại lệ vần `uơ` (`thuở`, `quởn`, `huơ`), bẫy nguyên âm ba (`khuỷu`, `ngoèo`) và từ mượn gốc Pháp có hai chữ o (`xoong`, `boong`, `goòng`).
 - **Bỏ Dấu Chuẩn Xác Tuyệt Đối**: Đã sửa và hoàn thiện vị trí đặt dấu cho tất cả các nguyên âm đôi, ba phức tạp: `uê` (`thuế`, `huế`, `quế`, `xuề`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), cùng 2 chuẩn hiện đại và cổ điển (`hoà`/`hòa`, `thuỷ`/`thủy`).
 - **Tối Ưu Riêng Cho Telegram Web A & Trình Soạn Thảo Rich-Text**: Xử lý triệt để xung đột con trỏ của TipTap/ProseMirror, khởi tạo Shadow Host sớm và xác định vùng chọn `TEXT_NODE` chuẩn xác, không bao giờ bị nhảy con trỏ hay lặp vòng viết hoa đầu câu.
 - **Chống Nhảy Chữ & Lặp Ký Tự Khi Gõ Nhanh**: Áp dụng kỹ thuật chặn sự kiện lan truyền tức thì (`stopImmediatePropagation`) và thay thế nguyên khối (Range-based Atomic Replacement) trên các chatbox AI và editor hiện đại (Sider.ai, StackEdit, TipTap, CodeMirror, Slate), loại bỏ hoàn toàn hiện tượng nhân đôi ký tự (`vâyậy`, `thêể`) khi gõ phím ở tốc độ cao.
@@ -70,7 +77,9 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Tự Động Khôi Phục Từ Tiếng Anh (GoNhanh Feature)**: Khi nhấn phím Cách (Space), tự động hoàn trả các từ tiếng Anh hay bị dính bẫy gõ nhầm (`text` thay vì `têt`, `user` thay vì `úẻ`, `push` thay vì `púh`, `window` thay vì `ưindoư`).
 - **Hoàn Tác Nhanh Bằng Phím ESC (Instant ESC Revert)**: Nhấn `ESC` để đưa ngay từ đang gõ dở dang về lại chuỗi phím thô ban đầu mà không cần bấm xóa lùi từng ký tự.
 - **Quy Tắc Chính Tả Chặt Chẽ**: Kiểm tra chính tả tiếng Việt (`c/k`, `g/gh`, `ng/ngh` để bảo vệ từ tiếng Anh như `center`, `city`, `get`) và kiểm soát âm khép (`-c, -ch, -p, -t` chỉ nhận dấu Sắc hoặc Nặng).
-- **Bộ Gõ Tắt Macro Cực Nhanh (Kiểu xKey)**: Thay thế từ viết tắt tức thì (`vn` -> `Việt Nam`, `dc` -> `được`, `tv` -> `Tiếng Việt`) với khả năng chuyển hoa/thường tự động và xóa lùi để hoàn tác (Backspace Undo).
+- **Bộ Gõ Tắt Macro Cực Nhanh (Kiểu xKey) Với Hoàn Tác 2 Bước & Hút Dấu Câu**: Thay thế từ viết tắt tức thì (`vn` -> `Việt Nam`, `dc` -> `được`, `tv` -> `Tiếng Việt`) với khả năng chuyển hoa/thường tự động, hoàn tác 2 bước bằng phím Backspace (bước 1 xóa khoảng trắng thừa, bước 2 khôi phục ký tự tắt gốc), và cơ chế tự động dính hút dấu câu (`. , ; : ! ?` dính sát vào từ đã bung).
+- **Biến Thời Gian Thực Động Trong Macro**: Hỗ trợ chèn ngày giờ thực tế theo định dạng địa phương: `$DATE` (`DD/MM/YYYY`), `$TIME` (`HH:mm`), `$DATETIME` và `$YEAR` (với tiền tố an toàn như `+today`, `+now`).
+- **Bộ Từ Điển Gõ Tắt Sài Gòn Xưa Đậm Chất Nam Bộ**: Tích hợp sẵn hơn 100+ từ lóng, cụm từ ba chữ, thành ngữ dân gian thời Sài Gòn xưa và phương ngữ Nam Bộ (`bá cháy bù chét`, `cà rịch cà tang`, `mèn đéc ơi`, `quởn đời`, `hết sảy con bà bảy`), dễ dàng nạp nhanh chỉ bằng 1 cú nhấp chuột trong Cài Đặt.
 - **Phím Tắt Toàn Cục & Chuyển Nhanh Bằng Double-Ctrl**: Bấm đúp phím `Ctrl` nhanh (< 400ms) để Bật/Tắt bộ gõ tức thì trên mọi trang web kèm thông báo nổi HUD, hoặc dùng phím tắt `Ctrl+Shift+Z` (`Cmd+Shift+Z` trên macOS).
 - **Giao Diện Shadow DOM Cách Ly**: Thanh hiển thị trạng thái và gợi ý được đóng gói trong Shadow DOM, hoàn toàn không bị ảnh hưởng bởi CSS của trang web đang mở.
 
@@ -132,6 +141,35 @@ OpenViet IME tích hợp cơ chế bảo vệ thông minh (`isUrlOrEmailOrCode`)
 - **Cú pháp Code**: Nhận diện `snake_case` có `_`, `kebab-case` có `-`, thuộc tính object có dấu chấm (`console.log`, `user.name`), biến (`$var`, `#id`), thẻ HTML (`<div`, `</span`) và toán tử (`->`, `=>`, `===`).
 
 Khi phát hiện ngữ cảnh này, bộ gõ sẽ tự động tạm ngưng can thiệp để code và link luôn nguyên vẹn 100%.
+
+---
+
+### Chế Độ Lập Trình Thông Minh (Bảo Vệ camelCase & PascalCase)
+
+Khi lập trình viên đặt tên biến, hàm hay lớp theo chuẩn `camelCase` hoặc `PascalCase` trên trình duyệt (trong VS Code Web, DevTools Console, GitHub PR, hay chat trao đổi trên Slack), các bộ gõ tiếng Việt thông thường rất hay bỏ dấu nhầm vào phần tiền tố (ví dụ: gõ `useState` thành `uéState`, `isCamelCase` thành `íCamelCase`, `UserController` thành `UérController`).
+
+OpenViet IME tích hợp cơ chế nhận diện quá trình chuyển tiếp hoa-thường theo chuẩn Unicode:
+- **Tự động bóc tách tiền tố có dấu**: Ngay khi gõ ký tự in hoa nối liền kề (như gõ `S` sau `ué`), bộ gõ tự động khôi phục tiền tố về chữ tiếng Anh không dấu chuẩn (`ué` $\rightarrow$ `use`) để tạo thành `useS`.
+- **Khóa dấu tiếng Việt trong từ**: Toàn bộ các ký tự gõ tiếp theo trong từ đó sẽ được giữ nguyên chữ tiếng Anh thuần túy, không bị bộ gõ can thiệp bỏ dấu bậy bạ. Bạn có thể thoải mái viết `useState`, `isCamelCase`, `UserController`, `AppProps` mà không cần phải gõ phím tắt tắt/bật bộ gõ liên tục.
+
+---
+
+### Xử Lý Bộ Ba Vần uơ & Từ Mượn Tiếng Pháp (-oong)
+
+Ngữ âm học chữ Quốc ngữ có những trường hợp đặc biệt không thể áp dụng quy tắc móc đôi thông thường:
+
+1. **Bộ Ba Ngoại Lệ của Vần `uơ` (`thuở`, `quởn`, `huơ`)**:
+   - Bình thường `uo` + `w` sẽ biến thành `ươ` (`duoc` + `w` $\rightarrow$ `được`).
+   - Tuy nhiên, trong 3 trường hợp gốc này, `u` chỉ là âm đệm và duy nhất chữ `o` được nhận dấu móc `ơ`:
+     - `thuở` (`muôn thuở`, `thuở xưa`): `thuo` + `w` $\rightarrow$ `thuơ` $\rightarrow$ `thuở` (tuyệt đối không thành `thưở`).
+     - `quởn` / `quỡn` / `quơ`: Trong tiếng Việt chữ `q` không bao giờ đi với `ư`. `quon` + `w` $\rightarrow$ `quơn` $\rightarrow$ `quởn`.
+     - `huơ` (`huơ tay`, `huơ dao`): `huo` + `w` $\rightarrow$ `huơ`.
+2. **Bẫy Nguyên Âm Ba Dị Biệt (`khuỷu`, `ngoèo`)**:
+   - `khuỷu` (`khuỷu tay`): Dấu hỏi bắt buộc phải nằm trên chữ `y` $\rightarrow$ `khuỷu` (không rơi vào `u` thành `khủyu`).
+   - `ngoèo` (`ngoằn ngoèo`): Dấu huyền bắt buộc phải nằm trên `e` $\rightarrow$ `ngoèo` (không rơi vào `o` thành `ngòeo`).
+3. **Vần Kép `oo` Gốc Pháp (`xoong`, `boong`, `goòng`)**:
+   - Trong kiểu gõ Telex, gõ `oo` thường chuyển thành `ô`.
+   - OpenViet IME nhận biết các từ mượn gốc Pháp đã Việt hóa hoàn toàn (`xoong` từ *casserole*, `boong` từ *pont*, `goòng` từ *wagon*) để bảo tồn nguyên vẹn `oo` mà không ép thành `ô`.
 
 ---
 
@@ -277,13 +315,63 @@ Các từ viết tắt mặc định sẵn có:
 - `tv` -> `Tiếng Việt`, `zia` -> `dzìa`, `zi` -> `dzí`, `zo` -> `dzô`
 - `ck` -> `chồng`, `cx` -> `cũng`, `idk` -> `tao hông biết`
 
-### Hoàn Tác Nhanh Bằng Phím Backspace
-Nếu bạn không muốn mở rộng từ viết tắt, nhấn **Backspace ngay lập tức** sẽ phục hồi lại cụm ký tự tắt ban đầu:
+### Hoàn Tác 2 Bước Bằng Phím Backspace
+
+Khi macro được bung ra, một khoảng trắng (`Space`) thường sẽ tự động được thêm vào phía sau để bạn có thể gõ tiếp ngay từ kế tiếp. Nếu bạn muốn chỉnh sửa hoặc hoàn tác lại từ gõ tắt, **cơ chế Hoàn tác 2 bước** sẽ hỗ trợ cực kỳ mượt mà:
+
+1. **Bước 1 (Nhấn Backspace lần đầu)**: Xóa khoảng trắng sau chuỗi vừa bung, đưa con trỏ áp sát vào ngay sau từ đã bung để bạn tiện quan sát, sửa chữ hoặc gõ tiếp dấu câu.
+2. **Bước 2 (Nhấn Backspace lần hai)**: Hoàn tác toàn bộ cụm từ bung ra trở về lại đúng chuỗi phím tắt thô ban đầu (`vn`).
+3. **Chống Lặp Vòng Bung Macro**: Nếu sau bước 1 bạn gõ lại phím Space, bộ gõ sẽ không bị kẹt lặp bung macro lại lần nữa một cách phiền toái.
+
 ```
-Bạn gõ:     "vn "
-Mở rộng ra: "Việt Nam "
-Bấm [⌫]:    "vn"
+Bạn gõ:             "vn "
+Mở rộng ra:         "Việt Nam "
+Bấm [⌫] lần 1:      "Việt Nam"    (xóa khoảng trắng thừa)
+Bấm [⌫] lần 2:      "vn"          (khôi phục lại từ viết tắt gốc)
 ```
+
+---
+
+### Tự Động Hút Dấu Câu (Smart Punctuation Snapping)
+
+Trong thực tế, sau khi cụm từ macro bung ra, người dùng thường muốn đặt dấu câu (`.` `,` `;` `:` `!` `?` `)` `]` `}` `>`). Nếu theo cách gõ cũ, bạn sẽ phải dùng phím mũi tên lùi lại để xóa khoảng trắng, nếu không dấu câu sẽ bị hở một khoảng cách trông rất xấu (`Việt Nam .` hay `được ,`).
+
+OpenViet IME trang bị tính năng **Smart Punctuation Snapping**:
+- Khi phát hiện người dùng gõ ngay một dấu câu sau khi macro vừa bung:
+- Khoảng trắng thừa phía trước dấu câu được tự động thu hồi và dấu câu được **hút dính sát** vào sau cụm từ đã bung.
+- Sau dấu câu sẽ tự động chèn thêm một khoảng cách chuẩn văn phong.
+- Ví dụ: gõ `vn` + `Space` + `.` sẽ lập tức thành `Việt Nam. ` vô cùng thanh lịch!
+
+---
+
+### Biến Động Thời Gian Thực ($DATE, $TIME, $DATETIME)
+
+Bộ gõ tắt hỗ trợ các biến thời gian thực, tự động điền ngày giờ chính xác theo múi giờ địa phương của bạn:
+- `$DATE`: Ngày hiện tại (`DD/MM/YYYY`, ví dụ: `08/11/2026`).
+- `$TIME`: Giờ hiện tại (`HH:mm`, ví dụ: `09:15`).
+- `$DATETIME`: Ngày và giờ đầy đủ (`DD/MM/YYYY HH:mm`).
+- `$YEAR`: Năm hiện tại (`2026`).
+
+> [!TIP]
+> Để tránh việc vô tình bị bung macro khi gõ các từ tiếng Anh hoặc tiếng Việt thông thường, các macro động này được gán tiền tố an toàn `+`:
+> - `+today` + `Space` $\rightarrow$ `08/11/2026`
+> - `+now` + `Space` $\rightarrow$ `08/11/2026 09:15`
+> - `+time` + `Space` $\rightarrow$ `09:15`
+
+---
+
+### Bộ Từ Điển Gõ Tắt Sài Gòn Xưa & Phương Ngữ Nam Bộ
+
+OpenViet IME tích hợp sẵn bộ dữ liệu hơn 100+ từ ngữ, thành ngữ dân gian và tiếng lóng đặc trưng của **Sài Gòn Xưa và miền Nam trước năm 1975**:
+- **Cụm 3 từ miêu tả tính cách, dáng điệu**:
+  - `cà rịch cà tang`, `cà chớn cà chác`, `cà nhỏng cà nhỏng`
+  - `cứng đầu cứng cổ`, `ba xạo ba kép`, `bá láp bá xàm`
+- **Cụm từ cảm thán, ví von đậm đà chất Nam Bộ**:
+  - `bá cháy bù chét`, `hết sảy con bà bảy`, `ngon lành cành đào`
+  - `mèn đéc ơi`, `mèn ơi`, `chèn ơi`, `quởn đời`
+- **Cách nói thân thương bình dị**: `hổng` (không), `bữa nay` (hôm nay), `thiệt tình`, `ngộ á nghen`...
+
+Người dùng có thể tải nhanh bộ từ điển này vào danh sách Macro của mình chỉ với 1 cú click chuột tại trang **Cài Đặt Macro** (`options.html`).
 
 ---
 
