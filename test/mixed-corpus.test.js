@@ -86,8 +86,13 @@ test('Mixed Corpus - Auto-Restore on English Technical Words in Sentences', () =
       expected: 'Đang push code lên server và restore database'
     },
     {
-      input: 'Chạy reset lại window và test lại toàn bộ',
-      expected: 'Chạy reset lại window và test lại toàn bộ'
+      input: 'Tài liệu Docs và mixed content trên server',
+      expected: 'Tài liệu Docs và mixed content trên server'
+    },
+    {
+      // Protect Vietnamese words 'rết' and 'tét' - they must NEVER auto-restore on Space
+      input: 'Con rết bò qua miếng bánh tét vừa cắt',
+      expected: 'Con rết bò qua miếng bánh tét vừa cắt'
     }
   ];
 
@@ -157,3 +162,34 @@ test('Mixed Corpus - vnchKey Rapid Tone Retype (dóc + s -> docs directly)', () 
   vnWord = engine.processKey(vnWord, 's').result;
   assert.equal(vnWord, 'ca');
 });
+
+test('Mixed Corpus - Typing & Tone Placement Inside Quotation Marks', () => {
+  const telexEngine = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: true });
+
+  // 1. Single quotation mark: 'chao + f -> 'chào
+  assert.equal(telexEngine.processKey("'chao", 'f').result, "'chào");
+  assert.equal(telexEngine.processKey("'chao", 's').result, "'cháo");
+  assert.equal(telexEngine.processKey("'d", 'd').result, "'đ");
+
+  // 2. Double quotation mark: "chao + f -> "chào
+  assert.equal(telexEngine.processKey('"chao', 'f').result, '"chào');
+  assert.equal(telexEngine.processKey('"chao', 's').result, '"cháo');
+  assert.equal(telexEngine.processKey('"d', 'd').result, '"đ');
+
+  // 3. Curly quotes: “chao” + f -> “chào”
+  assert.equal(telexEngine.processKey('“chao”', 'f').result, '“chào”');
+  assert.equal(telexEngine.processKey('‘chao’', 'f').result, '‘chào’');
+
+  // 4. Angle quotes / Guillemets: «chao» + f -> «chào»
+  assert.equal(telexEngine.processKey('«chao»', 'f').result, '«chào»');
+
+  // 5. VNI Mode: "chao + 2 -> "chào
+  const vniEngine = new AvimEngine({ method: IME_METHOD.VNI, spellCheck: true });
+  assert.equal(vniEngine.processKey('"chao', '2').result, '"chào');
+  assert.equal(vniEngine.processKey("'chao", '1').result, "'cháo");
+
+  // 6. Central Highlands names internal apostrophe preserved
+  assert.equal(telexEngine.processKey("M'gar", 'a').result, "M'gara");
+});
+
+

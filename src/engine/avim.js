@@ -285,6 +285,35 @@ export class AvimEngine {
       return { transformed: false, result: word + key };
     }
 
+    // Quotation marks unwrapping:
+    // If the word token starts or ends with quotation marks (single quote, double quote, curly quotes, guillemets),
+    // unwrap the quotation marks so the core syllable can be phonologically parsed and transformed,
+    // then re-wrap the result with the quotation marks.
+    // Preserves internal apostrophes for Central Highlands names (M'Đrắk, Ea H'leo, Cư M'gar).
+    if (word && !/^[A-Za-z][\x27\u2019]/.test(word)) {
+      const pMatch = word.match(/^([\x22\x27\u2018\u2019\u201C\u201D\u00AB\u00BB\u2039\u203A\u201E\u201A]+)/);
+      const sMatch = word.match(/([\x22\x27\u2018\u2019\u201C\u201D\u00AB\u00BB\u2039\u203A\u201E\u201A]+)$/);
+      if (pMatch || sMatch) {
+        let quotePrefix = pMatch ? pMatch[1] : '';
+        let cleanWord = quotePrefix ? word.slice(quotePrefix.length) : word;
+        let quoteSuffix = '';
+        if (sMatch && cleanWord.length > 0) {
+          const sMatch2 = cleanWord.match(/([\x22\x27\u2018\u2019\u201C\u201D\u00AB\u00BB\u2039\u203A\u201E\u201A]+)$/);
+          if (sMatch2) {
+            quoteSuffix = sMatch2[1];
+            cleanWord = cleanWord.slice(0, -quoteSuffix.length);
+          }
+        }
+        const innerRes = this.processKey(cleanWord, key);
+        const wrappedResult = quotePrefix + innerRes.result + quoteSuffix;
+        this.lastTransformed = wrappedResult;
+        return {
+          transformed: innerRes.transformed,
+          result: wrappedResult
+        };
+      }
+    }
+
     // If the word already contains any digits (e.g. 'icon6', 'mp3', 'h2o', 'f88'),
     // underscores, @, or path slashes (code / URL / email identifiers),
     // pass key through literally without applying IME diacritics.

@@ -196,9 +196,20 @@ export class TextReplacer {
     // Find the word boundary before pos (allow apostrophe ' and ’ for Central Highlands names like M'Đrắk, Ea H'leo, Cư M'gar)
     const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
     if (match) {
+      let word = match[1];
+      let startIndex = pos - word.length;
+
+      // If word starts with an opening quote mark (single quote ' or curly ’)
+      // and is NOT a Central Highlands apostrophe name (e.g. 'chào vs M'Đrắk, Ea H'leo):
+      // strip the leading quotation mark from the active word buffer so quotes are preserved untouched.
+      if (/^['’]/.test(word) && !/^[A-Za-z]['’]/.test(word)) {
+        word = word.slice(1);
+        startIndex += 1;
+      }
+
       return {
-        word: match[1],
-        startIndex: pos - match[1].length,
+        word,
+        startIndex,
         endIndex: pos
       };
     }
@@ -238,10 +249,20 @@ export class TextReplacer {
       const textBefore = text.slice(0, offset);
       const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
       if (match) {
+        let word = match[1];
+        let startIndex = offset - word.length;
+
+        // If word starts with an opening quote mark (single quote ' or curly ’)
+        // and is NOT a Central Highlands apostrophe name:
+        if (/^['’]/.test(word) && !/^[A-Za-z]['’]/.test(word)) {
+          word = word.slice(1);
+          startIndex += 1;
+        }
+
         return {
-          word: match[1],
+          word,
           textNode: node,
-          startIndex: offset - match[1].length,
+          startIndex,
           endIndex: offset
         };
       }

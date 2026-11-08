@@ -844,16 +844,25 @@ class AvimContentScript {
       if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
     }
 
+    // Opening quote allowance: if immediately preceded by an opening quotation mark,
+    // evaluate sentence boundary on context before the quote (e.g. '"chào' -> capitalize 'C', nói: "hôm nay -> 'H')
+    let context = textBefore;
+    const quoteMatch = context.match(/([\x22\x27\u2018\u201C\u00AB\u2039\u201E\u201A]+)$/);
+    if (quoteMatch) {
+      context = context.slice(0, -quoteMatch[1].length);
+      if (/:(\s*)$/.test(context)) return true;
+    }
+
     // If start of input or only whitespace
-    if (!textBefore || textBefore.trim().length === 0) return true;
+    if (!context || context.trim().length === 0) return true;
 
     // If right after newline
-    if (/[\n\r]\s*$/.test(textBefore)) return true;
+    if (/[\n\r]\s*$/.test(context)) return true;
 
     // If after sentence punctuation (. ! ?) followed by whitespace
-    const match = textBefore.match(/([.!?])(\s+)$/);
+    const match = context.match(/([.!?])(\s*)$/);
     if (match) {
-      const trimmed = textBefore.slice(0, -match[0].length).trim().toLowerCase();
+      const trimmed = context.slice(0, -match[0].length).trim().toLowerCase();
       const lastWordMatch = trimmed.match(/([a-z0-9_.]+)$/i);
       if (lastWordMatch) {
         const lastWord = lastWordMatch[1];

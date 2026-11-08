@@ -92,7 +92,7 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'payload', 'auth', 'oauth', 'middleware', 'handler', 'schema', 'query', 'mutation', 'resolver',
   'prisma', 'supabase', 'nextjs', 'nuxt', 'vue', 'angular', 'svelte', 'electron', 'tauri', 'rust',
   'cargo', 'golang', 'pnpm', 'yarn', 'bun', 'deno', 'eslint', 'prettier', 'vitest', 'jest',
-  'modern', 'variable', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
+  'modern', 'variable', 'mixed', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
   'suggest', 'axis', 'regex', 'music', 'amazon', 'cause', 'profile', 'upstream', 'settings',
 
   // General high frequency English words
@@ -297,8 +297,10 @@ export function reverseVietnameseWord(word) {
     'mãimum': 'maximum',
     'múic': 'music',
     'mẻge': 'merge',
+    'mĩed': 'mixed',
     'ode': 'order',
     'oline': 'offline',
+    'ỏ': 'or',
     'púh': 'push',
     'păssord': 'password',
     'pơer': 'power',
@@ -309,7 +311,7 @@ export function reverseVietnameseWord(word) {
     'rèlex': 'reflex',
     'réolver': 'resolver',
     'rétore': 'restore',
-    'rết': 'reset',
+    // 'rết': 'reset',
     'scrên': 'screen',
     'seve': 'server',
     'seỉes': 'series',
@@ -323,7 +325,7 @@ export function reverseVietnameseWord(word) {
     'sẻvice': 'service',
     'ták': 'task',
     'téla': 'tesla',
-    'tét': 'test',
+    // 'tét': 'test',
     'têt': 'text',
     'tôl': 'tool',
     'tăilind': 'tailwind',
@@ -356,6 +358,7 @@ export function reverseVietnameseWord(word) {
     'õygen': 'oxygen',
     'úe': 'use',
     'úer': 'user',
+    'uẻ': 'user',
     'úptream': 'upstream',
     'úẻ': 'user',
     'ưindoư': 'window',
@@ -422,7 +425,7 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'oxide', 'oxygen', 'galaxy', 'expert', 'express', 'explain', 'explore', 'export',
   'extra', 'extreme', 'exact', 'exam', 'example', 'exist', 'execute', 'exercise',
   'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'variable', 'backtick',
-  'test', 'reset', 'restore', 'refactor', 'query'
+  'restore', 'refactor', 'query', 'mixed'
 ]);
 
 /**
@@ -433,8 +436,15 @@ export const ENGLISH_TELEX_TRAPS = new Set([
 export function shouldAutoRestoreEnglish(rawWord, currentWord) {
   if (!rawWord && !currentWord) return false;
 
-  const rawClean = (rawWord || '').trim().toLowerCase();
   const curClean = (currentWord || '').trim().toLowerCase();
+  // Derive rawClean from rawWord if available, or fall back to reversed currentWord (e.g. 'Dóc' -> 'docs')
+  let rawClean = (rawWord || '').trim().toLowerCase();
+  if ((!rawClean || rawClean.length < curClean.length) && currentWord) {
+    const reversed = reverseVietnameseWord(currentWord);
+    if (reversed) {
+      rawClean = reversed.toLowerCase();
+    }
+  }
 
   // If words are identical and strictly ASCII, no restore needed
   if (rawClean === curClean && /^[a-z0-9]+$/i.test(curClean)) {

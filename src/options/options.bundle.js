@@ -1139,6 +1139,7 @@
     "jest",
     "modern",
     "variable",
+    "mixed",
     "tick",
     "backtick",
     "reset",

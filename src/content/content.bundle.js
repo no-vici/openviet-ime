@@ -1331,6 +1331,7 @@
     "jest",
     "modern",
     "variable",
+    "mixed",
     "tick",
     "backtick",
     "reset",
@@ -1672,8 +1673,10 @@
       "m\xE3imum": "maximum",
       "m\xFAic": "music",
       "m\u1EBBge": "merge",
+      "m\u0129ed": "mixed",
       "ode": "order",
       "oline": "offline",
+      "\u1ECF": "or",
       "p\xFAh": "push",
       "p\u0103ssord": "password",
       "p\u01A1er": "power",
@@ -1684,7 +1687,7 @@
       "r\xE8lex": "reflex",
       "r\xE9olver": "resolver",
       "r\xE9tore": "restore",
-      "r\u1EBFt": "reset",
+      // 'rết': 'reset',
       "scr\xEAn": "screen",
       "seve": "server",
       "se\u1EC9es": "series",
@@ -1698,7 +1701,7 @@
       "s\u1EBBvice": "service",
       "t\xE1k": "task",
       "t\xE9la": "tesla",
-      "t\xE9t": "test",
+      // 'tét': 'test',
       "t\xEAt": "text",
       "t\xF4l": "tool",
       "t\u0103ilind": "tailwind",
@@ -1731,6 +1734,7 @@
       "\xF5ygen": "oxygen",
       "\xFAe": "use",
       "\xFAer": "user",
+      "u\u1EBB": "user",
       "\xFAptream": "upstream",
       "\xFA\u1EBB": "user",
       "\u01B0indo\u01B0": "window",
@@ -1858,16 +1862,21 @@
     "modern",
     "variable",
     "backtick",
-    "test",
-    "reset",
     "restore",
     "refactor",
-    "query"
+    "query",
+    "mixed"
   ]);
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
     if (!rawWord && !currentWord) return false;
-    const rawClean = (rawWord || "").trim().toLowerCase();
     const curClean = (currentWord || "").trim().toLowerCase();
+    let rawClean = (rawWord || "").trim().toLowerCase();
+    if ((!rawClean || rawClean.length < curClean.length) && currentWord) {
+      const reversed2 = reverseVietnameseWord(currentWord);
+      if (reversed2) {
+        rawClean = reversed2.toLowerCase();
+      }
+    }
     if (rawClean === curClean && /^[a-z0-9]+$/i.test(curClean)) {
       return false;
     }
@@ -2235,6 +2244,29 @@
       }
       if (!key || key.length !== 1) {
         return { transformed: false, result: word + key };
+      }
+      if (word && !/^[A-Za-z][\x27\u2019]/.test(word)) {
+        const pMatch = word.match(/^([\x22\x27\u2018\u2019\u201C\u201D\u00AB\u00BB\u2039\u203A\u201E\u201A]+)/);
+        const sMatch = word.match(/([\x22\x27\u2018\u2019\u201C\u201D\u00AB\u00BB\u2039\u203A\u201E\u201A]+)$/);
+        if (pMatch || sMatch) {
+          let quotePrefix = pMatch ? pMatch[1] : "";
+          let cleanWord = quotePrefix ? word.slice(quotePrefix.length) : word;
+          let quoteSuffix = "";
+          if (sMatch && cleanWord.length > 0) {
+            const sMatch2 = cleanWord.match(/([\x22\x27\u2018\u2019\u201C\u201D\u00AB\u00BB\u2039\u203A\u201E\u201A]+)$/);
+            if (sMatch2) {
+              quoteSuffix = sMatch2[1];
+              cleanWord = cleanWord.slice(0, -quoteSuffix.length);
+            }
+          }
+          const innerRes = this.processKey(cleanWord, key);
+          const wrappedResult = quotePrefix + innerRes.result + quoteSuffix;
+          this.lastTransformed = wrappedResult;
+          return {
+            transformed: innerRes.transformed,
+            result: wrappedResult
+          };
+        }
       }
       if (/\d/.test(word) || word.includes("_") || word.includes("@") || word.includes("/")) {
         const newWord2 = word + key;
@@ -3850,9 +3882,15 @@
       const textBefore = value.slice(0, pos);
       const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
       if (match) {
+        let word = match[1];
+        let startIndex = pos - word.length;
+        if (/^['’]/.test(word) && !/^[A-Za-z]['’]/.test(word)) {
+          word = word.slice(1);
+          startIndex += 1;
+        }
         return {
-          word: match[1],
-          startIndex: pos - match[1].length,
+          word,
+          startIndex,
           endIndex: pos
         };
       }
@@ -3888,10 +3926,16 @@
         const textBefore = text.slice(0, offset);
         const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
         if (match) {
+          let word = match[1];
+          let startIndex = offset - word.length;
+          if (/^['’]/.test(word) && !/^[A-Za-z]['’]/.test(word)) {
+            word = word.slice(1);
+            startIndex += 1;
+          }
           return {
-            word: match[1],
+            word,
             textNode: node,
-            startIndex: offset - match[1].length,
+            startIndex,
             endIndex: offset
           };
         }
@@ -6691,11 +6735,17 @@
         if (strippedClosed.includes("`")) return false;
         if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
       }
-      if (!textBefore || textBefore.trim().length === 0) return true;
-      if (/[\n\r]\s*$/.test(textBefore)) return true;
-      const match = textBefore.match(/([.!?])(\s+)$/);
+      let context = textBefore;
+      const quoteMatch = context.match(/([\x22\x27\u2018\u201C\u00AB\u2039\u201E\u201A]+)$/);
+      if (quoteMatch) {
+        context = context.slice(0, -quoteMatch[1].length);
+        if (/:(\s*)$/.test(context)) return true;
+      }
+      if (!context || context.trim().length === 0) return true;
+      if (/[\n\r]\s*$/.test(context)) return true;
+      const match = context.match(/([.!?])(\s*)$/);
       if (match) {
-        const trimmed = textBefore.slice(0, -match[0].length).trim().toLowerCase();
+        const trimmed = context.slice(0, -match[0].length).trim().toLowerCase();
         const lastWordMatch = trimmed.match(/([a-z0-9_.]+)$/i);
         if (lastWordMatch) {
           const lastWord = lastWordMatch[1];
