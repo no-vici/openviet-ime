@@ -15,6 +15,7 @@ import assert from 'node:assert/strict';
 import { AvimEngine } from '../src/engine/avim.js';
 import { IME_METHOD } from '../src/engine/key-codes.js';
 import { isUrlOrEmailOrCode } from '../src/engine/key-codes.js';
+import { reverseVietnameseWord, matchCasing } from '../src/engine/dictionary.js';
 
 function simulateTypingSentence(engine, input) {
   let output = '';
@@ -88,6 +89,10 @@ test('Mixed Corpus - Auto-Restore on English Technical Words in Sentences', () =
     {
       input: 'Tài liệu Docs và mixed content trên server',
       expected: 'Tài liệu Docs và mixed content trên server'
+    },
+    {
+      input: 'Mixed content và Lowercase trong Uppercase',
+      expected: 'Mixed content và Lowercase trong Uppercase'
     },
     {
       // Protect Vietnamese words 'rết' and 'tét' - they must NEVER auto-restore on Space
@@ -191,5 +196,90 @@ test('Mixed Corpus - Typing & Tone Placement Inside Quotation Marks', () => {
   // 6. Central Highlands names internal apostrophe preserved
   assert.equal(telexEngine.processKey("M'gar", 'a').result, "M'gara");
 });
+
+test('Mixed Corpus - TitleCase & ALL CAPS Preservation during Auto-Restore', () => {
+  const engine = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: true });
+
+  // 1. Mixed TitleCase and ALL CAPS
+  assert.equal(engine.checkAutoRestore('Mĩed').result, 'Mixed');
+  assert.equal(engine.checkAutoRestore('mĩed').result, 'mixed');
+  assert.equal(engine.checkAutoRestore('MĨED').result, 'MIXED');
+
+  // 2. Docs TitleCase and ALL CAPS
+  assert.equal(engine.checkAutoRestore('Dóc').result, 'Docs');
+  assert.equal(engine.checkAutoRestore('dóc').result, 'docs');
+  assert.equal(engine.checkAutoRestore('DÓC').result, 'DOCS');
+
+  // 3. User TitleCase and ALL CAPS
+  assert.equal(engine.checkAutoRestore('Úer').result, 'User');
+  assert.equal(engine.checkAutoRestore('úer').result, 'user');
+  assert.equal(engine.checkAutoRestore('ÚER').result, 'USER');
+
+  // 4. Modern TitleCase
+  assert.equal(engine.checkAutoRestore('Modẻn').result, 'Modern');
+  assert.equal(engine.checkAutoRestore('modẻn').result, 'modern');
+  assert.equal(engine.checkAutoRestore('MODẺN').result, 'MODERN');
+
+  // 5. Variable TitleCase
+  assert.equal(engine.checkAutoRestore('Vaỉable').result, 'Variable');
+  assert.equal(engine.checkAutoRestore('vaỉable').result, 'variable');
+});
+
+test('Mixed Corpus - Telex w Retype Breakout (low -> lơ + w -> low)', () => {
+  const engine = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: true });
+
+  // 1. Typing 'low': l - o - w -> lơ
+  let cur = '';
+  for (const c of 'low') {
+    cur = engine.processKey(cur, c).result;
+  }
+  assert.equal(cur, 'lơ');
+
+  // 2. Retyping 'w' second time breaks out to 'low' without looping back to 'lo'
+  cur = engine.processKey(cur, 'w').result;
+  assert.equal(cur, 'low');
+
+  // 3. Retyping 'w' third time appends 'w' -> 'loww'
+  cur = engine.processKey(cur, 'w').result;
+  assert.equal(cur, 'loww');
+
+  // 4. Similarly for 'how', 'cow', 'bow', 'flow'
+  let curHow = '';
+  for (const c of 'how') curHow = engine.processKey(curHow, c).result;
+  assert.equal(curHow, 'hơ');
+  curHow = engine.processKey(curHow, 'w').result;
+  assert.equal(curHow, 'how');
+});
+
+test('Mixed Corpus - Lowercase / Uppercase Reversal & Retro-Rescue', () => {
+  const engine = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: true });
+
+  // 1. Direct and cluster reversals for lowercase
+  assert.equal(reverseVietnameseWord('lởecase'), 'lowercase');
+  assert.equal(reverseVietnameseWord('Lởecase'), 'Lowercase');
+  assert.equal(reverseVietnameseWord('lơercase'), 'lowercase');
+  assert.equal(reverseVietnameseWord('Lơercase'), 'Lowercase');
+  assert.equal(reverseVietnameseWord('lởe'), 'lower');
+  assert.equal(reverseVietnameseWord('Lởe'), 'Lower');
+
+  // 2. Reversals for uppercase
+  assert.equal(reverseVietnameseWord('uppẻcase'), 'uppercase');
+  assert.equal(reverseVietnameseWord('Uppẻcase'), 'Uppercase');
+  assert.equal(reverseVietnameseWord('uppẻ'), 'upper');
+  assert.equal(reverseVietnameseWord('Uppẻ'), 'Upper');
+
+  // 3. Instant Retro-Rescue (revertCurrentWord)
+  assert.equal(engine.revertCurrentWord('lởecase').result, 'lowercase');
+  assert.equal(engine.revertCurrentWord('Lởecase').result, 'Lowercase');
+  assert.equal(engine.revertCurrentWord('uppẻcase').result, 'uppercase');
+  assert.equal(engine.revertCurrentWord('Uppẻcase').result, 'Uppercase');
+
+  // 4. Power, Tower, Shower, Slower reversals
+  assert.equal(reverseVietnameseWord('pởeful'), 'powerful');
+  assert.equal(reverseVietnameseWord('Pởeful'), 'Powerful');
+  assert.equal(reverseVietnameseWord('pởe'), 'power');
+  assert.equal(reverseVietnameseWord('tởe'), 'tower');
+});
+
 
 

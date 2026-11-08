@@ -254,6 +254,13 @@ export class ParsedSyllable {
       return false;
     }
 
+    // Phonology Constraint: Impossible Vietnamese vowel clusters starting with ơ
+    // In Vietnamese, ơ can only be followed by 'i' (ơi), NEVER by e, a, o, u, ê, ă, â
+    const lowerVowels = (this.glide + this.nucleus).toLowerCase();
+    if (/ơ[eaouêăâ]/i.test(lowerVowels)) {
+      return false;
+    }
+
     // 2. Coda must be a recognized Vietnamese coda
     const lowerCoda = this.coda.toLowerCase();
     const VALID_CODAS = new Set(['', 'c', 'ch', 'm', 'n', 'ng', 'nh', 'p', 't', 'k', 'l', 'r']);

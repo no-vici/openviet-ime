@@ -92,7 +92,9 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'payload', 'auth', 'oauth', 'middleware', 'handler', 'schema', 'query', 'mutation', 'resolver',
   'prisma', 'supabase', 'nextjs', 'nuxt', 'vue', 'angular', 'svelte', 'electron', 'tauri', 'rust',
   'cargo', 'golang', 'pnpm', 'yarn', 'bun', 'deno', 'eslint', 'prettier', 'vitest', 'jest',
-  'modern', 'variable', 'mixed', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
+  'modern', 'variable', 'mixed', 'lowercase', 'uppercase', 'lower', 'upper', 'power', 'tower',
+  'shower', 'slower', 'flower', 'low', 'flow', 'show', 'slow', 'blow', 'grow', 'draw', 'raw',
+  'law', 'saw', 'few', 'view', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
   'suggest', 'axis', 'regex', 'music', 'amazon', 'cause', 'profile', 'upstream', 'settings',
 
   // General high frequency English words
@@ -234,6 +236,38 @@ export const ACCENT_TO_RAW_TELEX = {
 };
 
 /**
+ * Match casing of source word onto target word.
+ * - If source is ALL UPPERCASE (e.g. 'DOCS' -> 'DOCS', 'MĨED' -> 'MIXED', 'USER' -> 'USER') -> return target in uppercase.
+ * - If source is TitleCase (first letter upper, e.g. 'Docs' -> 'Docs', 'Mixed' -> 'Mixed', 'User' -> 'User') -> return target in TitleCase.
+ * - Otherwise (all lowercase or no uppercase) -> return target in lowercase.
+ *
+ * @param {string} source - Original word typed in editor (e.g. 'Mĩed', 'Docs', 'USER')
+ * @param {string} target - Target unaccented/restored word (e.g. 'mixed', 'docs', 'user')
+ * @returns {string}
+ */
+export function matchCasing(source, target) {
+  if (!source || !target) return target || '';
+
+  const firstChar = source.charAt(0);
+  const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
+
+  const isAllUpper = source.length > 1 && source === source.toUpperCase() && source !== source.toLowerCase();
+  if (isAllUpper) {
+    return target.toUpperCase();
+  }
+
+  if (isFirstUpper) {
+    return target.charAt(0).toUpperCase() + target.slice(1);
+  }
+
+  if (/[a-z][A-Z]/.test(target) || /[a-z][A-Z]/.test(source)) {
+    return target;
+  }
+
+  return target.toLowerCase();
+}
+
+/**
  * Reverse a Vietnamese accented word to its raw typing sequence (Telex / VNI)
  * E.g., 'têt' -> 'text', 'úẻ' -> 'user', 'púh' -> 'push', 'lủuy' -> 'luxury',
  * 'ưork' -> 'work', 'ưindoư' -> 'window', 'đ' -> 'dd'
@@ -246,6 +280,7 @@ export function reverseVietnameseWord(word) {
     'aets': 'assets',
     'amo': 'armor',
     'ađress': 'address',
+    'blơ': 'blow',
     'brơser': 'browser',
     'buines': 'business',
     'caúe': 'cause',
@@ -264,12 +299,15 @@ export function reverseVietnameseWord(word) {
     'dít': 'dist',
     'dóc': 'docs',
     'dônlad': 'download',
+    'đră': 'draw',
     'eãm': 'exam',
     'eãmple': 'example',
     'facebôk': 'facebook',
     'flôr': 'floor',
     'flơ': 'flow',
+    'flởe': 'flower',
     'frê': 'free',
+    'fê': 'few',
     'fêd': 'feed',
     'fêl': 'feel',
     'fêt': 'feet',
@@ -278,8 +316,10 @@ export function reverseVietnameseWord(word) {
     'gìt': 'gift',
     'gôd': 'good',
     'gôgle': 'google',
+    'grơ': 'grow',
     'habo': 'harbor',
     'hảd': 'hard',
+    'hơ': 'how',
     'iue': 'issue',
     'iảme': 'iframe',
     'jêp': 'jeep',
@@ -288,6 +328,12 @@ export function reverseVietnameseWord(word) {
     'lìe': 'life',
     'lít': 'list',
     'lôk': 'look',
+    'lơ': 'low',
+    'lởe': 'lower',
+    'lơer': 'lower',
+    'lởecase': 'lowercase',
+    'lơercase': 'lowercase',
+    'lă': 'law',
     'lũury': 'luxury',
     'lủuy': 'luxury',
     'mior': 'mirror',
@@ -298,12 +344,17 @@ export function reverseVietnameseWord(word) {
     'múic': 'music',
     'mẻge': 'merge',
     'mĩed': 'mixed',
+    'nê': 'new',
+    'nơ': 'now',
     'ode': 'order',
     'oline': 'offline',
     'ỏ': 'or',
     'púh': 'push',
     'păssord': 'password',
     'pơer': 'power',
+    'pởe': 'power',
+    'pởer': 'power',
+    'pởeful': 'powerful',
     'pẻpct': 'perfect',
     'quẻy': 'query',
     'repone': 'response',
@@ -312,14 +363,20 @@ export function reverseVietnameseWord(word) {
     'réolver': 'resolver',
     'rétore': 'restore',
     // 'rết': 'reset',
+    'ră': 'raw',
     'scrên': 'screen',
     'seve': 'server',
     'seỉes': 'series',
+    'shơ': 'show',
+    'shởe': 'shower',
+    'slơ': 'slow',
+    'slởe': 'slower',
     'suix': 'suffix',
     'sà': 'saas',
     'sàe': 'safe',
     'sâs': 'saas',
     'sã': 'sax',
+    'să': 'saw',
     'sầri': 'safari',
     'sẻach': 'search',
     'sẻvice': 'service',
@@ -329,17 +386,22 @@ export function reverseVietnameseWord(word) {
     'têt': 'text',
     'tôl': 'tool',
     'tăilind': 'tailwind',
+    'tơer': 'tower',
+    'tởe': 'tower',
     'tưo': 'two',
     'tẻla': 'tesla',
     'tẽas': 'texas',
     'tẽt': 'text',
     'uér': 'user',
     'uétate': 'usestate',
+    'uppẻ': 'upper',
+    'uppẻcase': 'uppercase',
     'vaỉable': 'variable',
     'vảiable': 'variable',
     'veu': 'versus',
     'veíon': 'version',
     'vẻtex': 'vertex',
+    'viê': 'view',
     'webhôk': 'webhook',
     'whêl': 'wheel',
     'windơ': 'window',
@@ -395,15 +457,26 @@ export function reverseVietnameseWord(word) {
 
   if (DIRECT_REVERSE_TRAPS[clean]) {
     const mapped = DIRECT_REVERSE_TRAPS[clean];
-    if (word[0] === word[0].toUpperCase()) {
-      return mapped.charAt(0).toUpperCase() + mapped.slice(1);
-    }
-    return mapped;
+    return matchCasing(word, mapped);
+  }
+
+  // Handle [ơởớờỡợ]e clusters from typing English -ower- / -owe- words (e.g. lowercase -> lởecase, lower -> lởe, power -> pởe)
+  let workingWord = word;
+  if (/[ơởớờỡợ]e/i.test(workingWord)) {
+    workingWord = workingWord
+      .replace(/ởe/g, 'ower').replace(/ớe/g, 'owes').replace(/ờe/g, 'owef')
+      .replace(/ỡe/g, 'owex').replace(/ợe/g, 'owej').replace(/ơe/g, 'owe')
+      .replace(/Ởe/g, 'Ower').replace(/Ớe/g, 'Owes').replace(/Ờe/g, 'Owef')
+      .replace(/Ỡe/g, 'Owex').replace(/Ợe/g, 'Owej').replace(/Ơe/g, 'Owe');
+  }
+
+  if (!/[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(workingWord)) {
+    return matchCasing(word, workingWord);
   }
 
   let result = '';
-  for (let i = 0; i < word.length; i++) {
-    const ch = word[i];
+  for (let i = 0; i < workingWord.length; i++) {
+    const ch = workingWord[i];
     if (ACCENT_TO_RAW_TELEX[ch]) {
       result += ACCENT_TO_RAW_TELEX[ch];
     } else {
@@ -425,7 +498,9 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'oxide', 'oxygen', 'galaxy', 'expert', 'express', 'explain', 'explore', 'export',
   'extra', 'extreme', 'exact', 'exam', 'example', 'exist', 'execute', 'exercise',
   'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'variable', 'backtick',
-  'restore', 'refactor', 'query', 'mixed'
+  'restore', 'refactor', 'query', 'mixed', 'lowercase', 'uppercase', 'lower', 'upper', 'power',
+  'tower', 'flower', 'shower', 'slower', 'flow', 'show', 'slow', 'blow', 'grow', 'draw', 'raw',
+  'law', 'saw', 'few', 'view'
 ]);
 
 /**

@@ -17,6 +17,7 @@ import {
   COMMON_ENGLISH_WORDS,
   ENGLISH_TELEX_TRAPS,
   reverseVietnameseWord,
+  matchCasing,
   shouldAutoRestoreEnglish,
   hasPhonologyViolation,
   isCheckedToneViolation
@@ -191,13 +192,13 @@ export class AvimEngine {
     const raw = this.currentWordRaw || reverseVietnameseWord(currentWord);
     if (raw && raw !== currentWord) {
       this.resetWordSession();
-      return { reverted: true, result: raw };
+      return { reverted: true, result: matchCasing(currentWord, raw) };
     }
 
     const reversed = reverseVietnameseWord(currentWord);
     if (reversed && reversed !== currentWord) {
       this.resetWordSession();
-      return { reverted: true, result: reversed };
+      return { reverted: true, result: matchCasing(currentWord, reversed) };
     }
 
     return { reverted: false, result: currentWord };
@@ -236,14 +237,15 @@ export class AvimEngine {
     }
 
     if (shouldAutoRestoreEnglish(raw, currentWord)) {
-      const restored = (raw && raw.length >= 3 && !/\d/.test(raw)) ? raw : reverseVietnameseWord(currentWord);
+      let restored = (raw && raw.length >= 3 && !/\d/.test(raw)) ? raw : reverseVietnameseWord(currentWord);
+      restored = matchCasing(currentWord, restored);
       this.resetWordSession();
       return { restore: true, result: restored };
     }
 
     // 4. Reverse fallback for multi-letter trap words when raw is not available
     if (currentWord.length >= 2 && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
-      const reversed = reverseVietnameseWord(currentWord);
+      let reversed = reverseVietnameseWord(currentWord);
       if (
         reversed &&
         reversed.length >= 3 &&
@@ -251,6 +253,7 @@ export class AvimEngine {
         reversed.toLowerCase() !== currentWord.toLowerCase() &&
         COMMON_ENGLISH_WORDS.has(reversed.toLowerCase())
       ) {
+        reversed = matchCasing(currentWord, reversed);
         this.resetWordSession();
         return { restore: true, result: reversed };
       }
@@ -972,14 +975,14 @@ export class AvimEngine {
     }
 
     if (isHorned) {
-      // Toggle back to plain 'uo'
+      // Toggle back to plain 'uo' and append 'w'
       const base1 = isUpper1 ? 'U' : 'u';
       const base2 = isUpper2 ? 'O' : 'o';
       const char1 = VOWEL_TABLE[base1][0];
       const char2 = VOWEL_TABLE[base2][tone];
       return {
         transformed: true,
-        result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+        result: word.slice(0, index) + char1 + char2 + word.slice(index + 2) + 'w'
       };
     } else {
       // Transform both to 'ươ'
@@ -1041,14 +1044,14 @@ export class AvimEngine {
     const tone = Math.max(info1.tone, info2.tone);
 
     if (isHorned) {
-      // Toggle back to plain 'uu'
+      // Toggle back to plain 'uu' and append 'w'
       const base1 = isUpper1 ? 'U' : 'u';
       const base2 = isUpper2 ? 'U' : 'u';
       const char1 = VOWEL_TABLE[base1][tone];
       const char2 = VOWEL_TABLE[base2][0];
       return {
         transformed: true,
-        result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+        result: word.slice(0, index) + char1 + char2 + word.slice(index + 2) + 'w'
       };
     } else {
       // Transform first 'u' to 'ư' -> 'ưu'
@@ -1076,6 +1079,11 @@ export class AvimEngine {
    * - ư + w -> toggles back to w
    */
   applyTelexW(word) {
+    // If word already ends with 'w' or 'W', pass key through literally without cycling
+    if (word.endsWith('w') || word.endsWith('W')) {
+      return { transformed: false, result: word + 'w' };
+    }
+
     // 1. Check double 'uo' / 'uô' / 'ươ' -> 'ươ'
     const uoPair = this.findUoPair(word);
     if (uoPair) {
@@ -1109,9 +1117,10 @@ export class AvimEngine {
             const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
             const targetBase = isUpper ? target.toUpperCase() : target.toLowerCase();
             const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
+            const appendLetter = ['ă', 'ơ', 'ư'].includes(lowerBase) ? 'w' : '';
             return {
               transformed: true,
-              result: word.slice(0, i) + newChar + word.slice(i + 1)
+              result: word.slice(0, i) + newChar + word.slice(i + 1) + appendLetter
             };
           }
         }

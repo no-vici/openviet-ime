@@ -628,6 +628,10 @@
       if (!this.nucleus) {
         return false;
       }
+      const lowerVowels = (this.glide + this.nucleus).toLowerCase();
+      if (/ơ[eaouêăâ]/i.test(lowerVowels)) {
+        return false;
+      }
       const lowerCoda = this.coda.toLowerCase();
       const VALID_CODAS = /* @__PURE__ */ new Set(["", "c", "ch", "m", "n", "ng", "nh", "p", "t", "k", "l", "r"]);
       if (!VALID_CODAS.has(lowerCoda)) {
@@ -1332,6 +1336,27 @@
     "modern",
     "variable",
     "mixed",
+    "lowercase",
+    "uppercase",
+    "lower",
+    "upper",
+    "power",
+    "tower",
+    "shower",
+    "slower",
+    "flower",
+    "low",
+    "flow",
+    "show",
+    "slow",
+    "blow",
+    "grow",
+    "draw",
+    "raw",
+    "law",
+    "saw",
+    "few",
+    "view",
     "tick",
     "backtick",
     "reset",
@@ -1615,6 +1640,22 @@
     "\u0111": "dd",
     "\u0110": "Dd"
   };
+  function matchCasing(source, target) {
+    if (!source || !target) return target || "";
+    const firstChar = source.charAt(0);
+    const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
+    const isAllUpper = source.length > 1 && source === source.toUpperCase() && source !== source.toLowerCase();
+    if (isAllUpper) {
+      return target.toUpperCase();
+    }
+    if (isFirstUpper) {
+      return target.charAt(0).toUpperCase() + target.slice(1);
+    }
+    if (/[a-z][A-Z]/.test(target) || /[a-z][A-Z]/.test(source)) {
+      return target;
+    }
+    return target.toLowerCase();
+  }
   function reverseVietnameseWord(word) {
     if (!word) return "";
     const clean = word.toLowerCase();
@@ -1622,6 +1663,7 @@
       "aets": "assets",
       "amo": "armor",
       "a\u0111ress": "address",
+      "bl\u01A1": "blow",
       "br\u01A1ser": "browser",
       "buines": "business",
       "ca\xFAe": "cause",
@@ -1640,12 +1682,15 @@
       "d\xEDt": "dist",
       "d\xF3c": "docs",
       "d\xF4nlad": "download",
+      "\u0111r\u0103": "draw",
       "e\xE3m": "exam",
       "e\xE3mple": "example",
       "faceb\xF4k": "facebook",
       "fl\xF4r": "floor",
       "fl\u01A1": "flow",
+      "fl\u1EDFe": "flower",
       "fr\xEA": "free",
+      "f\xEA": "few",
       "f\xEAd": "feed",
       "f\xEAl": "feel",
       "f\xEAt": "feet",
@@ -1654,8 +1699,10 @@
       "g\xECt": "gift",
       "g\xF4d": "good",
       "g\xF4gle": "google",
+      "gr\u01A1": "grow",
       "habo": "harbor",
       "h\u1EA3d": "hard",
+      "h\u01A1": "how",
       "iue": "issue",
       "i\u1EA3me": "iframe",
       "j\xEAp": "jeep",
@@ -1664,6 +1711,12 @@
       "l\xECe": "life",
       "l\xEDt": "list",
       "l\xF4k": "look",
+      "l\u01A1": "low",
+      "l\u1EDFe": "lower",
+      "l\u01A1er": "lower",
+      "l\u1EDFecase": "lowercase",
+      "l\u01A1ercase": "lowercase",
+      "l\u0103": "law",
       "l\u0169ury": "luxury",
       "l\u1EE7uy": "luxury",
       "mior": "mirror",
@@ -1674,12 +1727,17 @@
       "m\xFAic": "music",
       "m\u1EBBge": "merge",
       "m\u0129ed": "mixed",
+      "n\xEA": "new",
+      "n\u01A1": "now",
       "ode": "order",
       "oline": "offline",
       "\u1ECF": "or",
       "p\xFAh": "push",
       "p\u0103ssord": "password",
       "p\u01A1er": "power",
+      "p\u1EDFe": "power",
+      "p\u1EDFer": "power",
+      "p\u1EDFeful": "powerful",
       "p\u1EBBpct": "perfect",
       "qu\u1EBBy": "query",
       "repone": "response",
@@ -1688,14 +1746,20 @@
       "r\xE9olver": "resolver",
       "r\xE9tore": "restore",
       // 'rết': 'reset',
+      "r\u0103": "raw",
       "scr\xEAn": "screen",
       "seve": "server",
       "se\u1EC9es": "series",
+      "sh\u01A1": "show",
+      "sh\u1EDFe": "shower",
+      "sl\u01A1": "slow",
+      "sl\u1EDFe": "slower",
       "suix": "suffix",
       "s\xE0": "saas",
       "s\xE0e": "safe",
       "s\xE2s": "saas",
       "s\xE3": "sax",
+      "s\u0103": "saw",
       "s\u1EA7ri": "safari",
       "s\u1EBBach": "search",
       "s\u1EBBvice": "service",
@@ -1705,17 +1769,22 @@
       "t\xEAt": "text",
       "t\xF4l": "tool",
       "t\u0103ilind": "tailwind",
+      "t\u01A1er": "tower",
+      "t\u1EDFe": "tower",
       "t\u01B0o": "two",
       "t\u1EBBla": "tesla",
       "t\u1EBDas": "texas",
       "t\u1EBDt": "text",
       "u\xE9r": "user",
       "u\xE9tate": "usestate",
+      "upp\u1EBB": "upper",
+      "upp\u1EBBcase": "uppercase",
       "va\u1EC9able": "variable",
       "v\u1EA3iable": "variable",
       "veu": "versus",
       "ve\xEDon": "version",
       "v\u1EBBtex": "vertex",
+      "vi\xEA": "view",
       "webh\xF4k": "webhook",
       "wh\xEAl": "wheel",
       "wind\u01A1": "window",
@@ -1770,14 +1839,18 @@
     };
     if (DIRECT_REVERSE_TRAPS[clean]) {
       const mapped = DIRECT_REVERSE_TRAPS[clean];
-      if (word[0] === word[0].toUpperCase()) {
-        return mapped.charAt(0).toUpperCase() + mapped.slice(1);
-      }
-      return mapped;
+      return matchCasing(word, mapped);
+    }
+    let workingWord = word;
+    if (/[ơởớờỡợ]e/i.test(workingWord)) {
+      workingWord = workingWord.replace(/ởe/g, "ower").replace(/ớe/g, "owes").replace(/ờe/g, "owef").replace(/ỡe/g, "owex").replace(/ợe/g, "owej").replace(/ơe/g, "owe").replace(/Ởe/g, "Ower").replace(/Ớe/g, "Owes").replace(/Ờe/g, "Owef").replace(/Ỡe/g, "Owex").replace(/Ợe/g, "Owej").replace(/Ơe/g, "Owe");
+    }
+    if (!/[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(workingWord)) {
+      return matchCasing(word, workingWord);
     }
     let result = "";
-    for (let i = 0; i < word.length; i++) {
-      const ch = word[i];
+    for (let i = 0; i < workingWord.length; i++) {
+      const ch = workingWord[i];
       if (ACCENT_TO_RAW_TELEX[ch]) {
         result += ACCENT_TO_RAW_TELEX[ch];
       } else {
@@ -1865,7 +1938,27 @@
     "restore",
     "refactor",
     "query",
-    "mixed"
+    "mixed",
+    "lowercase",
+    "uppercase",
+    "lower",
+    "upper",
+    "power",
+    "tower",
+    "flower",
+    "shower",
+    "slower",
+    "flow",
+    "show",
+    "slow",
+    "blow",
+    "grow",
+    "draw",
+    "raw",
+    "law",
+    "saw",
+    "few",
+    "view"
   ]);
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
     if (!rawWord && !currentWord) return false;
@@ -2176,12 +2269,12 @@
       const raw = this.currentWordRaw || reverseVietnameseWord(currentWord);
       if (raw && raw !== currentWord) {
         this.resetWordSession();
-        return { reverted: true, result: raw };
+        return { reverted: true, result: matchCasing(currentWord, raw) };
       }
       const reversed = reverseVietnameseWord(currentWord);
       if (reversed && reversed !== currentWord) {
         this.resetWordSession();
-        return { reverted: true, result: reversed };
+        return { reverted: true, result: matchCasing(currentWord, reversed) };
       }
       return { reverted: false, result: currentWord };
     }
@@ -2209,13 +2302,15 @@
         return { restore: false, result: currentWord };
       }
       if (shouldAutoRestoreEnglish(raw, currentWord)) {
-        const restored = raw && raw.length >= 3 && !/\d/.test(raw) ? raw : reverseVietnameseWord(currentWord);
+        let restored = raw && raw.length >= 3 && !/\d/.test(raw) ? raw : reverseVietnameseWord(currentWord);
+        restored = matchCasing(currentWord, restored);
         this.resetWordSession();
         return { restore: true, result: restored };
       }
       if (currentWord.length >= 2 && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
-        const reversed = reverseVietnameseWord(currentWord);
+        let reversed = reverseVietnameseWord(currentWord);
         if (reversed && reversed.length >= 3 && !/\d/.test(reversed) && reversed.toLowerCase() !== currentWord.toLowerCase() && COMMON_ENGLISH_WORDS.has(reversed.toLowerCase())) {
+          reversed = matchCasing(currentWord, reversed);
           this.resetWordSession();
           return { restore: true, result: reversed };
         }
@@ -2781,7 +2876,7 @@
         const char2 = VOWEL_TABLE[base2][tone];
         return {
           transformed: true,
-          result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+          result: word.slice(0, index) + char1 + char2 + word.slice(index + 2) + "w"
         };
       } else {
         const base1 = isUpper1 ? "\u01AF" : "\u01B0";
@@ -2845,7 +2940,7 @@
         const char2 = VOWEL_TABLE[base2][0];
         return {
           transformed: true,
-          result: word.slice(0, index) + char1 + char2 + word.slice(index + 2)
+          result: word.slice(0, index) + char1 + char2 + word.slice(index + 2) + "w"
         };
       } else {
         const base1 = isUpper1 ? "\u01AF" : "\u01B0";
@@ -2871,6 +2966,9 @@
      * - ư + w -> toggles back to w
      */
     applyTelexW(word) {
+      if (word.endsWith("w") || word.endsWith("W")) {
+        return { transformed: false, result: word + "w" };
+      }
       const uoPair = this.findUoPair(word);
       if (uoPair) {
         return this.applyUoHorn(word, uoPair);
@@ -2895,9 +2993,10 @@
               const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
               const targetBase = isUpper ? target.toUpperCase() : target.toLowerCase();
               const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
+              const appendLetter = ["\u0103", "\u01A1", "\u01B0"].includes(lowerBase) ? "w" : "";
               return {
                 transformed: true,
-                result: word.slice(0, i) + newChar + word.slice(i + 1)
+                result: word.slice(0, i) + newChar + word.slice(i + 1) + appendLetter
               };
             }
           }
