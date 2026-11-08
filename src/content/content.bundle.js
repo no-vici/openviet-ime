@@ -6680,10 +6680,12 @@
           }
         }
       }
-      if (/`\s*$/.test(textBefore)) return false;
-      const backtickCount = (textBefore.match(/`/g) || []).length;
-      if (backtickCount % 2 === 1) return false;
-      if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
+      if (/`/.test(textBefore)) {
+        if (/`\s*$/.test(textBefore)) return false;
+        const strippedClosed = textBefore.replace(/`[^`\n\r]*`/g, "");
+        if (strippedClosed.includes("`")) return false;
+        if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
+      }
       if (!textBefore || textBefore.trim().length === 0) return true;
       if (/[\n\r]\s*$/.test(textBefore)) return true;
       const match = textBefore.match(/([.!?])(\s+)$/);

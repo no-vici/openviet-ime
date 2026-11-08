@@ -834,13 +834,15 @@ class AvimContentScript {
       }
     }
 
-    // If immediately preceded by backtick ` or inside unclosed inline code backticks, NEVER auto-capitalize!
-    if (/`\s*$/.test(textBefore)) return false;
-    const backtickCount = (textBefore.match(/`/g) || []).length;
-    if (backtickCount % 2 === 1) return false;
-
-    // After a closed inline code span (e.g. `variable` or `variable` ), do NOT auto-capitalize the following word!
-    if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
+    // 1. Backtick and Code Guard:
+    // - If preceded by an opening/unclosed backtick ` (odd count or trailing `) -> NEVER auto-capitalize inside code!
+    // - If preceded by an empty pair ``, a closed span `code`, or `code` [space] -> NEVER auto-capitalize right after code!
+    if (/`/.test(textBefore)) {
+      if (/`\s*$/.test(textBefore)) return false;
+      const strippedClosed = textBefore.replace(/`[^`\n\r]*`/g, '');
+      if (strippedClosed.includes('`')) return false;
+      if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
+    }
 
     // If start of input or only whitespace
     if (!textBefore || textBefore.trim().length === 0) return true;
