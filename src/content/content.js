@@ -744,6 +744,9 @@ class AvimContentScript {
       if (this.handleBackspaceUndo(target, event)) {
         return;
       }
+      if (this.avimEngine.currentWordRaw) {
+        this.avimEngine.currentWordRaw = this.avimEngine.currentWordRaw.slice(0, -1);
+      }
       this.adoptWordBeforeBackspace(target, event);
     }
 
@@ -1511,6 +1514,7 @@ class AvimContentScript {
 
       if (wordInfo) {
         const currentWord = wordInfo.word || '';
+        this.avimEngine.trackRawKey(key);
         const result = this.avimEngine.processKey(currentWord, key);
 
         if (result.transformed) {

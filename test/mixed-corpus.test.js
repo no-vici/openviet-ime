@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import { AvimEngine } from '../src/engine/avim.js';
 import { IME_METHOD } from '../src/engine/key-codes.js';
 import { isUrlOrEmailOrCode } from '../src/engine/key-codes.js';
-import { reverseVietnameseWord, matchCasing } from '../src/engine/dictionary.js';
+import { reverseVietnameseWord, matchCasing, userDictionary } from '../src/engine/dictionary.js';
 
 function simulateTypingSentence(engine, input) {
   let output = '';
@@ -280,6 +280,42 @@ test('Mixed Corpus - Lowercase / Uppercase Reversal & Retro-Rescue', () => {
   assert.equal(reverseVietnameseWord('pởe'), 'power');
   assert.equal(reverseVietnameseWord('tởe'), 'tower');
 });
+
+test('Mixed Corpus - Extension & User Dictionary Auto-Restore', () => {
+  // 1. Extension typed with spellCheck ON
+  const engineOn = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: true });
+  let typedOn = '';
+  for (const c of 'extension') {
+    engineOn.trackRawKey(c);
+    typedOn = engineOn.processKey(typedOn, c).result;
+  }
+  assert.equal(engineOn.checkAutoRestore(typedOn).result, 'extension');
+
+  // 2. Extension typed with spellCheck OFF
+  const engineOff = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: false });
+  let typedOff = '';
+  for (const c of 'extension') {
+    engineOff.trackRawKey(c);
+    typedOff = engineOff.processKey(typedOff, c).result;
+  }
+  // Late circumflex on stop final 't' with ngã tone is blocked by phonology guard
+  assert.equal(typedOff, 'ẽtension');
+  assert.equal(engineOff.checkAutoRestore(typedOff).result, 'extension');
+
+  // 3. Fallback traps for ễtnsion / Ễtnsion
+  assert.equal(engineOff.checkAutoRestore('ễtnsion').result, 'extension');
+  assert.equal(engineOff.checkAutoRestore('Ễtnsion').result, 'Extension');
+
+  // 4. Custom user dictionary word auto-restore
+  userDictionary.add('customdevterm');
+  let typedUser = '';
+  for (const c of 'customdevterm') {
+    engineOff.trackRawKey(c);
+    typedUser = engineOff.processKey(typedUser, c).result;
+  }
+  assert.equal(engineOff.checkAutoRestore(typedUser).result, 'customdevterm');
+});
+
 
 
 

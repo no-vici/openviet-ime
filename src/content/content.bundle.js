@@ -1830,6 +1830,17 @@
       "\u1EBDport": "export",
       "\u1EBDpress": "express",
       "\u1EBDtension": "extension",
+      "\u1EBDtnsion": "extension",
+      "\u1EC5tension": "extension",
+      "\u1EC5tnsion": "extension",
+      "\u1EBDtend": "extend",
+      "\u1EBDtnd": "extend",
+      "\u1EC5tend": "extend",
+      "\u1EC5tnd": "extend",
+      "\u1EBDternal": "external",
+      "\u1EBDtrnal": "external",
+      "\u1EC5ternal": "external",
+      "\u1EC5trnal": "external",
       "\u1EBDtent": "extent",
       "\u1EBDtra": "extra",
       "\u1EBDtreme": "extreme",
@@ -1986,11 +1997,11 @@
       }
       return false;
     }
-    if (rawClean && COMMON_ENGLISH_WORDS.has(rawClean)) {
+    if (rawClean && (COMMON_ENGLISH_WORDS.has(rawClean) || userDictionary.has(rawClean))) {
       return true;
     }
     const reversed = reverseVietnameseWord(currentWord).toLowerCase();
-    if (reversed && reversed.length >= 3 && COMMON_ENGLISH_WORDS.has(reversed) && !/\d/.test(reversed)) {
+    if (reversed && reversed.length >= 3 && (COMMON_ENGLISH_WORDS.has(reversed) || userDictionary.has(reversed)) && !/\d/.test(reversed)) {
       return true;
     }
     return false;
@@ -2309,7 +2320,7 @@
       }
       if (currentWord.length >= 2 && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
         let reversed = reverseVietnameseWord(currentWord);
-        if (reversed && reversed.length >= 3 && !/\d/.test(reversed) && reversed.toLowerCase() !== currentWord.toLowerCase() && COMMON_ENGLISH_WORDS.has(reversed.toLowerCase())) {
+        if (reversed && reversed.length >= 3 && !/\d/.test(reversed) && reversed.toLowerCase() !== currentWord.toLowerCase() && (COMMON_ENGLISH_WORDS.has(reversed.toLowerCase()) || userDictionary.has(reversed.toLowerCase()))) {
           reversed = matchCasing(currentWord, reversed);
           this.resetWordSession();
           return { restore: true, result: reversed };
@@ -2743,6 +2754,15 @@
                     const targetBase = isUpper ? target.toUpperCase() : target.toLowerCase();
                     const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
                     const newWord = word.slice(0, charIndex) + newChar + word.slice(charIndex + 1);
+                    if (this.phonologyRules) {
+                      if (isCheckedToneViolation(newWord, baseInfo.tone)) {
+                        continue;
+                      }
+                      const parsed = parseSyllable(newWord);
+                      if (parsed && !parsed.isValid()) {
+                        continue;
+                      }
+                    }
                     if (!this.spellCheck || this.isValidVietnameseWord(newWord)) {
                       return { transformed: true, result: newWord };
                     }
@@ -6748,6 +6768,9 @@
         if (this.handleBackspaceUndo(target, event)) {
           return;
         }
+        if (this.avimEngine.currentWordRaw) {
+          this.avimEngine.currentWordRaw = this.avimEngine.currentWordRaw.slice(0, -1);
+        }
         this.adoptWordBeforeBackspace(target, event);
       }
       if (key.length === 1) {
@@ -7392,6 +7415,7 @@
         const wordInfo2 = isNative ? this.textReplacer.extractNativeWordBuffer(target) : this.textReplacer.extractContentEditableWordBuffer();
         if (wordInfo2) {
           const currentWord2 = wordInfo2.word || "";
+          this.avimEngine.trackRawKey(key);
           const result = this.avimEngine.processKey(currentWord2, key);
           if (result.transformed) {
             event.preventDefault();

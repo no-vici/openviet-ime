@@ -447,6 +447,17 @@ export function reverseVietnameseWord(word) {
     'ẽport': 'export',
     'ẽpress': 'express',
     'ẽtension': 'extension',
+    'ẽtnsion': 'extension',
+    'ễtension': 'extension',
+    'ễtnsion': 'extension',
+    'ẽtend': 'extend',
+    'ẽtnd': 'extend',
+    'ễtend': 'extend',
+    'ễtnd': 'extend',
+    'ẽternal': 'external',
+    'ẽtrnal': 'external',
+    'ễternal': 'external',
+    'ễtrnal': 'external',
     'ẽtent': 'extent',
     'ẽtra': 'extra',
     'ẽtreme': 'extreme',
@@ -554,14 +565,19 @@ export function shouldAutoRestoreEnglish(rawWord, currentWord) {
   }
 
   // Rule 4: Transformed word is NOT a valid Vietnamese word (e.g. têt, tẽt, úẻ, ủe, púh, windơ, wỏk, êpct, lủuy)
-  // If rawWord is a known English word:
-  if (rawClean && COMMON_ENGLISH_WORDS.has(rawClean)) {
+  // If rawWord is a known English word or user dictionary word:
+  if (rawClean && (COMMON_ENGLISH_WORDS.has(rawClean) || userDictionary.has(rawClean))) {
     return true;
   }
 
-  // Or if reversed version is a known English word (min length 3, no digits):
+  // Or if reversed version is a known English word or user dictionary word (min length 3, no digits):
   const reversed = reverseVietnameseWord(currentWord).toLowerCase();
-  if (reversed && reversed.length >= 3 && COMMON_ENGLISH_WORDS.has(reversed) && !/\d/.test(reversed)) {
+  if (
+    reversed &&
+    reversed.length >= 3 &&
+    (COMMON_ENGLISH_WORDS.has(reversed) || userDictionary.has(reversed)) &&
+    !/\d/.test(reversed)
+  ) {
     return true;
   }
 

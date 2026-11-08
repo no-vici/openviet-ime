@@ -251,7 +251,7 @@ export class AvimEngine {
         reversed.length >= 3 &&
         !/\d/.test(reversed) &&
         reversed.toLowerCase() !== currentWord.toLowerCase() &&
-        COMMON_ENGLISH_WORDS.has(reversed.toLowerCase())
+        (COMMON_ENGLISH_WORDS.has(reversed.toLowerCase()) || userDictionary.has(reversed.toLowerCase()))
       ) {
         reversed = matchCasing(currentWord, reversed);
         this.resetWordSession();
@@ -814,7 +814,17 @@ export class AvimEngine {
                   const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
                   const newWord = word.slice(0, charIndex) + newChar + word.slice(charIndex + 1);
 
-                  // Validate against spell check if enabled
+                  // Validate against phonology rules (Natural Phonological Guard) and spell check
+                  if (this.phonologyRules) {
+                    if (isCheckedToneViolation(newWord, baseInfo.tone)) {
+                      continue;
+                    }
+                    const parsed = parseSyllable(newWord);
+                    if (parsed && !parsed.isValid()) {
+                      continue;
+                    }
+                  }
+
                   if (!this.spellCheck || this.isValidVietnameseWord(newWord)) {
                     return { transformed: true, result: newWord };
                   }
