@@ -372,6 +372,15 @@ function initModals() {
       return;
     }
 
+    // Case-insensitive duplicate check when adding new trigger or changing trigger name
+    const existing = macroEngine.macros.get(trigger.toLowerCase());
+    if (existing && (!editingTrigger || editingTrigger.toLowerCase() !== trigger.toLowerCase())) {
+      if (!confirm(`Từ viết tắt "${existing.trigger}" đã tồn tại với nghĩa: "${existing.value}".\nBạn có muốn ghi đè lên từ này không?`)) {
+        triggerInput.focus();
+        return;
+      }
+    }
+
     if (editingTrigger && editingTrigger.toLowerCase() !== trigger.toLowerCase()) {
       macroEngine.removeMacro(editingTrigger);
     }

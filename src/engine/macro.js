@@ -30,7 +30,9 @@ export const DEFAULT_MACROS = [
   { trigger: 'dmm', value: 'đụ má mày', enabled: true },
   { trigger: 'ck', value: 'chồng', enabled: true },
   { trigger: 'cx', value: 'cũng', enabled: true },
-  { trigger: 'idk', value: 'tao hông biết', enabled: true }
+  { trigger: 'idk', value: 'tao hông biết', enabled: true },
+  { trigger: 'today', value: '$DATE', enabled: true },
+  { trigger: 'now', value: '$DATETIME', enabled: true }
 ];
 
 /**
@@ -159,13 +161,14 @@ export class MacroEngine {
       return { match: false };
     }
 
-    const expandedText = this.preserveCase(rawWord, entry.value);
+    const expandedText = this.preserveCase(rawWord, this.resolveDynamicVariables(entry.value));
 
-    // Record last expansion for Backspace undo
+    // Record last expansion for 2-step Backspace undo & punctuation snapping
     this.lastExpansion = {
       rawTrigger: rawWord,
       expandedText,
       delimiter,
+      step: 1, // Step 1: Trailing delimiter attached; Step 2: Trailing delimiter removed
       timestamp: Date.now()
     };
 
@@ -178,36 +181,138 @@ export class MacroEngine {
   }
 
   /**
-   * Backtracking / Undo:
-   * When user presses Backspace immediately following an expansion,
-   * revert back to rawTrigger and suppress immediate re-expansion on next delimiter.
+   * Backtracking / 2-Step Undo:
+   * When user presses Backspace following an expansion:
+   * - Step 1 (first Backspace): Only delete the trailing space/delimiter, leaving caret at the end
+   *   of expandedText (e.g. "Việt Nam " -> "Việt Nam|") so user can type punctuation or continue sentence.
+   * - Step 2 (second consecutive Backspace): Revert the expanded word completely back to rawTrigger
+   *   (e.g. "Việt Nam" -> "vn|"), and activate suppression so typing space next will keep rawTrigger intact!
    */
   checkUndo(recentText) {
     if (!this.autoUndo || !this.lastExpansion) {
       return { undo: false };
     }
 
-    const { rawTrigger, expandedText, delimiter, timestamp } = this.lastExpansion;
-    // Expire undo after 8 seconds
-    if (Date.now() - timestamp > 8000) {
+    const { rawTrigger, expandedText, delimiter, step, timestamp } = this.lastExpansion;
+    // Expire undo after 10 seconds
+    if (Date.now() - timestamp > 10000) {
       this.lastExpansion = null;
       return { undo: false };
     }
 
-    const expectedSuffix = expandedText + delimiter;
-    if (recentText && recentText.endsWith(expectedSuffix)) {
-      this.lastExpansion = null;
-      // Mark trigger as suppressed so typing space next will keep rawTrigger intact
-      this.suppressedTrigger = rawTrigger;
-      return {
-        undo: true,
-        rawTrigger,
-        revertText: rawTrigger + delimiter,
-        removeLength: expectedSuffix.length
-      };
+    // Step 1 check: user just expanded with space/delimiter, and hits Backspace 1st time
+    if (step === 1) {
+      const expectedSuffix = expandedText + delimiter;
+      if (recentText && recentText.endsWith(expectedSuffix)) {
+        // Transition to step 2: trailing delimiter is removed, expandedText remains
+        this.lastExpansion = {
+          rawTrigger,
+          expandedText,
+          delimiter,
+          step: 2,
+          timestamp: Date.now()
+        };
+        return {
+          undo: true,
+          step: 1,
+          rawTrigger,
+          revertText: expandedText,
+          removeLength: delimiter.length // Remove only the trailing delimiter
+        };
+      }
+    }
+
+    // Step 2 check: user hits Backspace 2nd time immediately after step 1
+    if (step === 2) {
+      if (recentText && recentText.endsWith(expandedText)) {
+        this.lastExpansion = null;
+        // Suppress re-expansion on next delimiter so rawTrigger stays intact
+        this.suppressedTrigger = rawTrigger;
+        return {
+          undo: true,
+          step: 2,
+          rawTrigger,
+          revertText: rawTrigger,
+          removeLength: expandedText.length
+        };
+      }
     }
 
     return { undo: false };
+  }
+
+  /**
+   * Smart Punctuation Snapping:
+   * When macro just expanded with space (e.g. "Việt Nam "), if next key is a punctuation mark
+   * (such as , . ; : ! ? ) ] } >), snap the punctuation directly to the end of expandedText
+   * eliminating the unnatural trailing space (e.g. "Việt Nam, " or "Việt Nam.").
+   * @param {string} nextKey Next key pressed by user
+   * @param {string} recentText Text immediately before caret
+   * @returns {{ snap: boolean, snappedText?: string, deleteLength?: number }}
+   */
+  checkPunctuationSnap(nextKey, recentText) {
+    if (!this.lastExpansion || this.lastExpansion.step !== 1) {
+      return { snap: false };
+    }
+
+    const { expandedText, delimiter, timestamp } = this.lastExpansion;
+    if (Date.now() - timestamp > 8000) {
+      this.lastExpansion = null;
+      return { snap: false };
+    }
+
+    // Only applies if delimiter was a space ' '
+    if (delimiter !== ' ') {
+      return { snap: false };
+    }
+
+    const SNAPPABLE_PUNCTUATION = new Set([',', '.', ';', ':', '!', '?', ')', ']', '}', '>']);
+    if (!SNAPPABLE_PUNCTUATION.has(nextKey)) {
+      return { snap: false };
+    }
+
+    const expectedSuffix = expandedText + ' ';
+    if (recentText && recentText.endsWith(expectedSuffix)) {
+      this.lastExpansion = null; // Successfully snapped
+      return {
+        snap: true,
+        deleteLength: 1, // Remove the single trailing space
+        snappedChar: nextKey
+      };
+    }
+
+    return { snap: false };
+  }
+
+  /**
+   * Resolve Dynamic Date & Time variables in macro expansion
+   * $DATE -> DD/MM/YYYY (e.g. 08/11/2026)
+   * $TIME -> HH:mm (e.g. 08:45)
+   * $DATETIME -> DD/MM/YYYY HH:mm
+   * $YEAR -> YYYY
+   */
+  resolveDynamicVariables(value) {
+    if (!value || typeof value !== 'string' || !value.includes('$')) {
+      return value;
+    }
+
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const day = pad(now.getDate());
+    const month = pad(now.getMonth() + 1);
+    const year = String(now.getFullYear());
+    const hours = pad(now.getHours());
+    const minutes = pad(now.getMinutes());
+
+    const dateStr = `${day}/${month}/${year}`;
+    const timeStr = `${hours}:${minutes}`;
+    const dateTimeStr = `${dateStr} ${timeStr}`;
+
+    return value
+      .replace(/\$DATETIME\b/g, dateTimeStr)
+      .replace(/\$DATE\b/g, dateStr)
+      .replace(/\$TIME\b/g, timeStr)
+      .replace(/\$YEAR\b/g, year);
   }
 
   clearUndo() {

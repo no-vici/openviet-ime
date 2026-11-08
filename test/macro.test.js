@@ -50,12 +50,19 @@ export function runMacroTests() {
   const resDisabled = engine.checkExpansion('off', ' ');
   assert('Disabled macro should not expand', resDisabled.match === false, 'false', String(resDisabled.match));
 
-  // 4. Backtracking / Backspace Undo
+  // 4. 2-Step Backspace Undo:
   // After expanding 'vn' with ' ' -> expected text suffix is 'Việt Nam '
   const expansion = engine.checkExpansion('vn', ' ');
   const recentText = 'Tôi yêu Việt Nam ';
-  const undoResult = engine.checkUndo(recentText);
-  assert('Backspace Undo immediately after expansion reverts to raw trigger', undoResult.undo && undoResult.rawTrigger === 'vn', 'vn', undoResult.rawTrigger);
+  
+  // Step 1: 1st Backspace deletes trailing space only
+  const undoStep1 = engine.checkUndo(recentText);
+  assert('2-Step Undo - Step 1: removes trailing space', undoStep1.undo && undoStep1.step === 1 && undoStep1.removeLength === 1, 'step 1, len 1', `step ${undoStep1.step}, len ${undoStep1.removeLength}`);
+
+  // Step 2: 2nd Backspace deletes full expanded text and restores raw trigger 'vn'
+  const textAfterStep1 = 'Tôi yêu Việt Nam';
+  const undoStep2 = engine.checkUndo(textAfterStep1);
+  assert('2-Step Undo - Step 2: restores raw trigger "vn"', undoStep2.undo && undoStep2.step === 2 && undoStep2.rawTrigger === 'vn' && undoStep2.removeLength === 'Việt Nam'.length, 'step 2, vn', `step ${undoStep2.step}, ${undoStep2.rawTrigger}`);
 
   // 4b. Macro Undo Loop Suppression (prevent infinite expansion loop when hitting Space after undo)
   const reExpandSuppressed = engine.checkExpansion('vn', ' ');
@@ -64,6 +71,22 @@ export function runMacroTests() {
   // Next space expands normally
   const normalAfterSuppressed = engine.checkExpansion('vn', ' ');
   assert('Subsequent expansion after suppression works normally', normalAfterSuppressed.match === true, 'true', String(normalAfterSuppressed.match));
+
+  // 4c. Smart Punctuation Snapping
+  // Expand 'vn' -> 'Việt Nam '
+  engine.checkExpansion('vn', ' ');
+  const textWithSpace = 'Chào Việt Nam ';
+  const snapComma = engine.checkPunctuationSnap(',', textWithSpace);
+  assert('Punctuation Snapping on comma: deletes space', snapComma.snap && snapComma.deleteLength === 1 && snapComma.snappedChar === ',', 'snap comma', String(snapComma.snap));
+
+  // 4d. Dynamic Variables ($DATE, $TIME, $DATETIME)
+  engine.setMacro('today', '$DATE');
+  const expDate = engine.checkExpansion('today', ' ');
+  assert('Dynamic variable $DATE resolves to DD/MM/YYYY', expDate.match && /^\d{2}\/\d{2}\/\d{4}$/.test(expDate.expandedText), 'DD/MM/YYYY', expDate.expandedText);
+
+  engine.setMacro('now', '$DATETIME');
+  const expDateTime = engine.checkExpansion('now', ' ');
+  assert('Dynamic variable $DATETIME resolves to DD/MM/YYYY HH:mm', expDateTime.match && /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(expDateTime.expandedText), 'DD/MM/YYYY HH:mm', expDateTime.expandedText);
 
   // 5. JSON Export & Import roundtrip
   const jsonExport = engine.exportJSON();

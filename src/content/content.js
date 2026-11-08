@@ -867,7 +867,8 @@ class AvimContentScript {
       if (undoInfo.undo) {
         event.preventDefault();
         const startReplace = pos - undoInfo.removeLength;
-        this.textReplacer.replaceInNativeInput(target, startReplace, pos, undoInfo.rawTrigger);
+        const replacement = undoInfo.step === 1 ? '' : undoInfo.rawTrigger;
+        this.textReplacer.replaceInNativeInput(target, startReplace, pos, replacement);
         return true;
       }
     } else if (target.isContentEditable) {
@@ -880,7 +881,9 @@ class AvimContentScript {
           const undoInfo = this.macroEngine.checkUndo(textBefore);
           if (undoInfo.undo) {
             event.preventDefault();
-            this.textReplacer.replaceInContentEditable(target, textBefore.slice(-undoInfo.removeLength), undoInfo.rawTrigger);
+            const targetSlice = textBefore.slice(-undoInfo.removeLength);
+            const replacement = undoInfo.step === 1 ? '' : undoInfo.rawTrigger;
+            this.textReplacer.replaceInContentEditable(target, targetSlice, replacement);
             return true;
           }
         }
@@ -967,6 +970,33 @@ class AvimContentScript {
       this.hideSuggestions();
       this.avimEngine.resetWordSession();
       return;
+    }
+
+    // 0B. Smart Punctuation Snapping on Macro:
+    // When user just expanded a macro (e.g. "vn" -> "Việt Nam "), if next key is a punctuation
+    // mark (such as , . ; : ! ? ) ] } >), delete the trailing space and attach punctuation directly.
+    if (this.macroEngine.enabled) {
+      const snap = this.macroEngine.checkPunctuationSnap(key, textBeforeCaret);
+      if (snap.snap) {
+        event.preventDefault();
+        if (isNative) {
+          const pos = target.selectionStart ?? target.value.length;
+          // Delete trailing space and insert punctuation directly + space
+          const startReplace = pos - snap.deleteLength;
+          this.textReplacer.replaceInNativeInput(target, startReplace, pos, snap.snappedChar + ' ');
+        } else if (target.isContentEditable) {
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount) {
+            const range = sel.getRangeAt(0);
+            const node = range.startContainer;
+            if (node.nodeType === Node.TEXT_NODE) {
+              this.textReplacer.replaceInContentEditable(target, ' ', snap.snappedChar + ' ');
+            }
+          }
+        }
+        this.avimEngine.resetWordSession();
+        return;
+      }
     }
 
     // A. Check Word Delimiter Actions: Auto-Restore English (GoNhanh) & Macro Trigger & Emoji & Gboard Next-Word

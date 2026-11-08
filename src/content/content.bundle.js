@@ -2967,7 +2967,9 @@
     { trigger: "dmm", value: "\u0111\u1EE5 m\xE1 m\xE0y", enabled: true },
     { trigger: "ck", value: "ch\u1ED3ng", enabled: true },
     { trigger: "cx", value: "c\u0169ng", enabled: true },
-    { trigger: "idk", value: "tao h\xF4ng bi\u1EBFt", enabled: true }
+    { trigger: "idk", value: "tao h\xF4ng bi\u1EBFt", enabled: true },
+    { trigger: "today", value: "$DATE", enabled: true },
+    { trigger: "now", value: "$DATETIME", enabled: true }
   ];
   var MacroEngine = class {
     constructor(macros = DEFAULT_MACROS, options = {}) {
@@ -3033,11 +3035,13 @@
       if (!entry || !entry.enabled) {
         return { match: false };
       }
-      const expandedText = this.preserveCase(rawWord, entry.value);
+      const expandedText = this.preserveCase(rawWord, this.resolveDynamicVariables(entry.value));
       this.lastExpansion = {
         rawTrigger: rawWord,
         expandedText,
         delimiter,
+        step: 1,
+        // Step 1: Trailing delimiter attached; Step 2: Trailing delimiter removed
         timestamp: Date.now()
       };
       return {
@@ -3048,31 +3052,116 @@
       };
     }
     /**
-     * Backtracking / Undo:
-     * When user presses Backspace immediately following an expansion,
-     * revert back to rawTrigger and suppress immediate re-expansion on next delimiter.
+     * Backtracking / 2-Step Undo:
+     * When user presses Backspace following an expansion:
+     * - Step 1 (first Backspace): Only delete the trailing space/delimiter, leaving caret at the end
+     *   of expandedText (e.g. "Việt Nam " -> "Việt Nam|") so user can type punctuation or continue sentence.
+     * - Step 2 (second consecutive Backspace): Revert the expanded word completely back to rawTrigger
+     *   (e.g. "Việt Nam" -> "vn|"), and activate suppression so typing space next will keep rawTrigger intact!
      */
     checkUndo(recentText) {
       if (!this.autoUndo || !this.lastExpansion) {
         return { undo: false };
       }
-      const { rawTrigger, expandedText, delimiter, timestamp } = this.lastExpansion;
-      if (Date.now() - timestamp > 8e3) {
+      const { rawTrigger, expandedText, delimiter, step, timestamp } = this.lastExpansion;
+      if (Date.now() - timestamp > 1e4) {
         this.lastExpansion = null;
         return { undo: false };
       }
-      const expectedSuffix = expandedText + delimiter;
-      if (recentText && recentText.endsWith(expectedSuffix)) {
-        this.lastExpansion = null;
-        this.suppressedTrigger = rawTrigger;
-        return {
-          undo: true,
-          rawTrigger,
-          revertText: rawTrigger + delimiter,
-          removeLength: expectedSuffix.length
-        };
+      if (step === 1) {
+        const expectedSuffix = expandedText + delimiter;
+        if (recentText && recentText.endsWith(expectedSuffix)) {
+          this.lastExpansion = {
+            rawTrigger,
+            expandedText,
+            delimiter,
+            step: 2,
+            timestamp: Date.now()
+          };
+          return {
+            undo: true,
+            step: 1,
+            rawTrigger,
+            revertText: expandedText,
+            removeLength: delimiter.length
+            // Remove only the trailing delimiter
+          };
+        }
+      }
+      if (step === 2) {
+        if (recentText && recentText.endsWith(expandedText)) {
+          this.lastExpansion = null;
+          this.suppressedTrigger = rawTrigger;
+          return {
+            undo: true,
+            step: 2,
+            rawTrigger,
+            revertText: rawTrigger,
+            removeLength: expandedText.length
+          };
+        }
       }
       return { undo: false };
+    }
+    /**
+     * Smart Punctuation Snapping:
+     * When macro just expanded with space (e.g. "Việt Nam "), if next key is a punctuation mark
+     * (such as , . ; : ! ? ) ] } >), snap the punctuation directly to the end of expandedText
+     * eliminating the unnatural trailing space (e.g. "Việt Nam, " or "Việt Nam.").
+     * @param {string} nextKey Next key pressed by user
+     * @param {string} recentText Text immediately before caret
+     * @returns {{ snap: boolean, snappedText?: string, deleteLength?: number }}
+     */
+    checkPunctuationSnap(nextKey, recentText) {
+      if (!this.lastExpansion || this.lastExpansion.step !== 1) {
+        return { snap: false };
+      }
+      const { expandedText, delimiter, timestamp } = this.lastExpansion;
+      if (Date.now() - timestamp > 8e3) {
+        this.lastExpansion = null;
+        return { snap: false };
+      }
+      if (delimiter !== " ") {
+        return { snap: false };
+      }
+      const SNAPPABLE_PUNCTUATION = /* @__PURE__ */ new Set([",", ".", ";", ":", "!", "?", ")", "]", "}", ">"]);
+      if (!SNAPPABLE_PUNCTUATION.has(nextKey)) {
+        return { snap: false };
+      }
+      const expectedSuffix = expandedText + " ";
+      if (recentText && recentText.endsWith(expectedSuffix)) {
+        this.lastExpansion = null;
+        return {
+          snap: true,
+          deleteLength: 1,
+          // Remove the single trailing space
+          snappedChar: nextKey
+        };
+      }
+      return { snap: false };
+    }
+    /**
+     * Resolve Dynamic Date & Time variables in macro expansion
+     * $DATE -> DD/MM/YYYY (e.g. 08/11/2026)
+     * $TIME -> HH:mm (e.g. 08:45)
+     * $DATETIME -> DD/MM/YYYY HH:mm
+     * $YEAR -> YYYY
+     */
+    resolveDynamicVariables(value) {
+      if (!value || typeof value !== "string" || !value.includes("$")) {
+        return value;
+      }
+      const now = /* @__PURE__ */ new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const day = pad(now.getDate());
+      const month = pad(now.getMonth() + 1);
+      const year = String(now.getFullYear());
+      const hours = pad(now.getHours());
+      const minutes = pad(now.getMinutes());
+      const dateStr = `${day}/${month}/${year}`;
+      const timeStr = `${hours}:${minutes}`;
+      const dateTimeStr = `${dateStr} ${timeStr}`;
+      return value.replace(/\$DATETIME\b/g, dateTimeStr).replace(/\$DATE\b/g, dateStr).replace(/\$TIME\b/g, timeStr).replace(/\$YEAR\b/g, year);
     }
     clearUndo() {
       this.lastExpansion = null;
@@ -5753,7 +5842,8 @@
         if (undoInfo.undo) {
           event.preventDefault();
           const startReplace = pos - undoInfo.removeLength;
-          this.textReplacer.replaceInNativeInput(target, startReplace, pos, undoInfo.rawTrigger);
+          const replacement = undoInfo.step === 1 ? "" : undoInfo.rawTrigger;
+          this.textReplacer.replaceInNativeInput(target, startReplace, pos, replacement);
           return true;
         }
       } else if (target.isContentEditable) {
@@ -5766,7 +5856,9 @@
             const undoInfo = this.macroEngine.checkUndo(textBefore);
             if (undoInfo.undo) {
               event.preventDefault();
-              this.textReplacer.replaceInContentEditable(target, textBefore.slice(-undoInfo.removeLength), undoInfo.rawTrigger);
+              const targetSlice = textBefore.slice(-undoInfo.removeLength);
+              const replacement = undoInfo.step === 1 ? "" : undoInfo.rawTrigger;
+              this.textReplacer.replaceInContentEditable(target, targetSlice, replacement);
               return true;
             }
           }
@@ -5837,6 +5929,28 @@
         this.hideSuggestions();
         this.avimEngine.resetWordSession();
         return;
+      }
+      if (this.macroEngine.enabled) {
+        const snap = this.macroEngine.checkPunctuationSnap(key, textBeforeCaret);
+        if (snap.snap) {
+          event.preventDefault();
+          if (isNative) {
+            const pos = target.selectionStart ?? target.value.length;
+            const startReplace = pos - snap.deleteLength;
+            this.textReplacer.replaceInNativeInput(target, startReplace, pos, snap.snappedChar + " ");
+          } else if (target.isContentEditable) {
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount) {
+              const range = sel.getRangeAt(0);
+              const node = range.startContainer;
+              if (node.nodeType === Node.TEXT_NODE) {
+                this.textReplacer.replaceInContentEditable(target, " ", snap.snappedChar + " ");
+              }
+            }
+          }
+          this.avimEngine.resetWordSession();
+          return;
+        }
       }
       if (isDelimiter(key)) {
         if (wordInfo && wordInfo.word) {
