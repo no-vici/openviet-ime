@@ -215,14 +215,15 @@ In Vietnamese words like `được`, `nước`, `bước`, `trước`, `thương
 
 Configurable in popup settings and options:
 
-1. **Modern Orthography (Default)**:
-   - For open diphthongs without final consonants (`oa`, `oe`, `uy`), the tone mark is placed on the main nucleus vowel (the second vowel):
-     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`, `hoá`.
-2. **Classic Orthography**:
-   - The tone mark is placed on the glide vowel (the first vowel):
+1. **Classic Orthography (Default)**:
+   - Preserves the traditional, visually balanced aesthetic of standard Vietnamese orthography:
+   - The tone mark is placed on the first vowel in open diphthongs:
      - `hòa`, `hòe`, `thủy`, `khỏe`, `thỏa`, `hóa`.
+2. **Modern Orthography**:
+   - For open diphthongs without final consonants (`oa`, `oe`, `uy`), the tone mark is placed on the second vowel:
+     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`, `hoá`.
 
-When a final consonant exists (e.g., `toán`, `hoàn`, `quýt`), both standards place the tone mark on the main nuclear vowel.
+When a final consonant exists (e.g., `toán`, `hoàn`, `quýt`), both standards place the tone mark on the nuclear vowel.
 
 ---
 

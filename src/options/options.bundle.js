@@ -2876,7 +2876,7 @@
   var macroEngine = new MacroEngine(DEFAULT_MACROS);
   var settings = {
     method: 3,
-    toneStyle: "modern",
+    toneStyle: "classic",
     macroEnabled: true,
     spellCheck: true,
     autoUndo: true,

@@ -144,10 +144,10 @@ export class ParsedSyllable {
 
   /**
    * Reconstruct final syllable string according to toneStyle
-   * @param {string} toneStyle TONE_STYLE.MODERN ('modern') or TONE_STYLE.CLASSIC ('classic')
+   * @param {string} toneStyle TONE_STYLE.CLASSIC ('classic') or TONE_STYLE.MODERN ('modern')
    * @returns {string} Reconstructed Vietnamese syllable
    */
-  reconstruct(toneStyle = TONE_STYLE.MODERN) {
+  reconstruct(toneStyle = TONE_STYLE.CLASSIC) {
     if (!this.nucleus) {
       return (this.apostrophePrefix || '') + this.onset + this.glide + this.coda;
     }

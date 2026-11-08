@@ -24,7 +24,7 @@ async function initPopup() {
   // Load current settings
   let settings = {
     method: 3,
-    toneStyle: 'modern',
+    toneStyle: 'classic',
     macroEnabled: true,
     spellCheck: true,
     ctrlToggleEnabled: true,

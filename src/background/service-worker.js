@@ -9,7 +9,7 @@
 const DEFAULT_SETTINGS = {
   method: 3,          // active method: 1: TELEX, 2: VNI, 3: AUTO, 0: OFF
   lastMethod: 3,      // memory of last non-off method (for toggle restore)
-  toneStyle: 'modern',
+  toneStyle: 'classic', // Kiểu truyền thống / cổ điển: hòa, hóa, thủy, khỏe (đẹp, cân đối, hài hòa)
   macroEnabled: true,
   spellCheck: false,
   autoUndo: true,

@@ -21,7 +21,7 @@ class AvimContentScript {
 
     this.settings = {
       method: IME_METHOD.AUTO,
-      toneStyle: TONE_STYLE.MODERN,
+      toneStyle: TONE_STYLE.CLASSIC,
       macroEnabled: true,
       spellCheck: true,
       autoUndo: true,

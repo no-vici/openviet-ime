@@ -10,7 +10,7 @@ import { autoCompleteEngine } from '../engine/autocomplete.js';
 let macroEngine = new MacroEngine(DEFAULT_MACROS);
 let settings = {
   method: 3,
-  toneStyle: 'modern',
+  toneStyle: 'classic',
   macroEnabled: true,
   spellCheck: true,
   autoUndo: true,

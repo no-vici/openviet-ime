@@ -210,16 +210,17 @@ Trong các từ như `được`, `nước`, `bước`, `trước`, `thương`, c
 
 ---
 
-### Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hoà`/`hòa`)
+### Chuẩn Bỏ Dấu Cổ Điển vs Hiện Đại (`hòa`/`hoà`)
 
 Tùy chỉnh linh hoạt trong trang cài đặt:
 
-1. **Chuẩn Hiện Đại (Mặc định)**:
-   - Với các nguyên âm đôi mở không có phụ âm cuối (`oa`, `oe`, `uy`), dấu thanh được đặt trên nguyên âm chính (nguyên âm thứ hai):
-     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`, `hoá`.
-2. **Chuẩn Cổ Điển**:
-   - Dấu thanh được đặt trên âm đệm (nguyên âm thứ nhất):
+1. **Chuẩn Truyền Thống / Cổ Điển (Mặc định)**:
+   - Giữ trọn vẻ đẹp cân xứng, hài hòa và thuận mắt của chữ Quốc ngữ truyền thống từ xưa đến nay:
+   - Dấu thanh được đặt trên nguyên âm thứ nhất trong các vần mở:
      - `hòa`, `hòe`, `thủy`, `khỏe`, `thỏa`, `hóa`.
+2. **Chuẩn Mới**:
+   - Với các nguyên âm đôi mở không có phụ âm cuối (`oa`, `oe`, `uy`), dấu thanh được đặt trên nguyên âm thứ hai:
+     - `hoà`, `hoè`, `thuỷ`, `khoẻ`, `thoả`, `hoá`.
 
 Khi có phụ âm cuối (như `toán`, `hoàn`, `quýt`), cả hai chuẩn đều đồng nhất đặt dấu lên nguyên âm chính trước phụ âm cuối.
 

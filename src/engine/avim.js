@@ -112,7 +112,7 @@ const VALID_VOWEL_CORES = new Set([
 export class AvimEngine {
   constructor(options = {}) {
     this.method = options.method ?? IME_METHOD.VNI;
-    this.toneStyle = options.toneStyle ?? TONE_STYLE.MODERN;
+    this.toneStyle = options.toneStyle ?? TONE_STYLE.CLASSIC;
     this.spellCheck = options.spellCheck ?? true;
     this.autoRestore = options.autoRestore ?? true;
     this.quickConsonants = options.quickConsonants ?? false;

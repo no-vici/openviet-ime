@@ -103,7 +103,7 @@
     if (/^[\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
       return true;
     }
-    if (/^[A-Z][\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
+    if (/^[\p{Lu}][\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
       return true;
     }
     return false;
@@ -540,10 +540,10 @@
     }
     /**
      * Reconstruct final syllable string according to toneStyle
-     * @param {string} toneStyle TONE_STYLE.MODERN ('modern') or TONE_STYLE.CLASSIC ('classic')
+     * @param {string} toneStyle TONE_STYLE.CLASSIC ('classic') or TONE_STYLE.MODERN ('modern')
      * @returns {string} Reconstructed Vietnamese syllable
      */
-    reconstruct(toneStyle = TONE_STYLE.MODERN) {
+    reconstruct(toneStyle = TONE_STYLE.CLASSIC) {
       if (!this.nucleus) {
         return (this.apostrophePrefix || "") + this.onset + this.glide + this.coda;
       }
@@ -1898,7 +1898,7 @@
   var AvimEngine = class {
     constructor(options = {}) {
       this.method = options.method ?? IME_METHOD.VNI;
-      this.toneStyle = options.toneStyle ?? TONE_STYLE.MODERN;
+      this.toneStyle = options.toneStyle ?? TONE_STYLE.CLASSIC;
       this.spellCheck = options.spellCheck ?? true;
       this.autoRestore = options.autoRestore ?? true;
       this.quickConsonants = options.quickConsonants ?? false;
@@ -5265,7 +5265,7 @@
       this.textReplacer = new TextReplacer();
       this.settings = {
         method: IME_METHOD.AUTO,
-        toneStyle: TONE_STYLE.MODERN,
+        toneStyle: TONE_STYLE.CLASSIC,
         macroEnabled: true,
         spellCheck: true,
         autoUndo: true,

@@ -165,8 +165,8 @@ export function isCamelOrPascalCase(token = '') {
     return true;
   }
 
-  // 2. PascalCase: starts with uppercase, has at least one lowercase, followed by another uppercase (e.g. UserController, AppProps, ReactNode)
-  if (/^[A-Z][\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
+  // 2. PascalCase: starts with uppercase (ASCII or accented), has at least one lowercase, followed by another uppercase (e.g. UserController, AppProps, ReactNode, ÚerC)
+  if (/^[\p{Lu}][\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
     return true;
   }
 
