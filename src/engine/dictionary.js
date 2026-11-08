@@ -92,6 +92,7 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'payload', 'auth', 'oauth', 'middleware', 'handler', 'schema', 'query', 'mutation', 'resolver',
   'prisma', 'supabase', 'nextjs', 'nuxt', 'vue', 'angular', 'svelte', 'electron', 'tauri', 'rust',
   'cargo', 'golang', 'pnpm', 'yarn', 'bun', 'deno', 'eslint', 'prettier', 'vitest', 'jest',
+  'modern', 'morden', 'tick', 'backtick',
 
   // General high frequency English words
   'the', 'be', 'to', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'not', 'on', 'he',
@@ -254,10 +255,13 @@ export function reverseVietnameseWord(word) {
     'tẻla': 'tesla',
     'sà': 'saas',
     'sã': 'sax',
+    'sẻach': 'search',
     'còe': 'core',
     'càe': 'care',
     'êpct': 'expect',
     'pẻpct': 'perfect',
+    'modẻn': 'modern',
+    'mỏden': 'morden',
     'dóc': 'docs'
   };
 
@@ -292,7 +296,7 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'syntax', 'prefix', 'suffix', 'annex', 'latex', 'reflex', 'pixel', 'toxic',
   'oxide', 'oxygen', 'galaxy', 'expert', 'express', 'explain', 'explore', 'export',
   'extra', 'extreme', 'exact', 'exam', 'example', 'exist', 'execute', 'exercise',
-  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs'
+  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'morden', 'backtick'
 ]);
 
 /**

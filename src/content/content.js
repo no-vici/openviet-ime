@@ -834,6 +834,11 @@ class AvimContentScript {
       }
     }
 
+    // If immediately preceded by backtick ` or inside unclosed inline code backticks, NEVER auto-capitalize!
+    if (/`\s*$/.test(textBefore)) return false;
+    const backtickCount = (textBefore.match(/`/g) || []).length;
+    if (backtickCount % 2 === 1) return false;
+
     // If start of input or only whitespace
     if (!textBefore || textBefore.trim().length === 0) return true;
 

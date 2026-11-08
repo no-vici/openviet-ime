@@ -455,5 +455,16 @@ export function runAvimTests() {
   const spaceRestored = autoRestoreEngine.checkAutoRestore(docRaw);
   assert('Auto-Restore on word delimiter restores docs: "dóc" -> "docs"', spaceRestored.restore && spaceRestored.result === 'docs', 'docs', spaceRestored.result);
 
+  // 26. Auto-Restore test on "morden" -> "mỏden" -> restores to "morden"
+  const mordenEngine = new AvimEngine({ method: IME_METHOD.AUTO, spellCheck: true });
+  let mordenText = '';
+  ['m', 'o', 'r', 'd', 'e', 'n'].forEach(k => {
+    mordenEngine.trackRawKey(k);
+    mordenText = mordenEngine.processKey(mordenText, k).result;
+  });
+  assert('Typing morden with spellcheck produces mỏden in-flight', mordenText === 'mỏden', 'mỏden', mordenText);
+  const mordenRestored = mordenEngine.checkAutoRestore(mordenText);
+  assert('Auto-Restore on word delimiter restores morden: "mỏden" -> "morden"', mordenRestored.restore && mordenRestored.result === 'morden', 'morden', mordenRestored.result);
+
   return results;
 }

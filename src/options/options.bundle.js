@@ -1137,6 +1137,10 @@
     "prettier",
     "vitest",
     "jest",
+    "modern",
+    "morden",
+    "tick",
+    "backtick",
     // General high frequency English words
     "the",
     "be",

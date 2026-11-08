@@ -55,16 +55,16 @@
     const lastChunkMatch = fullContext.match(/[^\s]+$/);
     const currentChunk = lastChunkMatch ? lastChunkMatch[0] : token;
     if (!currentChunk && !token) return false;
-    if (/^(https?|ftp|file):\/\//i.test(currentChunk) || /(https?|ftp|file):\/\/[^\s]*$/i.test(fullContext)) {
+    if (/^(https?|ftp|file):\/\//i.test(currentChunk)) {
       return true;
     }
-    if (/^(www\.|localhost[\/:]|127\.0\.0\.1)/i.test(currentChunk) || /(^|\s)(www\.|localhost[\/:]|127\.0\.0\.1)[^\s]*$/i.test(fullContext)) {
+    if (/^(www\.|localhost[\/:]|127\.0\.0\.1)/i.test(currentChunk)) {
       return true;
     }
     if (/\.(com|vn|net|org|io|dev|app|edu|gov|co|me|info|xyz|ai|tech|store|site)(\/|\?|#|$)/i.test(currentChunk)) {
       return true;
     }
-    if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk) || /(^|\s)(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]+/i.test(fullContext)) {
+    if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk)) {
       return true;
     }
     if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/i.test(currentChunk)) {
@@ -1329,6 +1329,10 @@
     "prettier",
     "vitest",
     "jest",
+    "modern",
+    "morden",
+    "tick",
+    "backtick",
     // General high frequency English words
     "the",
     "be",
@@ -1613,10 +1617,13 @@
       "t\u1EBBla": "tesla",
       "s\xE0": "saas",
       "s\xE3": "sax",
+      "s\u1EBBach": "search",
       "c\xF2e": "core",
       "c\xE0e": "care",
       "\xEApct": "expect",
       "p\u1EBBpct": "perfect",
+      "mod\u1EBBn": "modern",
+      "m\u1ECFden": "morden",
       "d\xF3c": "docs"
     };
     if (DIRECT_REVERSE_TRAPS[clean]) {
@@ -1709,7 +1716,10 @@
     "expand",
     "expense",
     "perfect",
-    "docs"
+    "docs",
+    "modern",
+    "morden",
+    "backtick"
   ]);
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
     if (!rawWord && !currentWord) return false;
@@ -6524,6 +6534,9 @@
           }
         }
       }
+      if (/`\s*$/.test(textBefore)) return false;
+      const backtickCount = (textBefore.match(/`/g) || []).length;
+      if (backtickCount % 2 === 1) return false;
       if (!textBefore || textBefore.trim().length === 0) return true;
       if (/[\n\r]\s*$/.test(textBefore)) return true;
       const match = textBefore.match(/([.!?])(\s+)$/);

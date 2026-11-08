@@ -84,11 +84,11 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
 
   // 1. URLs & Web addresses
   // Protocols: http://, https://, ftp://, file://
-  if (/^(https?|ftp|file):\/\//i.test(currentChunk) || /(https?|ftp|file):\/\/[^\s]*$/i.test(fullContext)) {
+  if (/^(https?|ftp|file):\/\//i.test(currentChunk)) {
     return true;
   }
   // Starting with www. or localhost or IP
-  if (/^(www\.|localhost[\/:]|127\.0\.0\.1)/i.test(currentChunk) || /(^|\s)(www\.|localhost[\/:]|127\.0\.0\.1)[^\s]*$/i.test(fullContext)) {
+  if (/^(www\.|localhost[\/:]|127\.0\.0\.1)/i.test(currentChunk)) {
     return true;
   }
   // Common domain extensions with path or query: .com, .vn, .org, .net, .io, .dev, etc.
@@ -96,7 +96,7 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
     return true;
   }
   // Unix / Linux / macOS absolute and home file paths: e.g. /usr/bin, /var/log, /etc/hosts, ~/.config, ./dist, ../src
-  if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk) || /(^|\s)(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]+/i.test(fullContext)) {
+  if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk)) {
     return true;
   }
   // Slashes in middle of non-space token (URL path: e.g. domain/path or api/v1)
