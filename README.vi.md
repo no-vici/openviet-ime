@@ -36,6 +36,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
    - [Bỏ Dấu Ở Cuối Từ (Late Vowel Shaping)](#bỏ-dấu-ở-cuối-từ-late-vowel-shaping)
    - [Hoán Đổi Dấu Phụ Bảo Lưu Thanh Điệu (VietC / Bamboo)](#hoán-đổi-dấu-phụ-bảo-lưu-thanh-điệu-vietc--bamboo)
    - [Quy Tắc Ngữ Âm & Bảo Vệ Lệnh Kỹ Thuật Tự Nhiên](#quy-tắc-ngữ-âm--bảo-vệ-lệnh-kỹ-thuật-tự-nhiên)
+   - [Cứu Chữ & Cứu Dấu Thông Minh (Đột Phá UX Kiểu Ngó Sen / vnchKey)](#cứu-chữ--cứu-dấu-thông-minh-đột-phá-ux-kiểu-ngó-sen--vnchkey)
 3. [Gợi Ý Từ Thông Minh & Dự Đoán Từ Kế Tiếp Kiểu Gboard](#gợi-ý-từ-thông-minh--dự-đoán-từ-kế-tiếp-kiểu-gboard)
    - [Nguồn Dữ Liệu Từ Điển Đa Tầng](#nguồn-dữ-liệu-từ-điển-đa-tầng)
    - [Dự Đoán Từ Kế Tiếp & Tối Ưu Cho Ứng Dụng Chat](#dự-đoán-từ-kế-tiếp--tối-ưu-cho-ứng-dụng-chat)
@@ -65,6 +66,9 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Phím `z` Xóa Dấu Thanh Chuyên Dụng**: Gõ phím `z` (Telex/Auto) hoặc phím `0` (VNI) để lập tức gỡ bỏ dấu thanh và đưa nguyên âm về dạng gốc (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Tự Động Bỏ Qua URL, Email & Code (`isUrlOrEmailOrCode`)**: Tự động nhận diện đường dẫn web (`https://`, `www.`, `.com`, `/path`), địa chỉ email (`user@gmail.com`) và cú pháp lập trình (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, thẻ HTML, `->`, `=>`, `===`), tạm ngưng biến đổi bộ gõ để giữ nguyên link và code.
 - **Chế Độ Lập Trình Thông Minh (Bảo Vệ `camelCase` & `PascalCase`)**: Tự động nhận diện cú pháp đặt tên biến/hàm/lớp của lập trình viên (như `useState`, `isCamelCase`, `UserController`, `AppProps`). Khi bạn gõ ký tự in hoa nối tiếp, bộ gõ tự động khôi phục tiền tố không dấu và tạm ngưng bỏ dấu tiếng Việt, giúp anh em lập trình gõ code mượt mà mà không phải tắt bộ gõ.
+- **Cứu Chữ & Cứu Dấu (Đột Phá UX Kiểu Ngó Sen / vnchKey)**:
+  - **Cứu chữ tự động khi bật bộ gõ**: Khi bạn lỡ gõ một câu dài khi bàn phím đang tắt dấu (`Chaof banj, tieengs vieetj nef`), chỉ cần bấm bật bộ gõ (`2x Ctrl`, `Ctrl+Shift+Z` hoặc click popup), tiện ích tự động hồi phục chuỗi thô thành tiếng Việt có dấu chuẩn xác: $\rightarrow$ `Chào bạn, tiếng việt nè` (bảo toàn nguyên vẹn các từ tiếng Anh như `linux`, `server`). Bấm `ESC` để hoàn tác lại chuỗi thô tức thì.
+  - **Cứu dấu khi bôi đen**: Bôi đen từ bất kỳ rồi gõ phím dấu thanh (`s, f, r, x, j, z` hoặc `1-5, 0`) để đổi, thêm hoặc xóa dấu trực tiếp (`nhanh` + `s` $\rightarrow$ `nhánh`, `nhánh` + `z` $\rightarrow$ `nhanh`, `hoa` + `r` $\rightarrow$ `hoả`), không làm mất chữ đã bôi đen.
 - **Làm Chủ Các Trường Hợp Ngữ Âm Đặc Biệt**: Xử lý triệt để bộ ba ngoại lệ vần `uơ` (`thuở`, `quởn`, `huơ`), bẫy nguyên âm ba (`khuỷu`, `ngoèo`) và từ mượn gốc Pháp có hai chữ o (`xoong`, `boong`, `goòng`).
 - **Bỏ Dấu Chuẩn Xác Tuyệt Đối**: Đã sửa và hoàn thiện vị trí đặt dấu cho tất cả các nguyên âm đôi, ba phức tạp: `uê` (`thuế`, `huế`, `quế`, `xuề`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), cùng 2 chuẩn hiện đại và cổ điển (`hoà`/`hòa`, `thuỷ`/`thủy`).
 - **Tối Ưu Riêng Cho Telegram Web A & Trình Soạn Thảo Rich-Text**: Xử lý triệt để xung đột con trỏ của TipTap/ProseMirror, khởi tạo Shadow Host sớm và xác định vùng chọn `TEXT_NODE` chuẩn xác, không bao giờ bị nhảy con trỏ hay lặp vòng viết hoa đầu câu.
@@ -257,6 +261,28 @@ Học hỏi từ tinh hoa kỹ thuật của VietC và Bamboo, OpenViet IME hỗ
 - **Âm Khép Phụ Âm Cuối (`-c, -ch, -p, -t`)**: Những âm tiết kết thúc bằng phụ âm tắc (`c`, `ch`, `p`, `t`) **chỉ có thể nhận Thanh 1 (Sắc) hoặc Thanh 5 (Nặng)**. Tuyệt đối không nhận thanh Huyền, Hỏi, Ngã (`bac` + `s` -> `bác`, nhưng `bac` + `f` -> `bacf` không bị biến thành `bàc`).
 - **Quy tắc `c/k`, `g/gh`, `ng/ngh`**: Các nguyên âm trước (`e, ê, i, y`) không đi cùng `c`, `g`, `ng`. Các từ tiếng Anh như `center`, `city`, `get` được giữ nguyên vẹn mà không bị đổi dấu sai.
 - **Lớp Bảo Vệ Ngữ Âm Tự Nhiên (Bảo Vệ Lệnh CLI & Từ Kỹ Thuật)**: Ngay cả khi người dùng **tắt tính năng kiểm tra chính tả**, Syllable Parser của OpenViet IME vẫn luôn thực thi luật cấu trúc âm tiết tự nhiên (bảo vệ các phụ âm cuối lạ ngoại ngữ như `-tx`, `-cx`, `-rl`, `-sh`,...). Nhờ đó, các câu lệnh shell, tên file, thư viện lập trình (như `fcitx5`, `docx4`, `linux6`) **hoàn toàn không bị biến dạng** (ví dụ `fcitx5` được giữ nguyên vẹn thay vì bị biến thành `fcịtx`).
+
+---
+
+### Cứu Chữ & Cứu Dấu Thông Minh (Đột Phá UX Kiểu Ngó Sen / vnchKey)
+
+Kế thừa phát kiến trải nghiệm người dùng xuất sắc từ Ngó Sen và vnchKey, OpenViet IME mang đến bộ đôi tính năng "chữa cháy" cứu tinh cho người dùng Việt:
+
+1. **Cứu Chữ Tự Động Khi Bật Bộ Gõ (On-Activation Word Rescue)**:
+   - **Tình huống**: Bạn mải mê gõ một mạch văn bản dài (ví dụ: `Chaof banj, tieengs vieetj nef`), ngẩng mặt lên mới tá hỏa nhận ra bàn phím đang ở chế độ Tiếng Anh!
+   - **Xử lý**: Ngay khi bạn bấm phím bật bộ gõ (`2x Ctrl`, `Ctrl+Shift+Z` hoặc click biểu tượng popup), bộ gõ tự động phân tích ngữ cảnh thô trước con trỏ và biến đổi thành tiếng Việt chuẩn ngữ pháp: $\rightarrow$ `Chào bạn, tiếng việt nè`.
+   - **Bảo toàn từ tiếng Anh & Hoàn tác an toàn**: Các từ vựng tiếng Anh (như `linux`, `server`, `browser`) được giữ nguyên vẹn. Nếu không muốn cứu chữ, chỉ cần nhấn phím **`Escape`**, bộ gõ sẽ lập tức trả lại chuỗi phím thô ban đầu.
+
+2. **Cứu Dấu Khi Bôi Đen (Selection Accent Rescue)**:
+   - **Tình huống**: Bạn muốn thêm, đổi hoặc gỡ dấu thanh trên một từ đã có sẵn trên màn hình mà không muốn phải xóa lùi rồi gõ lại từ đầu.
+   - **Xử lý**: Chỉ cần bôi đen (highlight) từ đó bằng chuột hoặc bàn phím rồi bấm một phím dấu thanh:
+     - `nhanh` + `s` $\rightarrow$ `nhánh`
+     - `nhánh` + `f` $\rightarrow$ `nhành`
+     - `nhánh` + `z` (hoặc `0` trong VNI) $\rightarrow$ `nhanh` (xóa dấu)
+     - `hoa` + `r` $\rightarrow$ `hoả` (hoặc `hỏa` theo chuẩn cổ điển)
+     - `tieng` + `s` $\rightarrow$ `tiếng`
+     - `nước` + `0` $\rightarrow$ `nươc`
+   - Nếu bạn gõ phím thông thường (như chữ `k`), trình duyệt vẫn giữ nguyên hành vi chuẩn (gõ đè chữ mới lên vùng chọn).
 
 ---
 

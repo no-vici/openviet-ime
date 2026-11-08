@@ -1482,4 +1482,118 @@ export class AvimEngine {
     if (!word) return true;
     return checkWordSpelling(word);
   }
+
+  /**
+   * Word Rescue: Retroactively converts a raw keystroke word into its accented Vietnamese equivalent
+   * (Ngó Sen / vnchKey innovation).
+   * E.g. "tieengs" -> "tiếng", "vieetj" -> "việt", "nef" -> "nè", "Chaof" -> "Chào"
+   * Preserves English words and user dictionary entries (linux, server, browser...).
+   * @param {string} rawWord
+   * @returns {string} Rescued Vietnamese word or original word if unchanged/foreign
+   */
+  rescueWord(rawWord) {
+    if (!rawWord || typeof rawWord !== 'string') return rawWord;
+    const lower = rawWord.toLowerCase();
+
+    // 1. If explicitly in COMMON_ENGLISH_WORDS or userDictionary, keep raw
+    if (COMMON_ENGLISH_WORDS.has(lower) || userDictionary.has(lower)) {
+      return rawWord;
+    }
+
+    // 2. Simulate keystroke processing through AvimEngine
+    let acc = '';
+    for (const ch of rawWord) {
+      const res = this.processKey(acc, ch);
+      acc = res.transformed ? res.result : acc + ch;
+    }
+
+    if (acc === rawWord) return rawWord;
+
+    // Check if result has Vietnamese diacritics or is in valid Vietnamese word set
+    const hasVnDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(acc);
+    if (hasVnDiacritics || getVietnameseWordSet().has(acc.toLowerCase())) {
+      return acc;
+    }
+
+    return rawWord;
+  }
+
+  /**
+   * Text Rescue: Converts a sentence or phrase of raw words into accented Vietnamese
+   * while preserving whitespace, punctuation, and English words.
+   * E.g. "Chaof banj, tieengs vieetj nef" -> "Chào bạn, tiếng việt nè"
+   * @param {string} text
+   * @returns {string} Rescued text
+   */
+  rescueText(text) {
+    if (!text || typeof text !== 'string') return text;
+    const tokens = text.split(/([\s\p{P}]+)/u);
+    return tokens.map(tok => {
+      if (!tok || /^[\s\p{P}]+$/u.test(tok)) return tok;
+      return this.rescueWord(tok);
+    }).join('');
+  }
+
+  /**
+   * Selection Accent Rescue:
+   * Modifies, adds, or removes tone accents on an existing word or selected syllable.
+   * (Ngó Sen / vnchKey innovation).
+   * E.g.:
+   *   "nhanh" + "s" -> "nhánh"
+   *   "nhánh" + "f" -> "nhành"
+   *   "nhánh" + "z" -> "nhanh" (remove tone)
+   *   "hoa" + "r" -> "hoả" (or "hỏa" classic)
+   *   "tieng" + "s" -> "tiếng"
+   *   "nhanh" + "1" -> "nhánh"
+   *   "nước" + "0" -> "nươc"
+   * @param {string} word Current selected word
+   * @param {string} key Incoming tone key ('s','f','r','x','j','z' in Telex, '1'-'5','0' in VNI)
+   * @returns {string|null} Rescued word with updated tone, or null if key is not a tone modifier
+   */
+  applyAccentToSelection(word, key) {
+    if (!word || !key || key.length !== 1) return null;
+
+    const TONE_KEYS = {
+      's': TONE_MARK.ACUTE,      '1': TONE_MARK.ACUTE,
+      'f': TONE_MARK.GRAVE,      '2': TONE_MARK.GRAVE,
+      'r': TONE_MARK.HOOK_ABOVE, '3': TONE_MARK.HOOK_ABOVE,
+      'x': TONE_MARK.TILDE,      '4': TONE_MARK.TILDE,
+      'j': TONE_MARK.DOT_BELOW,  '5': TONE_MARK.DOT_BELOW,
+      'z': TONE_MARK.NONE,       '0': TONE_MARK.NONE
+    };
+
+    const lowerKey = key.toLowerCase();
+    if (!(lowerKey in TONE_KEYS)) return null;
+    const targetTone = TONE_KEYS[lowerKey];
+
+    const parsed = parseSyllable(word);
+    if (!parsed || (!parsed.nucleus && !parsed.glide)) return null;
+
+    const lowerOnset = parsed.onset.toLowerCase();
+    const lowerN = parsed.nucleus.toLowerCase();
+
+    // Handle uo trio and special diphthong enhancements
+    if (lowerOnset === 'th' && lowerN === 'uo' && !parsed.coda) {
+      parsed.glide = 'u';
+      parsed.nucleus = 'ơ';
+    } else if (lowerOnset === 'q' && lowerN === 'uo' && parsed.coda.toLowerCase() === 'n') {
+      parsed.glide = 'u';
+      parsed.nucleus = 'ơ';
+    } else if (lowerOnset === 'q' && (lowerN === 'o' || lowerN === 'uo') && !parsed.coda) {
+      parsed.glide = 'u';
+      parsed.nucleus = 'ơ';
+    } else if (lowerOnset === 'h' && lowerN === 'uo' && !parsed.coda) {
+      parsed.glide = 'u';
+      parsed.nucleus = 'ơ';
+    } else if (lowerN === 'ie' && parsed.coda) {
+      const isUpper = parsed.nucleus[1] === parsed.nucleus[1].toUpperCase();
+      parsed.nucleus = parsed.nucleus[0] + (isUpper ? 'Ê' : 'ê');
+    } else if (lowerN === 'uo' && parsed.coda) {
+      const isUpper0 = parsed.nucleus[0] === parsed.nucleus[0].toUpperCase();
+      const isUpper1 = parsed.nucleus[1] === parsed.nucleus[1].toUpperCase();
+      parsed.nucleus = (isUpper0 ? 'Ư' : 'ư') + (isUpper1 ? 'Ơ' : 'ơ');
+    }
+
+    return parsed.withTone(targetTone).reconstruct(this.toneStyle);
+  }
 }

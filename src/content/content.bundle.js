@@ -570,7 +570,7 @@
           targetIdx = 1;
         } else if (lowerN === "\u01B0a" || lowerN === "ia" || lowerN === "ua") {
           targetIdx = hasCoda ? 1 : 0;
-        } else if (["ai", "ao", "au", "ay", "\xE2u", "\xE2y", "eo", "\xEAu", "oi", "\xF4i", "\u01A1i", "ui"].includes(lowerN)) {
+        } else if (["ai", "ao", "au", "ay", "\xE2u", "\xE2y", "eo", "\xEAu", "oi", "\xF4i", "\u01A1i", "ui", "yu"].includes(lowerN)) {
           targetIdx = 0;
         } else {
           if (hasCoda) {
@@ -2978,6 +2978,108 @@
       if (!word) return true;
       return checkWordSpelling(word);
     }
+    /**
+     * Word Rescue: Retroactively converts a raw keystroke word into its accented Vietnamese equivalent
+     * (Ngó Sen / vnchKey innovation).
+     * E.g. "tieengs" -> "tiếng", "vieetj" -> "việt", "nef" -> "nè", "Chaof" -> "Chào"
+     * Preserves English words and user dictionary entries (linux, server, browser...).
+     * @param {string} rawWord
+     * @returns {string} Rescued Vietnamese word or original word if unchanged/foreign
+     */
+    rescueWord(rawWord) {
+      if (!rawWord || typeof rawWord !== "string") return rawWord;
+      const lower = rawWord.toLowerCase();
+      if (COMMON_ENGLISH_WORDS.has(lower) || userDictionary.has(lower)) {
+        return rawWord;
+      }
+      let acc = "";
+      for (const ch of rawWord) {
+        const res = this.processKey(acc, ch);
+        acc = res.transformed ? res.result : acc + ch;
+      }
+      if (acc === rawWord) return rawWord;
+      const hasVnDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(acc);
+      if (hasVnDiacritics || getVietnameseWordSet().has(acc.toLowerCase())) {
+        return acc;
+      }
+      return rawWord;
+    }
+    /**
+     * Text Rescue: Converts a sentence or phrase of raw words into accented Vietnamese
+     * while preserving whitespace, punctuation, and English words.
+     * E.g. "Chaof banj, tieengs vieetj nef" -> "Chào bạn, tiếng việt nè"
+     * @param {string} text
+     * @returns {string} Rescued text
+     */
+    rescueText(text) {
+      if (!text || typeof text !== "string") return text;
+      const tokens = text.split(/([\s\p{P}]+)/u);
+      return tokens.map((tok) => {
+        if (!tok || /^[\s\p{P}]+$/u.test(tok)) return tok;
+        return this.rescueWord(tok);
+      }).join("");
+    }
+    /**
+     * Selection Accent Rescue:
+     * Modifies, adds, or removes tone accents on an existing word or selected syllable.
+     * (Ngó Sen / vnchKey innovation).
+     * E.g.:
+     *   "nhanh" + "s" -> "nhánh"
+     *   "nhánh" + "f" -> "nhành"
+     *   "nhánh" + "z" -> "nhanh" (remove tone)
+     *   "hoa" + "r" -> "hoả" (or "hỏa" classic)
+     *   "tieng" + "s" -> "tiếng"
+     *   "nhanh" + "1" -> "nhánh"
+     *   "nước" + "0" -> "nươc"
+     * @param {string} word Current selected word
+     * @param {string} key Incoming tone key ('s','f','r','x','j','z' in Telex, '1'-'5','0' in VNI)
+     * @returns {string|null} Rescued word with updated tone, or null if key is not a tone modifier
+     */
+    applyAccentToSelection(word, key) {
+      if (!word || !key || key.length !== 1) return null;
+      const TONE_KEYS = {
+        "s": TONE_MARK.ACUTE,
+        "1": TONE_MARK.ACUTE,
+        "f": TONE_MARK.GRAVE,
+        "2": TONE_MARK.GRAVE,
+        "r": TONE_MARK.HOOK_ABOVE,
+        "3": TONE_MARK.HOOK_ABOVE,
+        "x": TONE_MARK.TILDE,
+        "4": TONE_MARK.TILDE,
+        "j": TONE_MARK.DOT_BELOW,
+        "5": TONE_MARK.DOT_BELOW,
+        "z": TONE_MARK.NONE,
+        "0": TONE_MARK.NONE
+      };
+      const lowerKey = key.toLowerCase();
+      if (!(lowerKey in TONE_KEYS)) return null;
+      const targetTone = TONE_KEYS[lowerKey];
+      const parsed = parseSyllable(word);
+      if (!parsed || !parsed.nucleus && !parsed.glide) return null;
+      const lowerOnset = parsed.onset.toLowerCase();
+      const lowerN = parsed.nucleus.toLowerCase();
+      if (lowerOnset === "th" && lowerN === "uo" && !parsed.coda) {
+        parsed.glide = "u";
+        parsed.nucleus = "\u01A1";
+      } else if (lowerOnset === "q" && lowerN === "uo" && parsed.coda.toLowerCase() === "n") {
+        parsed.glide = "u";
+        parsed.nucleus = "\u01A1";
+      } else if (lowerOnset === "q" && (lowerN === "o" || lowerN === "uo") && !parsed.coda) {
+        parsed.glide = "u";
+        parsed.nucleus = "\u01A1";
+      } else if (lowerOnset === "h" && lowerN === "uo" && !parsed.coda) {
+        parsed.glide = "u";
+        parsed.nucleus = "\u01A1";
+      } else if (lowerN === "ie" && parsed.coda) {
+        const isUpper = parsed.nucleus[1] === parsed.nucleus[1].toUpperCase();
+        parsed.nucleus = parsed.nucleus[0] + (isUpper ? "\xCA" : "\xEA");
+      } else if (lowerN === "uo" && parsed.coda) {
+        const isUpper0 = parsed.nucleus[0] === parsed.nucleus[0].toUpperCase();
+        const isUpper1 = parsed.nucleus[1] === parsed.nucleus[1].toUpperCase();
+        parsed.nucleus = (isUpper0 ? "\u01AF" : "\u01B0") + (isUpper1 ? "\u01A0" : "\u01A1");
+      }
+      return parsed.withTone(targetTone).reconstruct(this.toneStyle);
+    }
   };
 
   // src/engine/macro.js
@@ -5177,6 +5279,7 @@
         autoRestoreEnglish: true,
         escRevert: true,
         phonologyRules: true,
+        wordRescue: true,
         autoCompleteEnabled: true,
         nextWordEnabled: true,
         gboardLearningEnabled: true,
@@ -5287,10 +5390,14 @@
       if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           if (message.type === "SETTINGS_UPDATED") {
+            const oldMethod = this.settings.method;
             if (message.settings) Object.assign(this.settings, message.settings);
             if (message.macros) this.settings.macros = message.macros;
             if (message.settings || message.macros) {
               this.applySettings();
+            }
+            if (oldMethod === IME_METHOD.OFF && this.settings.method !== IME_METHOD.OFF) {
+              this.performOnActivationWordRescue();
             }
             sendResponse({ success: true });
           }
@@ -5741,6 +5848,11 @@
           return;
         }
       }
+      if (this.settings.wordRescue !== false && this.settings.method !== IME_METHOD.OFF && key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        if (this.handleSelectionAccentRescue(target, key, event)) {
+          return;
+        }
+      }
       if (key === "Backspace") {
         this.hideSuggestions();
         if (this.handleBackspaceUndo(target, event)) {
@@ -5842,6 +5954,20 @@
       return false;
     }
     handleEscapeRevert(target, event) {
+      if (this._lastRescueState && this._lastRescueState.target === target) {
+        const state = this._lastRescueState;
+        this._lastRescueState = null;
+        event.preventDefault();
+        const isNative2 = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+        if (isNative2) {
+          this.textReplacer.replaceInNativeInput(target, state.start, state.end, state.rawText);
+        } else if (target.isContentEditable) {
+          this.textReplacer.replaceInContentEditable(target, state.rescuedText, state.rawText);
+        }
+        this.hideSuggestions();
+        this.showHudToast(`Ho\xE0n t\xE1c: ${state.rawText}`, true);
+        return true;
+      }
       if (this.settings.escRevert === false) return false;
       const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
       const wordInfo = isNative ? this.textReplacer.extractNativeWordBuffer(target) : this.textReplacer.extractContentEditableWordBuffer();
@@ -5869,6 +5995,120 @@
         }
       }
       return false;
+    }
+    /**
+     * Selection Accent Rescue (Ngó Sen / vnchKey innovation):
+     * When user selects a word (e.g. 'nhanh', 'hoa', 'tieng') and presses a tone key
+     * (e.g. 's', 'f', 'r', 'x', 'j', 'z' or '1'-'5', '0'), modifies the diacritic tone
+     * directly on the selection instead of replacing it with raw letter.
+     */
+    handleSelectionAccentRescue(target, key, event) {
+      const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      let selectedText = "";
+      let start = 0;
+      let end = 0;
+      if (isNative) {
+        start = target.selectionStart ?? 0;
+        end = target.selectionEnd ?? 0;
+        if (start < end) {
+          selectedText = target.value.slice(start, end);
+        }
+      } else if (target.isContentEditable) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount && !sel.isCollapsed) {
+          selectedText = sel.toString();
+        }
+      }
+      if (!selectedText || !/^[\p{L}\p{M}]+$/u.test(selectedText.trim())) {
+        return false;
+      }
+      const trimmed = selectedText.trim();
+      const rescued = this.avimEngine.applyAccentToSelection(trimmed, key);
+      if (rescued && rescued !== trimmed) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") {
+          event.stopImmediatePropagation();
+        }
+        const leadingSpace = selectedText.match(/^\s*/)[0];
+        const trailingSpace = selectedText.match(/\s*$/)[0];
+        const replacement = leadingSpace + rescued + trailingSpace;
+        if (isNative) {
+          this.textReplacer.replaceInNativeInput(target, start, end, replacement);
+          target.setSelectionRange(start + leadingSpace.length, start + leadingSpace.length + rescued.length);
+        } else if (target.isContentEditable) {
+          this.textReplacer.replaceInContentEditable(target, selectedText, replacement);
+        }
+        this.showHudToast(`C\u1EE9u d\u1EA5u: ${rescued}`, true);
+        return true;
+      }
+      return false;
+    }
+    /**
+     * On-Activation Retroactive Word Rescue (Ngó Sen / vnchKey innovation):
+     * When IME is switched from OFF to an active Vietnamese mode (Auto/Telex/VNI),
+     * reads the surrounding unaccented text typed immediately before the caret
+     * (e.g. 'Chaof banj, tieengs vieetj nef'), converts into accented Vietnamese
+     * ('Chào bạn, tiếng việt nè'), and saves undo state for instant ESC revert.
+     */
+    performOnActivationWordRescue() {
+      if (this.settings.wordRescue === false || this.settings.method === IME_METHOD.OFF) {
+        return;
+      }
+      const target = this.domObserver.getActiveElement();
+      if (!target || !this.domObserver.isEligibleTarget(target)) {
+        return;
+      }
+      const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      let textBeforeCaret = "";
+      let startIdx = 0;
+      let endIdx = 0;
+      if (isNative) {
+        endIdx = target.selectionStart ?? target.value.length;
+        const val = target.value || "";
+        textBeforeCaret = val.slice(0, endIdx);
+        const match = textBeforeCaret.match(/([^\n\r]{1,150})$/);
+        if (match) {
+          textBeforeCaret = match[1];
+          startIdx = endIdx - match[1].length;
+        }
+      } else if (target.isContentEditable) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount) {
+          const range = sel.getRangeAt(0);
+          let node = range.startContainer;
+          let offset = range.startOffset;
+          if (node.nodeType === Node.TEXT_NODE) {
+            const val = node.textContent || "";
+            textBeforeCaret = val.slice(0, offset);
+            const match = textBeforeCaret.match(/([^\n\r]{1,150})$/);
+            if (match) {
+              textBeforeCaret = match[1];
+              startIdx = offset - match[1].length;
+              endIdx = offset;
+            }
+          }
+        }
+      }
+      if (!textBeforeCaret || !textBeforeCaret.trim()) {
+        return;
+      }
+      const rescued = this.avimEngine.rescueText(textBeforeCaret);
+      if (rescued && rescued !== textBeforeCaret) {
+        if (isNative) {
+          this.textReplacer.replaceInNativeInput(target, startIdx, endIdx, rescued);
+        } else if (target.isContentEditable) {
+          this.textReplacer.replaceInContentEditable(target, textBeforeCaret, rescued);
+        }
+        this._lastRescueState = {
+          target,
+          start: startIdx,
+          end: startIdx + rescued.length,
+          rawText: textBeforeCaret,
+          rescuedText: rescued
+        };
+        this.showHudToast(`\u0110\xE3 c\u1EE9u ch\u1EEF: ${rescued}`, true);
+      }
     }
     handleBackspaceUndo(target, event) {
       if (!this.macroEngine.enabled || !this.macroEngine.autoUndo) return false;
@@ -6233,6 +6473,9 @@
       const methodName = this.settings.method === IME_METHOD.VNI ? "VNI" : this.settings.method === IME_METHOD.TELEX ? "Telex" : this.settings.method === IME_METHOD.AUTO ? "T\u1EF1 \u0111\u1ED9ng" : "T\u1EAET";
       const text = this.settings.method !== IME_METHOD.OFF ? `AVIM: B\u1EACT (${methodName})` : "AVIM: T\u1EAET (Ti\u1EBFng Anh)";
       this.showHudToast(text, this.settings.method !== IME_METHOD.OFF);
+      if (isCurrentlyOff && this.settings.method !== IME_METHOD.OFF) {
+        this.performOnActivationWordRescue();
+      }
     }
     showHudToast(text, isOn) {
       let toast = document.getElementById("__avim_hud_toast__");

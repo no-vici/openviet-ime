@@ -35,6 +35,7 @@ class AvimContentScript {
       autoRestoreEnglish: true,
       escRevert: true,
       phonologyRules: true,
+      wordRescue: true,
       autoCompleteEnabled: true,
       nextWordEnabled: true,
       gboardLearningEnabled: true,
@@ -164,10 +165,15 @@ class AvimContentScript {
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === 'SETTINGS_UPDATED') {
+          const oldMethod = this.settings.method;
           if (message.settings) Object.assign(this.settings, message.settings);
           if (message.macros) this.settings.macros = message.macros;
           if (message.settings || message.macros) {
             this.applySettings();
+          }
+          // If turning ON from OFF via popup or global shortcut, trigger word rescue
+          if (oldMethod === IME_METHOD.OFF && this.settings.method !== IME_METHOD.OFF) {
+            this.performOnActivationWordRescue();
           }
           sendResponse({ success: true });
         }
@@ -697,9 +703,17 @@ class AvimContentScript {
 
     const key = event.key;
 
-    // 1. ESC: Instant Word Revert (GoNhanh feature)
+    // 1. ESC: Instant Word Revert (GoNhanh feature) or Rescue Revert
     if (key === 'Escape') {
       if (this.handleEscapeRevert(target, event)) {
+        return;
+      }
+    }
+
+    // 1b. Selection Accent Rescue (Ngó Sen / vnchKey feature)
+    // When user selects a word/syllable and presses a tone key, apply tone to selection
+    if (this.settings.wordRescue !== false && this.settings.method !== IME_METHOD.OFF && key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+      if (this.handleSelectionAccentRescue(target, key, event)) {
         return;
       }
     }
@@ -823,6 +837,22 @@ class AvimContentScript {
   }
 
   handleEscapeRevert(target, event) {
+    // 0. Check Rescue Undo (if user just activated IME and rescued text)
+    if (this._lastRescueState && this._lastRescueState.target === target) {
+      const state = this._lastRescueState;
+      this._lastRescueState = null;
+      event.preventDefault();
+      const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      if (isNative) {
+        this.textReplacer.replaceInNativeInput(target, state.start, state.end, state.rawText);
+      } else if (target.isContentEditable) {
+        this.textReplacer.replaceInContentEditable(target, state.rescuedText, state.rawText);
+      }
+      this.hideSuggestions();
+      this.showHudToast(`Hoàn tác: ${state.rawText}`, true);
+      return true;
+    }
+
     if (this.settings.escRevert === false) return false;
 
     const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
@@ -854,6 +884,139 @@ class AvimContentScript {
       }
     }
     return false;
+  }
+
+  /**
+   * Selection Accent Rescue (Ngó Sen / vnchKey innovation):
+   * When user selects a word (e.g. 'nhanh', 'hoa', 'tieng') and presses a tone key
+   * (e.g. 's', 'f', 'r', 'x', 'j', 'z' or '1'-'5', '0'), modifies the diacritic tone
+   * directly on the selection instead of replacing it with raw letter.
+   */
+  handleSelectionAccentRescue(target, key, event) {
+    const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+    let selectedText = '';
+    let start = 0;
+    let end = 0;
+
+    if (isNative) {
+      start = target.selectionStart ?? 0;
+      end = target.selectionEnd ?? 0;
+      if (start < end) {
+        selectedText = target.value.slice(start, end);
+      }
+    } else if (target.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount && !sel.isCollapsed) {
+        selectedText = sel.toString();
+      }
+    }
+
+    if (!selectedText || !/^[\p{L}\p{M}]+$/u.test(selectedText.trim())) {
+      return false;
+    }
+
+    const trimmed = selectedText.trim();
+    const rescued = this.avimEngine.applyAccentToSelection(trimmed, key);
+    if (rescued && rescued !== trimmed) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') {
+        event.stopImmediatePropagation();
+      }
+
+      // Preserve any surrounding whitespace from selection
+      const leadingSpace = selectedText.match(/^\s*/)[0];
+      const trailingSpace = selectedText.match(/\s*$/)[0];
+      const replacement = leadingSpace + rescued + trailingSpace;
+
+      if (isNative) {
+        this.textReplacer.replaceInNativeInput(target, start, end, replacement);
+        // Reselect replaced text for rapid consecutive tone toggling
+        target.setSelectionRange(start + leadingSpace.length, start + leadingSpace.length + rescued.length);
+      } else if (target.isContentEditable) {
+        this.textReplacer.replaceInContentEditable(target, selectedText, replacement);
+      }
+
+      this.showHudToast(`Cứu dấu: ${rescued}`, true);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * On-Activation Retroactive Word Rescue (Ngó Sen / vnchKey innovation):
+   * When IME is switched from OFF to an active Vietnamese mode (Auto/Telex/VNI),
+   * reads the surrounding unaccented text typed immediately before the caret
+   * (e.g. 'Chaof banj, tieengs vieetj nef'), converts into accented Vietnamese
+   * ('Chào bạn, tiếng việt nè'), and saves undo state for instant ESC revert.
+   */
+  performOnActivationWordRescue() {
+    if (this.settings.wordRescue === false || this.settings.method === IME_METHOD.OFF) {
+      return;
+    }
+
+    const target = this.domObserver.getActiveElement();
+    if (!target || !this.domObserver.isEligibleTarget(target)) {
+      return;
+    }
+
+    const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+    let textBeforeCaret = '';
+    let startIdx = 0;
+    let endIdx = 0;
+
+    if (isNative) {
+      endIdx = target.selectionStart ?? target.value.length;
+      const val = target.value || '';
+      textBeforeCaret = val.slice(0, endIdx);
+      // Grab up to the last 150 characters before caret
+      const match = textBeforeCaret.match(/([^\n\r]{1,150})$/);
+      if (match) {
+        textBeforeCaret = match[1];
+        startIdx = endIdx - match[1].length;
+      }
+    } else if (target.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount) {
+        const range = sel.getRangeAt(0);
+        let node = range.startContainer;
+        let offset = range.startOffset;
+        if (node.nodeType === Node.TEXT_NODE) {
+          const val = node.textContent || '';
+          textBeforeCaret = val.slice(0, offset);
+          const match = textBeforeCaret.match(/([^\n\r]{1,150})$/);
+          if (match) {
+            textBeforeCaret = match[1];
+            startIdx = offset - match[1].length;
+            endIdx = offset;
+          }
+        }
+      }
+    }
+
+    if (!textBeforeCaret || !textBeforeCaret.trim()) {
+      return;
+    }
+
+    const rescued = this.avimEngine.rescueText(textBeforeCaret);
+    if (rescued && rescued !== textBeforeCaret) {
+      if (isNative) {
+        this.textReplacer.replaceInNativeInput(target, startIdx, endIdx, rescued);
+      } else if (target.isContentEditable) {
+        this.textReplacer.replaceInContentEditable(target, textBeforeCaret, rescued);
+      }
+
+      this._lastRescueState = {
+        target,
+        start: startIdx,
+        end: startIdx + rescued.length,
+        rawText: textBeforeCaret,
+        rescuedText: rescued
+      };
+
+      this.showHudToast(`Đã cứu chữ: ${rescued}`, true);
+    }
   }
 
   handleBackspaceUndo(target, event) {
@@ -1299,6 +1462,12 @@ class AvimContentScript {
       : 'AVIM: TẮT (Tiếng Anh)';
 
     this.showHudToast(text, this.settings.method !== IME_METHOD.OFF);
+
+    // On-Activation Word Rescue (Ngó Sen style):
+    // When turning ON from OFF, automatically rescue raw keystrokes typed prior to activation
+    if (isCurrentlyOff && this.settings.method !== IME_METHOD.OFF) {
+      this.performOnActivationWordRescue();
+    }
   }
 
   showHudToast(text, isOn) {

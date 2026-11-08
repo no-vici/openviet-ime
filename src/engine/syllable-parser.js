@@ -190,9 +190,10 @@ export class ParsedSyllable {
       } else if (lowerN === 'ưa' || lowerN === 'ia' || lowerN === 'ua') {
         // Open diphthongs: tone goes on 1st vowel unless coda is present
         targetIdx = hasCoda ? 1 : 0;
-      } else if (['ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'oi', 'ôi', 'ơi', 'ui'].includes(lowerN)) {
+      } else if (['ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'oi', 'ôi', 'ơi', 'ui', 'yu'].includes(lowerN)) {
         // Offglides: second vowel is coda offglide (i, y, o, u), tone on 1st vowel
         // e.g. mái, sáo, cháu, mây, khuấy (glide 'u', nucleus 'ây' -> target 'â')
+        // Special case: 'khuỷu' (glide 'u', nucleus 'yu' -> target 0 'y' -> 'khuỷu')
         targetIdx = 0;
       } else {
         // Other pairs like oa, oe, uy, ue (when glide was not separated)

@@ -35,6 +35,7 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
    - [Late Vowel Shaping & Toggle Mechanics](#late-vowel-shaping--toggle-mechanics)
    - [Shape Modifier Swapping (VietC / Bamboo)](#shape-modifier-swapping-vietc--bamboo)
    - [Phonology Validation & Natural Command Protection](#phonology-validation--natural-command-protection)
+   - [Word & Accent Rescue (Ngó Sen / vnchKey Innovation)](#word--accent-rescue-ngó-sen--vnchkey-innovation)
 3. [Smart Auto-Complete & Gboard-Style Prediction](#smart-auto-complete--gboard-style-prediction)
    - [Multi-Tier Dictionary Engine](#multi-tier-dictionary-engine)
    - [Gboard Next-Word AI Prediction & Chat App Protection](#gboard-next-word-ai-prediction--chat-app-protection)
@@ -64,6 +65,9 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
 - **Key `z` Tone Removal**: Tap `z` (Telex / Auto) or `0` (VNI) to instantly remove diacritical tone marks while retaining vowel shapes (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
 - **Contextual URL, Email & Code Protection (`isUrlOrEmailOrCode`)**: Automatically detects web links (`https://`, `www.`, `.com`, `/path`), email addresses (`user@domain.com`), and programming syntax (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, HTML `<tags>`, `->`, `=>`, `===`), cleanly suspending IME transformations to prevent link or code corruption.
 - **Developer-Aware Mode (`camelCase` & `PascalCase`)**: Dynamically detects code identifier transitions (e.g., `useState`, `isCamelCase`, `UserController`, `AppProps`). When an uppercase letter is typed right after a word prefix, it automatically unaccents the prefix and disables Vietnamese diacritics for subsequent characters, allowing developers to type code seamlessly without toggling the IME off.
+- **Word & Accent Rescue (Ngó Sen / vnchKey Innovation)**:
+  - **On-Activation Word Rescue**: If you typed a long raw unaccented sentence in English mode (e.g. `Chaof banj, tieengs vieetj nef`), switching the IME on (via `2x Ctrl` or `Ctrl+Shift+Z`) automatically retro-converts the preceding raw text into accented Vietnamese (`Chào bạn, tiếng việt nè`), keeping English terms like `linux` or `server` pristine. Pressing `Escape` provides instant safety undo.
+  - **Selection Accent Rescue**: Highlight any word and tap a tone key (`s, f, r, x, j, z` / `1-5, 0`) to modify, add, or strip diacritics directly on the selection (`nhanh` + `s` $\rightarrow$ `nhánh`, `nhánh` + `z` $\rightarrow$ `nhanh`, `hoa` + `r` $\rightarrow$ `hoả`), while normal letters retain default overwrite behavior.
 - **Phonological Edge Cases Mastery**: Accurately handles the rare **`uơ` trio** (`thuở`, `quởn`, `huơ`), triphthong traps (`khuỷu`, `ngoèo`), and French loanwords with double-o (`xoong`, `boong`, `goòng`).
 - **Accurate Orthography Placement**: Precise tone placement for all diphthongs and triphthongs, including `uê` (`thuế`, `huế`, `quế`), `uơ` (`thuở`), `ươ` (`được`), `ưu` (`cứu`, `cừu`), and configurable modern vs. classic standards (`hoà`/`hòa`, `thuỷ`/`thủy`).
 - **Chat App & Telegram Web A Optimization**: Eager shadow host mounting and precise `TEXT_NODE` range handling prevent cursor distortion or auto-capitalization loops in ProseMirror/TipTap rich editors.
@@ -258,6 +262,28 @@ Inspired by VietC and Bamboo, OpenViet IME supports **seamless vowel shape modif
 - **Checked Tone Stop Finals (`-c, -ch, -p, -t`)**: Syllables ending with stop consonants (`c`, `ch`, `p`, `t`) can **only take Tone 1 (Acute / Sắc) or Tone 5 (Dot below / Nặng)**. Tones 2 (Huyền), 3 (Hỏi), and 4 (Ngã) are rejected (`bac` + `s` -> `bác`, but `bac` + `f` -> `bacf`).
 - **`c/k`, `g/gh`, `ng/ngh` Rules**: Front vowels (`e, ê, i, y`) cannot follow `c`, `g`, or `ng`. Foreign words such as `center`, `city`, `get` are preserved without unintended diacritic alteration.
 - **Natural Phonological Guard (Technical Word & CLI Protection)**: Even when dictionary spellcheck is disabled by the user, OpenViet IME's syllable parser enforces structural phonological coda and nucleus constraints. Technical commands, filenames, and packages (e.g. `fcitx5`, `docx4`, `linux6`) will **never** be corrupted into spurious accented forms (e.g., `fcitx5` stays intact instead of mutating into `fcịtx`).
+
+---
+
+### Word & Accent Rescue (Ngó Sen / vnchKey Innovation)
+
+Inspired by the revolutionary UX features pioneered in Ngó Sen and refined in vnchKey, OpenViet IME provides two powerful safety mechanisms:
+
+1. **On-Activation Word Rescue**:
+   - **Problem**: You often type a long sentence while the keyboard is accidentally in English mode (e.g., `Chaof banj, tieengs vieetj nef`), realizing only after finishing.
+   - **Solution**: The moment you toggle the IME on (via `2x Ctrl`, `Ctrl+Shift+Z`, or clicking the popup), the extension automatically inspects the unaccented buffer before the cursor and converts it into grammatically sound Vietnamese: $\rightarrow$ `Chào bạn, tiếng việt nè`.
+   - **Protection & Undo**: Common English keywords (`linux`, `server`, `browser`) are preserved intact. If the conversion is unexpected, hitting **`Escape`** immediately reverts to the raw keystrokes.
+
+2. **Selection Accent Rescue**:
+   - **Problem**: You want to change, add, or strip a tone on an existing word without deleting and re-typing it from scratch.
+   - **Solution**: Highlight any word with the mouse or keyboard and press a tone key:
+     - `nhanh` + `s` $\rightarrow$ `nhánh`
+     - `nhánh` + `f` $\rightarrow$ `nhành`
+     - `nhánh` + `z` (or `0` in VNI) $\rightarrow$ `nhanh` (removes tone)
+     - `hoa` + `r` $\rightarrow$ `hoả` (or `hỏa` in classic style)
+     - `tieng` + `s` $\rightarrow$ `tiếng`
+     - `nước` + `0` $\rightarrow$ `nươc`
+   - Normal non-tone keys (e.g. `k`) preserve default browser behavior, overwriting the selected text as usual.
 
 ---
 

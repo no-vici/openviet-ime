@@ -2890,6 +2890,7 @@
     autoRestoreEnglish: true,
     escRevert: true,
     phonologyRules: true,
+    wordRescue: true,
     autoCompleteEnabled: true,
     nextWordEnabled: true,
     gboardLearningEnabled: true,
@@ -3358,6 +3359,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const autoRestoreEnglishOption = document.getElementById("autoRestoreEnglishOption");
     const escRevertOption = document.getElementById("escRevertOption");
     const phonologyRulesOption = document.getElementById("phonologyRulesOption");
+    const wordRescueOption = document.getElementById("wordRescueOption");
     const blacklistTextarea = document.getElementById("blacklistTextarea");
     const newDomainInput = document.getElementById("newDomainInput");
     const newDomainMethodSelect = document.getElementById("newDomainMethodSelect");
@@ -3382,6 +3384,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (autoRestoreEnglishOption) autoRestoreEnglishOption.checked = settings.autoRestoreEnglish !== false;
       if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
       if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
+      if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
       if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
       if (blacklistTextarea) blacklistTextarea.value = (settings.blacklistedDomains || []).join("\n");
       const isAutoComplete = settings.autoCompleteEnabled !== false;
@@ -3459,6 +3462,12 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     if (phonologyRulesOption) {
       phonologyRulesOption.addEventListener("change", async () => {
         settings.phonologyRules = phonologyRulesOption.checked;
+        await saveState();
+      });
+    }
+    if (wordRescueOption) {
+      wordRescueOption.addEventListener("change", async () => {
+        settings.wordRescue = wordRescueOption.checked;
         await saveState();
       });
     }

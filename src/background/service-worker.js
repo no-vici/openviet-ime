@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS = {
   autoRestoreEnglish: true,
   escRevert: true,
   phonologyRules: true,
+  wordRescue: true,
   autoCompleteEnabled: true,
   nextWordEnabled: true,
   gboardLearningEnabled: true,

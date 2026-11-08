@@ -188,3 +188,50 @@ test('VietC / vnchKey - Natural Phonological Guard on Tech Terms', () => {
   assert.equal(typeWithTelex('AppProps'), 'AppProps', 'PascalCase: AppProps must stay pristine');
   assert.equal(typeWithTelex('handleClick'), 'handleClick', 'camelCase: handleClick must stay pristine');
 });
+
+test('Ngó Sen / vnchKey - Word Rescue (On-Activation) & Selection Accent Rescue', () => {
+  const engine = new AvimEngine({ method: IME_METHOD.AUTO, toneStyle: 'modern' });
+
+  // 1. Text Rescue: Retroactively converting raw typed strings to Vietnamese
+  const rawSentence = 'Chaof banj, tieengs vieetj nef';
+  const rescuedSentence = engine.rescueText(rawSentence);
+  assert.equal(rescuedSentence, 'Chào bạn, tiếng việt nè');
+
+  // English words preservation (linux, server, browser should stay English)
+  const mixedSentence = 'Tooi ddang lafm vieecj trn may chu server va linux';
+  const rescuedMixed = engine.rescueText(mixedSentence);
+  assert.equal(rescuedMixed, 'Tôi đang làm việc trn may chu server va linux');
+
+  // Saigon Xưa phrases rescue
+  assert.equal(engine.rescueWord('thuowr'), 'thuở');
+  assert.equal(engine.rescueWord('quowrn'), 'quởn');
+  assert.equal(engine.rescueWord('ddowif'), 'đời');
+  assert.equal(engine.rescueWord('nef'), 'nè');
+
+  // 2. Selection Accent Rescue (Modify, add, or remove tone on selection)
+  // Telex tests
+  assert.equal(engine.applyAccentToSelection('nhanh', 's'), 'nhánh');
+  assert.equal(engine.applyAccentToSelection('nhánh', 'f'), 'nhành');
+  assert.equal(engine.applyAccentToSelection('nhánh', 'z'), 'nhanh'); // remove tone
+  assert.equal(engine.applyAccentToSelection('hoa', 'r'), 'hoả');
+  assert.equal(engine.applyAccentToSelection('tieng', 's'), 'tiếng');
+  assert.equal(engine.applyAccentToSelection('khuyu', 'r'), 'khuỷu');
+  assert.equal(engine.applyAccentToSelection('ngoeo', 'f'), 'ngoèo');
+
+  // VNI tests
+  assert.equal(engine.applyAccentToSelection('nhanh', '1'), 'nhánh');
+  assert.equal(engine.applyAccentToSelection('nhanh', '2'), 'nhành');
+  assert.equal(engine.applyAccentToSelection('nhanh', '3'), 'nhảnh');
+  assert.equal(engine.applyAccentToSelection('nhanh', '4'), 'nhãnh');
+  assert.equal(engine.applyAccentToSelection('nhanh', '5'), 'nhạnh');
+  assert.equal(engine.applyAccentToSelection('nước', '0'), 'nươc'); // remove tone in VNI
+
+  // Non-tone key returns null to preserve native OS typing over selection
+  assert.equal(engine.applyAccentToSelection('nhanh', 'k'), null);
+  assert.equal(engine.applyAccentToSelection('nhanh', 'b'), null);
+
+  // Classic toneStyle support
+  const classicEngine = new AvimEngine({ method: IME_METHOD.AUTO, toneStyle: 'classic' });
+  assert.equal(classicEngine.applyAccentToSelection('hoa', 'r'), 'hỏa');
+  assert.equal(classicEngine.applyAccentToSelection('hoa', 's'), 'hóa');
+});

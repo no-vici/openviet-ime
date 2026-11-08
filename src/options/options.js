@@ -24,6 +24,7 @@ let settings = {
   autoRestoreEnglish: true,
   escRevert: true,
   phonologyRules: true,
+  wordRescue: true,
   autoCompleteEnabled: true,
   nextWordEnabled: true,
   gboardLearningEnabled: true,
@@ -564,6 +565,7 @@ function initPreferences() {
   const autoRestoreEnglishOption = document.getElementById('autoRestoreEnglishOption');
   const escRevertOption = document.getElementById('escRevertOption');
   const phonologyRulesOption = document.getElementById('phonologyRulesOption');
+  const wordRescueOption = document.getElementById('wordRescueOption');
   const blacklistTextarea = document.getElementById('blacklistTextarea');
   const newDomainInput = document.getElementById('newDomainInput');
   const newDomainMethodSelect = document.getElementById('newDomainMethodSelect');
@@ -593,6 +595,7 @@ function initPreferences() {
     if (autoRestoreEnglishOption) autoRestoreEnglishOption.checked = settings.autoRestoreEnglish !== false;
     if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
     if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
+    if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
     if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
     if (blacklistTextarea) blacklistTextarea.value = (settings.blacklistedDomains || []).join('\n');
 
@@ -687,6 +690,13 @@ function initPreferences() {
   if (phonologyRulesOption) {
     phonologyRulesOption.addEventListener('change', async () => {
       settings.phonologyRules = phonologyRulesOption.checked;
+      await saveState();
+    });
+  }
+
+  if (wordRescueOption) {
+    wordRescueOption.addEventListener('change', async () => {
+      settings.wordRescue = wordRescueOption.checked;
       await saveState();
     });
   }
