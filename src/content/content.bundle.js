@@ -4335,11 +4335,13 @@
     "x\u1EDFi l\u1EDFi",
     "x\xF4m t\u1EE5",
     // ── Từ vựng giao tiếp công việc & nghề nghiệp lịch thiệp ──
+    "k\xEDnh g\u1EDFi",
     "k\xEDnh g\u1EEDi",
     "tr\xE2n tr\u1ECDng",
     "c\u1EA3m phi\u1EC1n",
     "nh\u1EDD b\u1EA1n",
     "g\u1EEDi b\u1EA1n",
+    "g\u1EDFi b\u1EA1n",
     "bi\xEAn b\u1EA3n",
     "th\u1ED1ng nh\u1EA5t",
     "ti\u1EBFn \u0111\u1ED9",
@@ -4352,8 +4354,8 @@
   ];
   var DEFAULT_VIETNAMESE_BIGRAMS = {
     // ── Quốc gia / dân tộc / địa danh ──
-    "vi\u1EC7t": ["nam", "tr\xEC", "d\xE3", "ki\u1EC1u", "v\u1ECB", "h\xF3a"],
-    "c\u1ED9ng": ["h\xF2a", "\u0111\u1ED3ng", "t\xE1c", "s\u1EF1", "h\u01B0\u1EDFng"],
+    "vi\u1EC7t": ["nam", "c\u1ED9ng", "ki\u1EC1u", "tr\xEC", "d\xE3", "v\u1ECB", "h\xF3a"],
+    "c\u1ED9ng": ["h\xF2a", "s\u1EA3n", "\u0111\u1ED3ng", "t\xE1c", "s\u1EF1", "h\u01B0\u1EDFng"],
     "qu\u1ED1c": ["t\u1EBF", "gia", "t\u1ECBch", "ph\xF2ng", "h\u1ED9i"],
     "th\u1EBF": ["gi\u1EDBi", "k\u1EF7", "h\u1EC7", "l\u1EF1c", "n\xE0o"],
     "\u0111\u1EA5t": ["n\u01B0\u1EDBc", "\u0111ai", "s\xE9t", "v\xE0ng"],
@@ -4590,7 +4592,7 @@
     "r\u1EA3nh": ["rang", "r\u1ED7i", "tay"],
     "thong": ["th\u1EA3", "dong"],
     "th\u1EA3nh": ["th\u01A1i"],
-    "k\xEDnh": ["g\u1EEDi", "ch\xE0o", "tr\u1ECDng", "m\u1EBFn"],
+    "k\xEDnh": ["g\u1EDFi", "g\u1EEDi", "ch\xE0o", "tr\u1ECDng", "m\u1EBFn"],
     "tr\xE2n": ["tr\u1ECDng", "qu\xFD"],
     "bi\xEAn": ["b\u1EA3n", "gi\u1EDBi", "ph\xF2ng", "so\u1EA1n"],
     "th\u1ED1ng": ["nh\u1EA5t", "k\xEA", "l\u0129nh", "tr\u1ECB"]

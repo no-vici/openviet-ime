@@ -117,7 +117,7 @@ export const COMMON_VIETNAMESE_COMPOUNDS = [
   'thảnh thơi', 'thơm tho', 'tề chỉnh', 'tươi rói', 'vui vẻ', 'xởi lởi', 'xôm tụ',
 
   // ── Từ vựng giao tiếp công việc & nghề nghiệp lịch thiệp ──
-  'kính gửi', 'trân trọng', 'cảm phiền', 'nhờ bạn', 'gửi bạn', 'biên bản', 'thống nhất',
+  'kính gởi', 'kính gửi', 'trân trọng', 'cảm phiền', 'nhờ bạn', 'gửi bạn', 'gởi bạn', 'biên bản', 'thống nhất',
   'tiến độ', 'thời hạn', 'đính kèm', 'hợp tác', 'trao đổi', 'báo cáo', 'phản hồi'
 ];
 
@@ -127,8 +127,8 @@ export const COMMON_VIETNAMESE_COMPOUNDS = [
  */
 export const DEFAULT_VIETNAMESE_BIGRAMS = {
   // ── Quốc gia / dân tộc / địa danh ──
-  'việt': ['nam', 'trì', 'dã', 'kiều', 'vị', 'hóa'],
-  'cộng': ['hòa', 'đồng', 'tác', 'sự', 'hưởng'],
+  'việt': ['nam', 'cộng', 'kiều', 'trì', 'dã', 'vị', 'hóa'],
+  'cộng': ['hòa', 'sản', 'đồng', 'tác', 'sự', 'hưởng'],
   'quốc': ['tế', 'gia', 'tịch', 'phòng', 'hội'],
   'thế': ['giới', 'kỷ', 'hệ', 'lực', 'nào'],
   'đất': ['nước', 'đai', 'sét', 'vàng'],
@@ -377,7 +377,7 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'rảnh': ['rang', 'rỗi', 'tay'],
   'thong': ['thả', 'dong'],
   'thảnh': ['thơi'],
-  'kính': ['gửi', 'chào', 'trọng', 'mến'],
+  'kính': ['gởi', 'gửi', 'chào', 'trọng', 'mến'],
   'trân': ['trọng', 'quý'],
   'biên': ['bản', 'giới', 'phòng', 'soạn'],
   'thống': ['nhất', 'kê', 'lĩnh', 'trị']
