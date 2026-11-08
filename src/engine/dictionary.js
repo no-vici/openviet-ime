@@ -421,7 +421,8 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'syntax', 'prefix', 'suffix', 'annex', 'latex', 'reflex', 'pixel', 'toxic',
   'oxide', 'oxygen', 'galaxy', 'expert', 'express', 'explain', 'explore', 'export',
   'extra', 'extreme', 'exact', 'exam', 'example', 'exist', 'execute', 'exercise',
-  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'variable', 'backtick'
+  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'variable', 'backtick',
+  'test', 'reset', 'restore', 'refactor', 'query'
 ]);
 
 /**

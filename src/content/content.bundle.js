@@ -1857,7 +1857,12 @@
     "docs",
     "modern",
     "variable",
-    "backtick"
+    "backtick",
+    "test",
+    "reset",
+    "restore",
+    "refactor",
+    "query"
   ]);
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
     if (!rawWord && !currentWord) return false;
