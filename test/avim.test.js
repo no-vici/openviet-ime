@@ -427,7 +427,7 @@ export function runAvimTests() {
   ['d', 'o', 'c', 'x', '4'].forEach(k => { docxRes = noSpellEngine.processKey(docxRes, k).result; });
   assert('Natural Phonology Guard: docx + 4 outputs docx4 without spellcheck', docxRes === 'docx4', 'docx4', docxRes);
 
-  // 25. Telex Tone Toggle Breakout & English Trap Auto-Restore ("docs" -> "dóc" -> "doc" -> "docs")
+  // 25. Telex Tone Toggle Breakout & English Trap Auto-Restore ("docs" -> "dóc" -> 2nd s restores "docs")
   const telexBreakoutEngine = new AvimEngine({ method: IME_METHOD.AUTO });
   let docSequence = '';
   ['d', 'o', 'c', 's'].forEach(k => {
@@ -437,13 +437,19 @@ export function runAvimTests() {
   assert('Telex 1st s applies tone: d o c + s -> dóc', docSequence === 'dóc', 'dóc', docSequence);
   
   docSequence = telexBreakoutEngine.processKey(docSequence, 's').result;
-  assert('Telex 2nd s toggles tone off: dóc + s -> doc', docSequence === 'doc', 'doc', docSequence);
+  assert('Telex 2nd s on English trap restores literal letter directly (vnchKey): dóc + s -> docs', docSequence === 'docs', 'docs', docSequence);
 
   docSequence = telexBreakoutEngine.processKey(docSequence, 's').result;
-  assert('Telex 3rd s breaks loop to literal letter: doc + s -> docs', docSequence === 'docs', 'docs', docSequence);
+  assert('Telex 3rd s appends normally: docs + s -> docss', docSequence === 'docss', 'docss', docSequence);
 
-  docSequence = telexBreakoutEngine.processKey(docSequence, 's').result;
-  assert('Telex 4th s appends normally: docs + s -> docss', docSequence === 'docss', 'docss', docSequence);
+  // Standard Vietnamese word tone toggle: cá + s -> ca
+  let caSequence = '';
+  ['c', 'a', 's'].forEach(k => {
+    caSequence = telexBreakoutEngine.processKey(caSequence, k).result;
+  });
+  assert('Telex 1st s on valid VN word: c a + s -> cá', caSequence === 'cá', 'cá', caSequence);
+  caSequence = telexBreakoutEngine.processKey(caSequence, 's').result;
+  assert('Telex 2nd s on valid VN word toggles tone off: cá + s -> ca', caSequence === 'ca', 'ca', caSequence);
 
   // Auto-restore test on "docs" at boundary:
   const autoRestoreEngine = new AvimEngine({ method: IME_METHOD.AUTO });
@@ -459,6 +465,11 @@ export function runAvimTests() {
   const modernTrapEngine = new AvimEngine({ method: IME_METHOD.AUTO, spellCheck: true });
   const modenRestored = modernTrapEngine.checkAutoRestore('modẻn');
   assert('Auto-Restore on word delimiter restores modern: "modẻn" -> "modern"', modenRestored.restore && modenRestored.result === 'modern', 'modern', modenRestored.result);
+
+  // 27. Auto-Restore test on "variable" -> "vaỉable" -> restores to "variable"
+  const varTrapEngine = new AvimEngine({ method: IME_METHOD.AUTO, spellCheck: true });
+  const varRestored = varTrapEngine.checkAutoRestore('vaỉable');
+  assert('Auto-Restore on word delimiter restores variable: "vaỉable" -> "variable"', varRestored.restore && varRestored.result === 'variable', 'variable', varRestored.result);
 
   return results;
 }

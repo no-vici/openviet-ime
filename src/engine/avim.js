@@ -15,6 +15,7 @@ import {
   userDictionary,
   checkWordSpelling,
   COMMON_ENGLISH_WORDS,
+  ENGLISH_TELEX_TRAPS,
   reverseVietnameseWord,
   shouldAutoRestoreEnglish,
   hasPhonologyViolation,
@@ -1284,17 +1285,34 @@ export class AvimEngine {
     // Retyping the same tone key toggles/removes the tone
     if (currentTone === toneMap) {
       const cleaned = this.stripToneFromWord(word, vowelIndices);
-      // In VNI mode, retyping the number key removes tone AND outputs the number (e.g. ca + 1 -> cá + 1 -> ca1)
       const method = this.getEffectiveMethod(key);
-      const appendKey = method === IME_METHOD.VNI ? key : '';
+      let appendKey = '';
+
+      if (method === IME_METHOD.VNI) {
+        // In VNI mode, retyping the number key removes tone AND outputs the number (e.g. ca + 1 -> cá + 1 -> ca1)
+        appendKey = key;
+      } else {
+        // In Telex / Auto mode (vnchKey innovation):
+        // If retyping tone key on an English trap word (e.g. 'dóc' + 's' -> candidate 'docs'),
+        // or if the unaccented base is not a valid Vietnamese word (e.g. 'doc' is not a valid Vietnamese syllable):
+        // Restore the literal letter key immediately so 'dóc' + 's' yields 'docs' directly without requiring a 3rd 's'!
+        const candidate = (cleaned + key).toLowerCase();
+        if (
+          ENGLISH_TELEX_TRAPS.has(candidate) ||
+          COMMON_ENGLISH_WORDS.has(candidate) ||
+          !this.isValidVietnameseWord(cleaned)
+        ) {
+          appendKey = key;
+        }
+      }
+
       const result = cleaned + appendKey;
-      this.lastToneToggledWord = { base: cleaned, key: lowerKey };
+      this.lastToneToggledWord = { base: result, key: lowerKey };
       return { transformed: true, result };
     }
 
-    // If this tone was just toggled off by retyping the same tone key (e.g. 'dóc' + 's' -> 'doc'),
-    // retyping the tone key a 3rd time must NOT re-apply the tone; instead, pass it through literally!
-    // (e.g. 'doc' + 's' -> 'docs', 'docs' + 's' -> 'docss')
+    // If this tone was just toggled off by retyping the same tone key,
+    // retyping the tone key again must pass it through literally (e.g. 'docs' + 's' -> 'docss')
     if (
       this.lastToneToggledWord &&
       this.lastToneToggledWord.base === word &&

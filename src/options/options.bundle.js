@@ -1138,6 +1138,7 @@
     "vitest",
     "jest",
     "modern",
+    "variable",
     "tick",
     "backtick",
     "reset",

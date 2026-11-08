@@ -92,7 +92,7 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'payload', 'auth', 'oauth', 'middleware', 'handler', 'schema', 'query', 'mutation', 'resolver',
   'prisma', 'supabase', 'nextjs', 'nuxt', 'vue', 'angular', 'svelte', 'electron', 'tauri', 'rust',
   'cargo', 'golang', 'pnpm', 'yarn', 'bun', 'deno', 'eslint', 'prettier', 'vitest', 'jest',
-  'modern', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
+  'modern', 'variable', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
   'suggest', 'axis', 'regex', 'music', 'amazon', 'cause', 'profile', 'upstream', 'settings',
 
   // General high frequency English words
@@ -333,6 +333,8 @@ export function reverseVietnameseWord(word) {
     'tẽt': 'text',
     'uér': 'user',
     'uétate': 'usestate',
+    'vaỉable': 'variable',
+    'vảiable': 'variable',
     'veu': 'versus',
     'veíon': 'version',
     'vẻtex': 'vertex',
@@ -419,7 +421,7 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'syntax', 'prefix', 'suffix', 'annex', 'latex', 'reflex', 'pixel', 'toxic',
   'oxide', 'oxygen', 'galaxy', 'expert', 'express', 'explain', 'explore', 'export',
   'extra', 'extreme', 'exact', 'exam', 'example', 'exist', 'execute', 'exercise',
-  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'backtick'
+  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'variable', 'backtick'
 ]);
 
 /**

@@ -1330,6 +1330,7 @@
     "vitest",
     "jest",
     "modern",
+    "variable",
     "tick",
     "backtick",
     "reset",
@@ -1707,6 +1708,8 @@
       "t\u1EBDt": "text",
       "u\xE9r": "user",
       "u\xE9tate": "usestate",
+      "va\u1EC9able": "variable",
+      "v\u1EA3iable": "variable",
       "veu": "versus",
       "ve\xEDon": "version",
       "v\u1EBBtex": "vertex",
@@ -1853,6 +1856,7 @@
     "perfect",
     "docs",
     "modern",
+    "variable",
     "backtick"
   ]);
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
@@ -3018,9 +3022,17 @@
       if (currentTone === toneMap) {
         const cleaned = this.stripToneFromWord(word, vowelIndices);
         const method = this.getEffectiveMethod(key);
-        const appendKey = method === IME_METHOD.VNI ? key : "";
+        let appendKey = "";
+        if (method === IME_METHOD.VNI) {
+          appendKey = key;
+        } else {
+          const candidate = (cleaned + key).toLowerCase();
+          if (ENGLISH_TELEX_TRAPS.has(candidate) || COMMON_ENGLISH_WORDS.has(candidate) || !this.isValidVietnameseWord(cleaned)) {
+            appendKey = key;
+          }
+        }
         const result = cleaned + appendKey;
-        this.lastToneToggledWord = { base: cleaned, key: lowerKey };
+        this.lastToneToggledWord = { base: result, key: lowerKey };
         return { transformed: true, result };
       }
       if (this.lastToneToggledWord && this.lastToneToggledWord.base === word && this.lastToneToggledWord.key === lowerKey) {
@@ -6671,6 +6683,7 @@
       if (/`\s*$/.test(textBefore)) return false;
       const backtickCount = (textBefore.match(/`/g) || []).length;
       if (backtickCount % 2 === 1) return false;
+      if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
       if (!textBefore || textBefore.trim().length === 0) return true;
       if (/[\n\r]\s*$/.test(textBefore)) return true;
       const match = textBefore.match(/([.!?])(\s+)$/);

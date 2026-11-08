@@ -839,6 +839,9 @@ class AvimContentScript {
     const backtickCount = (textBefore.match(/`/g) || []).length;
     if (backtickCount % 2 === 1) return false;
 
+    // After a closed inline code span (e.g. `variable` or `variable` ), do NOT auto-capitalize the following word!
+    if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
+
     // If start of input or only whitespace
     if (!textBefore || textBefore.trim().length === 0) return true;
 

@@ -136,7 +136,7 @@ Telex sử dụng các phím chữ lặp và các ký tự quy ước (`w`, `s`,
 
 - Nếu từ đang có dấu thanh, gõ `z` (Telex) hoặc `0` (VNI) sẽ xóa sạch dấu thanh về nguyên âm cơ sở.
 - Nếu từ chưa có dấu thanh (ví dụ `toan`), gõ `z` sẽ xuất ra chữ `z` bình thường (`toanz`).
-- **Cơ chế thoát vòng lặp gõ phím dấu liên tiếp (Tone Toggle Breakout)**: Khi gõ lại cùng phím dấu thanh, bộ gõ sẽ gỡ dấu (`doc` + `s` -> `dóc` + `s` -> `doc`). Nếu tiếp tục gõ phím dấu đó lần thứ 3 liên tiếp, bộ gõ sẽ chủ động thoát vòng lặp và chèn ký tự chữ cái nguyên bản (`doc` + `s` -> `docs` + `s` -> `docss`). Kết hợp với tính năng Tự động phục hồi từ tiếng Anh (Auto-Restore), các từ tiếng Anh kết thúc bằng phím dấu như `docs` sẽ tự động chuyển về đúng định dạng khi bấm phím cách (Space) hoặc Enter.
+- **Cơ Chế Phục Hồi Chữ Khi Gõ Lại Dấu Thanh (Đột Phá Kiểu vnchKey)**: Khi gõ lại cùng phím dấu thanh đối với từ tiếng Việt chuẩn, bộ gõ sẽ gỡ dấu (`cá` + `s` -> `ca`). Đối với các từ tiếng Anh hoặc từ bẫy va chạm mà từ gốc không phải từ tiếng Việt hợp lệ (như `doc`), khi gõ phím dấu lần thứ 2, bộ gõ sẽ lập tức gỡ dấu và trả lại chữ cái nguyên bản (`doc` + `s` -> `dóc` + `s` -> `docs`), không cần phải gõ tới 3 lần phím `s`. Nếu tiếp tục gõ thêm `s`, chữ sẽ nối thêm tự nhiên (`docs` + `s` -> `docss`). Kết hợp với tính năng Tự động phục hồi từ tiếng Anh (Auto-Restore), các từ tiếng Anh như `docs`, `modern`, `variable` (`vaỉable` -> `variable`) sẽ tự động được bảo toàn nguyên bản khi nhấn phím cách (Space) hoặc Enter.
 
 ---
 
