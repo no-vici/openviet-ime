@@ -171,4 +171,20 @@ test('VietC / vnchKey - Natural Phonological Guard on Tech Terms', () => {
   let toan = '';
   for (const c of 'toan1') toan = noSpellVni.processKey(toan, c).result;
   assert.equal(toan, 'toán');
+
+  // Developer-Aware Mode: camelCase & PascalCase identifiers must never receive Vietnamese accents
+  const telex = new AvimEngine({ method: IME_METHOD.TELEX });
+  
+  function typeWithTelex(keys) {
+    let w = '';
+    for (const c of keys) w = telex.processKey(w, c).result;
+    return w;
+  }
+
+  assert.equal(typeWithTelex('isCamelCase'), 'isCamelCase', 'camelCase: isCamelCase must stay pristine');
+  assert.equal(typeWithTelex('getUserName'), 'getUserName', 'camelCase: getUserName must stay pristine');
+  assert.equal(typeWithTelex('useState'), 'useState', 'camelCase: useState must stay pristine');
+  assert.equal(typeWithTelex('UserController'), 'UserController', 'PascalCase: UserController must stay pristine');
+  assert.equal(typeWithTelex('AppProps'), 'AppProps', 'PascalCase: AppProps must stay pristine');
+  assert.equal(typeWithTelex('handleClick'), 'handleClick', 'camelCase: handleClick must stay pristine');
 });

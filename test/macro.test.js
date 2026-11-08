@@ -79,14 +79,18 @@ export function runMacroTests() {
   const snapComma = engine.checkPunctuationSnap(',', textWithSpace);
   assert('Punctuation Snapping on comma: deletes space', snapComma.snap && snapComma.deleteLength === 1 && snapComma.snappedChar === ',', 'snap comma', String(snapComma.snap));
 
-  // 4d. Dynamic Variables ($DATE, $TIME, $DATETIME)
-  engine.setMacro('today', '$DATE');
-  const expDate = engine.checkExpansion('today', ' ');
-  assert('Dynamic variable $DATE resolves to DD/MM/YYYY', expDate.match && /^\d{2}\/\d{2}\/\d{4}$/.test(expDate.expandedText), 'DD/MM/YYYY', expDate.expandedText);
+  // 4d. Dynamic Variables ($DATE, $TIME, $DATETIME) with explicit '+' prefix
+  engine.setMacro('+today', '$DATE');
+  const expDate = engine.checkExpansion('+today', ' ');
+  assert('Dynamic variable $DATE resolves to DD/MM/YYYY for +today', expDate.match && /^\d{2}\/\d{2}\/\d{4}$/.test(expDate.expandedText), 'DD/MM/YYYY', expDate.expandedText);
 
-  engine.setMacro('now', '$DATETIME');
-  const expDateTime = engine.checkExpansion('now', ' ');
-  assert('Dynamic variable $DATETIME resolves to DD/MM/YYYY HH:mm', expDateTime.match && /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(expDateTime.expandedText), 'DD/MM/YYYY HH:mm', expDateTime.expandedText);
+  engine.setMacro('+now', '$DATETIME');
+  const expDateTime = engine.checkExpansion('+now', ' ');
+  assert('Dynamic variable $DATETIME resolves to DD/MM/YYYY HH:mm for +now', expDateTime.match && /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(expDateTime.expandedText), 'DD/MM/YYYY HH:mm', expDateTime.expandedText);
+
+  // Normal words 'today' and 'now' should not expand
+  const normalToday = engine.checkExpansion('today', ' ');
+  assert('Common word "today" without "+" prefix must not expand', normalToday.match === false, 'false', String(normalToday.match));
 
   // 5. JSON Export & Import roundtrip
   const jsonExport = engine.exportJSON();

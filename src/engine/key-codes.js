@@ -136,5 +136,39 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
     return true;
   }
 
+  // 4. Developer-Aware Mode: camelCase & PascalCase Identifier Detection
+  // In Vietnamese language, capital letters NEVER appear in the middle of a word.
+  // When a lowercase letter is followed by an uppercase letter (camelCase: e.g. useState, isReady, getUserName, onClick),
+  // or a word starts with an uppercase letter, has lowercase, and has another uppercase (PascalCase: e.g. UserController, AppProps, ComponentName),
+  // it is 100% a programming identifier and MUST NOT receive Vietnamese diacritic transformation.
+  if (isCamelOrPascalCase(token) || isCamelOrPascalCase(currentChunk)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Check if a word token follows camelCase or PascalCase code naming conventions
+ * @param {string} token 
+ * @returns {boolean}
+ */
+export function isCamelOrPascalCase(token = '') {
+  if (!token || typeof token !== 'string' || token.length < 2) return false;
+
+  // Strip leading non-letters (e.g. $, #, _, --) if any
+  const clean = token.replace(/^[^a-zA-Z\p{L}]+/u, '');
+  if (clean.length < 2) return false;
+
+  // 1. camelCase: starts with lowercase/accented lowercase, contains an ASCII uppercase letter (e.g. isReady, useState, íC, uêS)
+  if (/^[\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
+    return true;
+  }
+
+  // 2. PascalCase: starts with uppercase, has at least one lowercase, followed by another uppercase (e.g. UserController, AppProps, ReactNode)
+  if (/^[A-Z][\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
+    return true;
+  }
+
   return false;
 }

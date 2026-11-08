@@ -6,7 +6,7 @@
  * @license LGPL / Apache-2.0
  */
 
-import { IME_METHOD, TONE_STYLE } from './key-codes.js';
+import { IME_METHOD, TONE_STYLE, isCamelOrPascalCase } from './key-codes.js';
 import { getVietnameseWordSet } from './vietnamese-words.js';
 import { parseSyllable, ParsedSyllable, TONE_MARK } from './syllable-parser.js';
 import {
@@ -288,6 +288,32 @@ export class AvimEngine {
     if (/\d/.test(word) || word.includes('_') || word.includes('@') || word.includes('/')) {
       const newWord = word + key;
       this.lastTransformed = newWord;
+      return { transformed: false, result: newWord };
+    }
+
+    // Developer-Aware Mode: camelCase & PascalCase Code Guard
+    // When typing programming identifiers like 'isCamelCase', 'useState', 'UserController', 'AppProps',
+    // an uppercase letter appears in the middle of a word or after lowercase letters.
+    // In Vietnamese, words NEVER mix capital letters in the middle.
+    // If the existing prefix was mistakenly transformed into Vietnamese (e.g. 'is' -> 'í', then user types 'C'),
+    // automatically un-accent the prefix back to its raw Latin keys and append key without transformation.
+    const isUpperKey = key === key.toUpperCase() && key !== key.toLowerCase();
+    if (word.length >= 1 && isUpperKey) {
+      if (isCamelOrPascalCase(word + key)) {
+        const cleanPrefix = reverseVietnameseWord(word) || word;
+        if (/^[a-zA-Z]+$/.test(cleanPrefix)) {
+          const newWord = cleanPrefix + key;
+          this.lastTransformed = newWord;
+          this.currentWordRaw = newWord;
+          return { transformed: true, result: newWord };
+        }
+      }
+    }
+
+    if (isCamelOrPascalCase(word) || isCamelOrPascalCase(word + key)) {
+      const newWord = word + key;
+      this.lastTransformed = newWord;
+      this.currentWordRaw = (this.currentWordRaw || word) + key;
       return { transformed: false, result: newWord };
     }
 

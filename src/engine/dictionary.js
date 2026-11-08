@@ -238,6 +238,10 @@ export function reverseVietnameseWord(word) {
   const DIRECT_REVERSE_TRAPS = {
     'têt': 'text',
     'úẻ': 'user',
+    'úe': 'use',
+    'ué': 'use',
+    'uér': 'user',
+    'uétate': 'usestate',
     'lủuy': 'luxury',
     'púh': 'push',
     'ưork': 'work',

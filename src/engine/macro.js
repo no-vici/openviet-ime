@@ -31,8 +31,8 @@ export const DEFAULT_MACROS = [
   { trigger: 'ck', value: 'chồng', enabled: true },
   { trigger: 'cx', value: 'cũng', enabled: true },
   { trigger: 'idk', value: 'tao hông biết', enabled: true },
-  { trigger: 'today', value: '$DATE', enabled: true },
-  { trigger: 'now', value: '$DATETIME', enabled: true }
+  { trigger: '+today', value: '$DATE', enabled: true },
+  { trigger: '+now', value: '$DATETIME', enabled: true }
 ];
 
 /**

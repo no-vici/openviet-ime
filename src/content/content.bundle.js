@@ -91,6 +91,21 @@
     if (/<[a-zA-Z][a-zA-Z0-9_-]*/.test(currentChunk)) {
       return true;
     }
+    if (isCamelOrPascalCase(token) || isCamelOrPascalCase(currentChunk)) {
+      return true;
+    }
+    return false;
+  }
+  function isCamelOrPascalCase(token = "") {
+    if (!token || typeof token !== "string" || token.length < 2) return false;
+    const clean = token.replace(/^[^a-zA-Z\p{L}]+/u, "");
+    if (clean.length < 2) return false;
+    if (/^[\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
+      return true;
+    }
+    if (/^[A-Z][\p{Ll}\p{M}]+[A-Z]/u.test(clean)) {
+      return true;
+    }
     return false;
   }
 
@@ -1534,6 +1549,10 @@
     const DIRECT_REVERSE_TRAPS = {
       "t\xEAt": "text",
       "\xFA\u1EBB": "user",
+      "\xFAe": "use",
+      "u\xE9": "use",
+      "u\xE9r": "user",
+      "u\xE9tate": "usestate",
       "l\u1EE7uy": "luxury",
       "p\xFAh": "push",
       "\u01B0ork": "work",
@@ -2010,6 +2029,24 @@
       if (/\d/.test(word) || word.includes("_") || word.includes("@") || word.includes("/")) {
         const newWord2 = word + key;
         this.lastTransformed = newWord2;
+        return { transformed: false, result: newWord2 };
+      }
+      const isUpperKey = key === key.toUpperCase() && key !== key.toLowerCase();
+      if (word.length >= 1 && isUpperKey) {
+        if (isCamelOrPascalCase(word + key)) {
+          const cleanPrefix = reverseVietnameseWord(word) || word;
+          if (/^[a-zA-Z]+$/.test(cleanPrefix)) {
+            const newWord2 = cleanPrefix + key;
+            this.lastTransformed = newWord2;
+            this.currentWordRaw = newWord2;
+            return { transformed: true, result: newWord2 };
+          }
+        }
+      }
+      if (isCamelOrPascalCase(word) || isCamelOrPascalCase(word + key)) {
+        const newWord2 = word + key;
+        this.lastTransformed = newWord2;
+        this.currentWordRaw = (this.currentWordRaw || word) + key;
         return { transformed: false, result: newWord2 };
       }
       if (this.phonologyRules && hasPhonologyViolation(word)) {
@@ -2968,8 +3005,8 @@
     { trigger: "ck", value: "ch\u1ED3ng", enabled: true },
     { trigger: "cx", value: "c\u0169ng", enabled: true },
     { trigger: "idk", value: "tao h\xF4ng bi\u1EBFt", enabled: true },
-    { trigger: "today", value: "$DATE", enabled: true },
-    { trigger: "now", value: "$DATETIME", enabled: true }
+    { trigger: "+today", value: "$DATE", enabled: true },
+    { trigger: "+now", value: "$DATETIME", enabled: true }
   ];
   var MacroEngine = class {
     constructor(macros = DEFAULT_MACROS, options = {}) {

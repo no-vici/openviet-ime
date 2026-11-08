@@ -63,8 +63,8 @@
     { trigger: "ck", value: "ch\u1ED3ng", enabled: true },
     { trigger: "cx", value: "c\u0169ng", enabled: true },
     { trigger: "idk", value: "tao h\xF4ng bi\u1EBFt", enabled: true },
-    { trigger: "today", value: "$DATE", enabled: true },
-    { trigger: "now", value: "$DATETIME", enabled: true }
+    { trigger: "+today", value: "$DATE", enabled: true },
+    { trigger: "+now", value: "$DATETIME", enabled: true }
   ];
   var SAIGON_XUA_MACROS = [
     { trigger: "sgx", value: "S\xE0i G\xF2n x\u01B0a", enabled: true },
