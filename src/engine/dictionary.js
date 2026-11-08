@@ -87,6 +87,11 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'screen', 'system', 'branch', 'merge', 'rebase', 'clone', 'fetch', 'diff', 'stash', 'release',
   'deploy', 'debug', 'lint', 'bundle', 'minify', 'source', 'assets', 'public', 'dist', 'node_modules',
   'license', 'readme', 'env', 'yaml', 'toml', 'xml', 'scss', 'less', 'ts', 'jsx', 'tsx', 'sh',
+  'kubernetes', 'k8s', 'tailwind', 'typescript', 'postgres', 'postgresql', 'redis', 'graphql',
+  'webhook', 'endpoint', 'devops', 'staging', 'production', 'frontend', 'backend', 'microservice',
+  'payload', 'auth', 'oauth', 'middleware', 'handler', 'schema', 'query', 'mutation', 'resolver',
+  'prisma', 'supabase', 'nextjs', 'nuxt', 'vue', 'angular', 'svelte', 'electron', 'tauri', 'rust',
+  'cargo', 'golang', 'pnpm', 'yarn', 'bun', 'deno', 'eslint', 'prettier', 'vitest', 'jest',
 
   // General high frequency English words
   'the', 'be', 'to', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'not', 'on', 'he',

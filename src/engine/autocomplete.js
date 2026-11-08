@@ -82,11 +82,13 @@ export const COMMON_VIETNAMESE_COMPOUNDS = [
 
   // Địa danh Bắc - Trung - Nam phổ biến
   'Hà Nội', 'Hải Phòng', 'Quảng Ninh', 'Hạ Long', 'Sa Pa', 'Mộc Châu',
-  'Điện Biên Phủ', 'Lai Châu', 'Sơn La', 'Cao Bằng', 'Lạng Sơn',
   'Huế', 'Đà Nẵng', 'Hội An', 'Quy Nhơn', 'Nha Trang',
   'Phan Thiết', 'Quảng Ngãi', 'Tam Kỳ', 'Đông Hà', 'Vinh',
-  'Sài Gòn', 'TP.HCM', 'Cần Thơ', 'Vũng Tàu', 'Biên Hòa', 'Mỹ Tho',
-  'Bến Tre', 'Long Xuyên', 'Rạch Giá', 'Cà Mau', 'Bạc Liêu', 'Sóc Trăng',
+  'Sài Gòn', 'Chợ Lớn', 'Gia Định', 'Đa Kao', 'Tân Định', 'Bến Thành',
+  'Bình Thạnh', 'Phú Nhuận', 'Gò Vấp', 'Thủ Đức', 'Thủ Thiêm', 'Cần Thơ',
+  'Vũng Tàu', 'Biên Hòa', 'Mỹ Tho', 'Tân An', 'Gò Công', 'Bến Tre',
+  'Vĩnh Long', 'Sa Đéc', 'Long Xuyên', 'Châu Đốc', 'Rạch Giá', 'Hà Tiên',
+  'Cà Mau', 'Bạc Liêu', 'Sóc Trăng', 'Trà Vinh', 'Vị Thanh',
 
   // Cụm từ Hán-Việt & từ hiếm
   'khuếch tán', 'khuynh hướng', 'ngoắt ngoéo', 'khuấy động',
@@ -103,7 +105,20 @@ export const COMMON_VIETNAMESE_COMPOUNDS = [
   'tào lao mía lao', 'tào lao chi địa', 'té re', 'tém tém', 'thầy Hai', 'thầy thợ', 'thọc cù lét',
   'thọc lét', 'thềm ba', 'tía má', 'tía lia', 'trắng xác', 'trời đánh thánh đâm', 'trời thần ơi',
   'trớt quớt', 'trùm sò', 'trúng mánh', 'trúng mối', 'trúng tủ', 'vắt giò lên cổ', 'vô phương',
-  'xá xị', 'xe lam', 'xe thổ mộ', 'xe đò', 'xe lôi', 'xập xám', 'xề xòa', 'xì dầu', 'xí gạt', 'xí mụi'
+  'xá xị', 'xe lam', 'xe thổ mộ', 'xe đò', 'xe lôi', 'xập xám', 'xề xòa', 'xì dầu', 'xí gạt', 'xí mụi',
+
+  // ── Từ vựng đời sống & phương ngữ Nam Bộ thân thương ──
+  'bữa nay', 'hổm rày', 'hồi nãy', 'chút xíu', 'bao đồng', 'chánh trực', 'thiệt tình',
+  'bảnh bao', 'ngộ nghĩnh', 'tài lanh', 'lanh chanh', 'xởi lởi', 'điệu đàng', 'coi bộ',
+  'ngộ á nghen', 'ngon ơ', 'ngọt xớt', 'bạc mạng', 'bảnh chọe', 'bạc đãi', 'chơn chất',
+  'chắc mẻm', 'cưng xỉu', 'dễ thương', 'đàng hoàng', 'đứng bóng', 'hết trơn', 'hết trọi',
+  'lẹ làng', 'lẹ lẹ', 'lóng rày', 'mau lẹ', 'mần ăn', 'miệt vườn', 'nắng nôi', 'ngộ nghê',
+  'nhứt xứ', 'nhàn tản', 'phẻ re', 'rảnh rang', 'rôm rả', 'sốt sắng', 'thong thả',
+  'thảnh thơi', 'thơm tho', 'tề chỉnh', 'tươi rói', 'vui vẻ', 'xởi lởi', 'xôm tụ',
+
+  // ── Từ vựng giao tiếp công việc & nghề nghiệp lịch thiệp ──
+  'kính gửi', 'trân trọng', 'cảm phiền', 'nhờ bạn', 'gửi bạn', 'biên bản', 'thống nhất',
+  'tiến độ', 'thời hạn', 'đính kèm', 'hợp tác', 'trao đổi', 'báo cáo', 'phản hồi'
 ];
 
 /**
@@ -112,8 +127,8 @@ export const COMMON_VIETNAMESE_COMPOUNDS = [
  */
 export const DEFAULT_VIETNAMESE_BIGRAMS = {
   // ── Quốc gia / dân tộc / địa danh ──
-  'việt': ['nam', 'trì', 'dã', 'kiều', 'vị', 'hóa', 'cộng'],
-  'cộng': ['hòa', 'đồng', 'tác', 'sản', 'sự', 'hưởng'],
+  'việt': ['nam', 'trì', 'dã', 'kiều', 'vị', 'hóa'],
+  'cộng': ['hòa', 'đồng', 'tác', 'sự', 'hưởng'],
   'quốc': ['tế', 'gia', 'tịch', 'phòng', 'hội'],
   'thế': ['giới', 'kỷ', 'hệ', 'lực', 'nào'],
   'đất': ['nước', 'đai', 'sét', 'vàng'],
@@ -164,7 +179,7 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'kiểm': ['tra', 'thử', 'soát', 'toán', 'định'],
   'khách': ['hàng', 'sạn', 'quan', 'thể'],
   'mật': ['khẩu', 'mã', 'thiết', 'độ', 'vụ'],
-  'tài': ['khoản', 'chính', 'năng', 'liệu', 'sản'],
+  'tài': ['khoản', 'chính', 'năng', 'lanh', 'liệu', 'sản', 'xế'],
   'đăng': ['nhập', 'ký', 'tải', 'quang', 'cai', 'xuất'],
   'giao': ['diện', 'tiếp', 'dịch', 'thông', 'hàng', 'kết'],
   'trực': ['tuyến', 'quan', 'tiếp', 'thuộc'],
@@ -201,7 +216,7 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'bệnh': ['viện', 'nhân', 'tật', 'án'],
   'bác': ['sĩ', 'học', 'ái'],
   'y': ['tế', 'tá', 'khoa', 'học'],
-  'hồi': ['sức', 'phục', 'âm', 'đáp', 'hương'],
+  'hồi': ['sức', 'phục', 'nãy', 'đó', 'xưa', 'chuông', 'âm', 'đáp', 'hương'],
   'cứu': ['hộ', 'nạn', 'thương', 'tế', 'giúp', 'chữa'],
   'sơ': ['cứu', 'khai', 'đồ', 'đẳng', 'tuyển'],
   'chẩn': ['đoán', 'trị'],
@@ -228,7 +243,7 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
 
   // ── Giao tiếp / chat / xã giao ──
   'xin': ['chào', 'lỗi', 'phép', 'mời', 'hỏi', 'cảm ơn'],
-  'cảm': ['ơn', 'thấy', 'giác', 'nghĩ', 'nhận', 'xúc', 'kích'],
+  'cảm': ['ơn', 'phiền', 'thấy', 'giác', 'nghĩ', 'nhận', 'xúc', 'kích'],
   'chúc': ['mừng', 'ngủ ngon', 'thành công', 'bạn', 'anh', 'chị', 'em'],
   'hẹn': ['gặp lại', 'ước', 'ngày', 'giờ', 'gặp'],
   'tạm': ['biệt', 'thời', 'ngưng'],
@@ -288,7 +303,7 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'viết': ['bài', 'thư', 'code', 'báo cáo'],
   'đọc': ['sách', 'báo', 'tin', 'hiểu'],
   'xem': ['phim', 'báo', 'tin', 'lại', 'xét', 'bói', 'tử vi'],
-  'coi': ['phim', 'báo', 'tin', 'lại', 'bói', 'tử vi'],
+  'coi': ['phim', 'báo', 'tin', 'bộ', 'chừng', 'hát', 'sách', 'lại', 'thường', 'bói', 'tử vi'],
 
   // ── Từ ngữ & tiếng lóng Sài Gòn xưa / Nam Bộ (Nguyễn Cao Trường) ──
   'bá': ['cháy', 'láp', 'chấy'],
@@ -311,7 +326,7 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'lết': ['bánh'],
   'mèn': ['ơi', 'đéc ơi'],
   'mưa': ['thúi đất', 'rào', 'phùn', 'dầm'],
-  'ngon': ['lành', 'miệng', 'ngọt', 'cơm'],
+  'ngon': ['lành', 'ơ', 'miệng', 'ngọt', 'cơm'],
   'quá': ['mạng', 'xá', 'nhiều', 'trình', 'khứ', 'tuyệt', 'nhanh'],
   'quỉ': ['tha ma bắt', 'quái', 'sứ'],
   'rề': ['rà'],
@@ -340,7 +355,32 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'xập': ['xám'],
   'xề': ['xòa'],
   'xì': ['dầu', 'trét', 'lốp'],
-  'xí': ['gạt', 'mụi', 'muội', 'xóa']
+  'xí': ['gạt', 'mụi', 'muội', 'xóa'],
+
+  // ── Từ vựng đời sống & phương ngữ Nam Bộ thân thương bổ sung ──
+  'bữa': ['nay', 'kịp', 'cơm', 'tiệc'],
+  'hổm': ['rày', 'nay'],
+  'chút': ['xíu', 'nữa', 'thôi', 'đỉnh'],
+  'thiệt': ['tình', 'thòi', 'sự', 'hại', 'lòng'],
+  'chánh': ['trực', 'kiến', 'nghĩa', 'phủ', 'tông'],
+  'lanh': ['chanh', 'lợi', 'lẹ'],
+  'ngọt': ['xớt', 'ngào', 'bùi'],
+  'chơn': ['chất', 'thật'],
+  'cưng': ['xỉu', 'chiều'],
+  'đàng': ['hoàng', 'trong', 'ngoài'],
+  'lẹ': ['làng', 'lẹ', 'tay', 'chân'],
+  'lóng': ['rày', 'ngóng'],
+  'mần': ['ăn', 'răng'],
+  'miệt': ['vườn', 'thứ', 'dưới'],
+  'nhứt': ['xứ', 'định', 'hạng', 'quán'],
+  'phẻ': ['re'],
+  'rảnh': ['rang', 'rỗi', 'tay'],
+  'thong': ['thả', 'dong'],
+  'thảnh': ['thơi'],
+  'kính': ['gửi', 'chào', 'trọng', 'mến'],
+  'trân': ['trọng', 'quý'],
+  'biên': ['bản', 'giới', 'phòng', 'soạn'],
+  'thống': ['nhất', 'kê', 'lĩnh', 'trị']
 };
 
 /**
@@ -382,6 +422,10 @@ export const DEFAULT_VIETNAMESE_TRIGRAMS = {
   'trời đánh': ['thánh đâm'],
   'trời thần': ['ơi'],
   'vắt giò': ['lên cổ'],
+  'hết sẩy': ['con bà bảy'],
+  'ngộ á': ['nghen'],
+  'coi bộ': ['được nghen', 'ngon'],
+  'thiệt tình': ['á', 'hết sức'],
 
   // Y tế / Bệnh viện
   'xe cấp': ['cứu'],
