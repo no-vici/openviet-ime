@@ -32,7 +32,7 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'pass', 'boss', 'loss', 'mass', 'class', 'glass', 'press', 'cross', 'dress', 'guess',
   'basis', 'status', 'focus', 'virus', 'bonus', 'canvas', 'chaos', 'oasis', 'crisis', 'texas',
   'paris', 'series', 'species', 'famous', 'fcitx', 'fcitx5', 'versus', 'alias', 'radius', 'minus', 'genius', 'census', 'campus', 'circus', 'lotus', 'chorus', 'walrus', 'corpus', 'hiatus', 'nexus',
-  'news', 'always', 'sometimes', 'perhaps', 'business', 'process', 'access', 'success', 'address',
+  'news', 'always', 'sometimes', 'perhaps', 'business', 'process', 'access', 'success', 'address', 'docs', 'doc',
 
   // Telex trap: words with 'x' (ngã)
   'text', 'next', 'context', 'exit', 'taxi', 'linux', 'unix', 'ajax', 'max', 'mix', 'box', 'fix',
@@ -257,7 +257,8 @@ export function reverseVietnameseWord(word) {
     'còe': 'core',
     'càe': 'care',
     'êpct': 'expect',
-    'pẻpct': 'perfect'
+    'pẻpct': 'perfect',
+    'dóc': 'docs'
   };
 
   if (DIRECT_REVERSE_TRAPS[clean]) {
@@ -291,7 +292,7 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'syntax', 'prefix', 'suffix', 'annex', 'latex', 'reflex', 'pixel', 'toxic',
   'oxide', 'oxygen', 'galaxy', 'expert', 'express', 'explain', 'explore', 'export',
   'extra', 'extreme', 'exact', 'exam', 'example', 'exist', 'execute', 'exercise',
-  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect'
+  'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs'
 ]);
 
 /**

@@ -839,6 +839,8 @@
     "access",
     "success",
     "address",
+    "docs",
+    "doc",
     // Telex trap: words with 'x' (ngã)
     "text",
     "next",
@@ -1614,7 +1616,8 @@
       "c\xF2e": "core",
       "c\xE0e": "care",
       "\xEApct": "expect",
-      "p\u1EBBpct": "perfect"
+      "p\u1EBBpct": "perfect",
+      "d\xF3c": "docs"
     };
     if (DIRECT_REVERSE_TRAPS[clean]) {
       const mapped = DIRECT_REVERSE_TRAPS[clean];
@@ -1705,7 +1708,8 @@
     "exchange",
     "expand",
     "expense",
-    "perfect"
+    "perfect",
+    "docs"
   ]);
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
     if (!rawWord && !currentWord) return false;
@@ -1959,6 +1963,7 @@
       this.phonologyRules = options.phonologyRules ?? true;
       this.currentWordRaw = "";
       this.lastTransformed = "";
+      this.lastToneToggledWord = null;
     }
     setMethod(method) {
       this.method = method;
@@ -1992,6 +1997,7 @@
     resetWordSession() {
       this.currentWordRaw = "";
       this.lastTransformed = "";
+      this.lastToneToggledWord = null;
     }
     /**
      * Revert current word buffer back to raw keystrokes (Instant ESC Revert - GoNhanh)
@@ -2828,6 +2834,7 @@
      */
     checkTone(word, key) {
       if (!word) return { transformed: false, result: word + key };
+      const lowerKey = key.toLowerCase();
       const toneMap = this.getToneForKey(key);
       if (toneMap === null) {
         return { transformed: false, result: word + key };
@@ -2868,8 +2875,15 @@
         const cleaned = this.stripToneFromWord(word, vowelIndices);
         const method = this.getEffectiveMethod(key);
         const appendKey = method === IME_METHOD.VNI ? key : "";
-        return { transformed: true, result: cleaned + appendKey };
+        const result = cleaned + appendKey;
+        this.lastToneToggledWord = { base: cleaned, key: lowerKey };
+        return { transformed: true, result };
       }
+      if (this.lastToneToggledWord && this.lastToneToggledWord.base === word && this.lastToneToggledWord.key === lowerKey) {
+        this.lastToneToggledWord = null;
+        return { transformed: false, result: word + key };
+      }
+      this.lastToneToggledWord = null;
       const baseWord = this.stripToneFromWord(word, vowelIndices);
       const targetChar = baseWord[targetVowelIdx];
       const baseInfo = CHAR_TO_BASE_AND_TONE[targetChar];

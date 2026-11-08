@@ -136,6 +136,7 @@ Telex sử dụng các phím chữ lặp và các ký tự quy ước (`w`, `s`,
 
 - Nếu từ đang có dấu thanh, gõ `z` (Telex) hoặc `0` (VNI) sẽ xóa sạch dấu thanh về nguyên âm cơ sở.
 - Nếu từ chưa có dấu thanh (ví dụ `toan`), gõ `z` sẽ xuất ra chữ `z` bình thường (`toanz`).
+- **Cơ chế thoát vòng lặp gõ phím dấu liên tiếp (Tone Toggle Breakout)**: Khi gõ lại cùng phím dấu thanh, bộ gõ sẽ gỡ dấu (`doc` + `s` -> `dóc` + `s` -> `doc`). Nếu tiếp tục gõ phím dấu đó lần thứ 3 liên tiếp, bộ gõ sẽ chủ động thoát vòng lặp và chèn ký tự chữ cái nguyên bản (`doc` + `s` -> `docs` + `s` -> `docss`). Kết hợp với tính năng Tự động phục hồi từ tiếng Anh (Auto-Restore), các từ tiếng Anh kết thúc bằng phím dấu như `docs` sẽ tự động chuyển về đúng định dạng khi bấm phím cách (Space) hoặc Enter.
 
 ---
 

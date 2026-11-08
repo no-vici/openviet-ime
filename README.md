@@ -136,6 +136,7 @@ Telex uses repeated letters and auxiliary keys (`w`, `s`, `f`, `r`, `x`, `j`, `z
 
 - If the word already carries a tone mark, pressing `z` (Telex) or `0` (VNI) immediately cleans the tone mark and restores the unaccented base vowel.
 - If the word has no tone mark (e.g., `toan`), typing `z` outputs `toanz` normally.
+- **Tone Key Retype & Breakout**: Retyping the same tone key toggles the tone off (`doc` + `s` -> `dóc` + `s` -> `doc`). If pressed a 3rd time consecutively, it breaks out of the loop and outputs the literal character without getting trapped (`doc` + `s` -> `docs` + `s` -> `docss`). Coupled with Auto-Restore, English trap words like `docs` automatically revert when followed by Space or Enter.
 
 ---
 

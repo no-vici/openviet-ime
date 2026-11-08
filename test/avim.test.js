@@ -427,5 +427,33 @@ export function runAvimTests() {
   ['d', 'o', 'c', 'x', '4'].forEach(k => { docxRes = noSpellEngine.processKey(docxRes, k).result; });
   assert('Natural Phonology Guard: docx + 4 outputs docx4 without spellcheck', docxRes === 'docx4', 'docx4', docxRes);
 
+  // 25. Telex Tone Toggle Breakout & English Trap Auto-Restore ("docs" -> "dóc" -> "doc" -> "docs")
+  const telexBreakoutEngine = new AvimEngine({ method: IME_METHOD.AUTO });
+  let docSequence = '';
+  ['d', 'o', 'c', 's'].forEach(k => {
+    telexBreakoutEngine.trackRawKey(k);
+    docSequence = telexBreakoutEngine.processKey(docSequence, k).result;
+  });
+  assert('Telex 1st s applies tone: d o c + s -> dóc', docSequence === 'dóc', 'dóc', docSequence);
+  
+  docSequence = telexBreakoutEngine.processKey(docSequence, 's').result;
+  assert('Telex 2nd s toggles tone off: dóc + s -> doc', docSequence === 'doc', 'doc', docSequence);
+
+  docSequence = telexBreakoutEngine.processKey(docSequence, 's').result;
+  assert('Telex 3rd s breaks loop to literal letter: doc + s -> docs', docSequence === 'docs', 'docs', docSequence);
+
+  docSequence = telexBreakoutEngine.processKey(docSequence, 's').result;
+  assert('Telex 4th s appends normally: docs + s -> docss', docSequence === 'docss', 'docss', docSequence);
+
+  // Auto-restore test on "docs" at boundary:
+  const autoRestoreEngine = new AvimEngine({ method: IME_METHOD.AUTO });
+  let docRaw = '';
+  ['d', 'o', 'c', 's'].forEach(k => {
+    autoRestoreEngine.trackRawKey(k);
+    docRaw = autoRestoreEngine.processKey(docRaw, k).result;
+  });
+  const spaceRestored = autoRestoreEngine.checkAutoRestore(docRaw);
+  assert('Auto-Restore on word delimiter restores docs: "dóc" -> "docs"', spaceRestored.restore && spaceRestored.result === 'docs', 'docs', spaceRestored.result);
+
   return results;
 }

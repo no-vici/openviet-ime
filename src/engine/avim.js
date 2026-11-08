@@ -126,6 +126,7 @@ export class AvimEngine {
     // Session state tracking for current word
     this.currentWordRaw = '';
     this.lastTransformed = '';
+    this.lastToneToggledWord = null;
   }
 
   setMethod(method) {
@@ -169,6 +170,7 @@ export class AvimEngine {
   resetWordSession() {
     this.currentWordRaw = '';
     this.lastTransformed = '';
+    this.lastToneToggledWord = null;
   }
 
   /**
@@ -1224,6 +1226,7 @@ export class AvimEngine {
   checkTone(word, key) {
     if (!word) return { transformed: false, result: word + key };
 
+    const lowerKey = key.toLowerCase();
     const toneMap = this.getToneForKey(key);
     if (toneMap === null) {
       return { transformed: false, result: word + key };
@@ -1284,8 +1287,23 @@ export class AvimEngine {
       // In VNI mode, retyping the number key removes tone AND outputs the number (e.g. ca + 1 -> cá + 1 -> ca1)
       const method = this.getEffectiveMethod(key);
       const appendKey = method === IME_METHOD.VNI ? key : '';
-      return { transformed: true, result: cleaned + appendKey };
+      const result = cleaned + appendKey;
+      this.lastToneToggledWord = { base: cleaned, key: lowerKey };
+      return { transformed: true, result };
     }
+
+    // If this tone was just toggled off by retyping the same tone key (e.g. 'dóc' + 's' -> 'doc'),
+    // retyping the tone key a 3rd time must NOT re-apply the tone; instead, pass it through literally!
+    // (e.g. 'doc' + 's' -> 'docs', 'docs' + 's' -> 'docss')
+    if (
+      this.lastToneToggledWord &&
+      this.lastToneToggledWord.base === word &&
+      this.lastToneToggledWord.key === lowerKey
+    ) {
+      this.lastToneToggledWord = null;
+      return { transformed: false, result: word + key };
+    }
+    this.lastToneToggledWord = null;
 
     // Strip previous tone from all vowels first
     const baseWord = this.stripToneFromWord(word, vowelIndices);

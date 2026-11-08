@@ -647,6 +647,8 @@
     "access",
     "success",
     "address",
+    "docs",
+    "doc",
     // Telex trap: words with 'x' (ngã)
     "text",
     "next",
