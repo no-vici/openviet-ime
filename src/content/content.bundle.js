@@ -1330,7 +1330,6 @@
     "vitest",
     "jest",
     "modern",
-    "morden",
     "tick",
     "backtick",
     "reset",
@@ -1672,7 +1671,6 @@
       "m\xE3imum": "maximum",
       "m\xFAic": "music",
       "m\u1EBBge": "merge",
-      "m\u1ECFden": "morden",
       "ode": "order",
       "oline": "offline",
       "p\xFAh": "push",
@@ -1855,7 +1853,6 @@
     "perfect",
     "docs",
     "modern",
-    "morden",
     "backtick"
   ]);
   function shouldAutoRestoreEnglish(rawWord, currentWord) {

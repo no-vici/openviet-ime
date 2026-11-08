@@ -1138,7 +1138,6 @@
     "vitest",
     "jest",
     "modern",
-    "morden",
     "tick",
     "backtick",
     "reset",
