@@ -61,3 +61,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`\n=== VIETNAMESE WORD COLLISIONS (${Object.keys(vnCollisions).length} entries) ===`);
   console.log(JSON.stringify(vnCollisions, null, 2));
 }
+
