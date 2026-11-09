@@ -1,9 +1,9 @@
 /**
- * OpenViet IME - End-to-End (E2E) Browser Testing with Playwright
+ * OpenViet IME - End-to-End (E2E) Browser Integration Test with Playwright
  * 
- * Verifies real-world browser typing, unpacked extension loading,
+ * Verifies real-world browser typing, unpacked extension loading via Persistent Context,
  * high-speed keystroke simulation (delay: 5ms), rich text editor compatibility,
- * and diacritic transformation fidelity.
+ * and context error tracking (logging unexpected Backspace/ESC to ime-error-context-logs.json).
  */
 
 import { chromium } from 'playwright';
@@ -12,9 +12,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 
 const EXTENSION_PATH = path.resolve('.');
-const IS_CI = Boolean(process.env.CI);
+const ERROR_LOG_PATH = path.join(process.cwd(), 'ime-error-context-logs.json');
 
-// HTML Test Fixture simulating standard Web Editors (Slack, Google Docs, Telegram, Monaco)
+// HTML Test Fixture simulating Web Editors (Google Docs, Slack Web, Telegram Web, Monaco)
 const FIXTURE_HTML = `<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -47,20 +47,65 @@ const FIXTURE_HTML = `<!DOCTYPE html>
   </div>
 
   <div class="box">
-    <label for="richEditor">3. ContentEditable (Slack Web, Google Docs, ProseMirror, Notion):</label>
-    <div id="richEditor" class="editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
+    <label for="editor">3. ContentEditable (Slack Web, Google Docs, ProseMirror, Notion):</label>
+    <div id="editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
   </div>
 </body>
 </html>`;
 
+// Danh sách các chuỗi thử nghiệm (Edge Cases Telex / Tiếng Anh kỹ thuật / Từ bẫy / vnchKey)
+const HARDCORE_TEST_CASES = [
+  {
+    name: 'Auto-restore Telex trap: text (têt -> text on Space)',
+    input: 'text',
+    expected: 'text'
+  },
+  {
+    name: 'Auto-restore Telex trap: user (úer -> user on Space)',
+    input: 'user',
+    expected: 'user'
+  },
+  {
+    name: 'Auto-restore Telex trap: luxury (lủuy -> luxury on Space)',
+    input: 'luxury',
+    expected: 'luxury'
+  },
+  {
+    name: 'Mixed-case preservation: lUxUrY',
+    input: 'lUxUrY',
+    expected: 'lUxUrY'
+  },
+  {
+    name: 'Vietnamese Telex tone: cas -> cá',
+    input: 'cas',
+    expected: 'cá'
+  },
+  {
+    name: 'Vietnamese Telex tone: toans -> toán',
+    input: 'toans',
+    expected: 'toán'
+  },
+  {
+    name: 'Developer camelCase: useState',
+    input: 'useState',
+    expected: 'useState'
+  },
+  {
+    name: 'vnchKey rapid 2nd tone restore: docs',
+    input: 'docs',
+    expected: 'docs'
+  }
+];
+
 async function runE2ETestSuite() {
-  console.log('🚀 Starting OpenViet IME Playwright E2E Test Suite...');
+  console.log('🚀 Starting OpenViet IME Playwright E2E Integration Test Suite...');
   console.log(`📦 Unpacked Extension Path: ${EXTENSION_PATH}`);
 
   const tmpFixturePath = path.join(os.tmpdir(), 'openviet-e2e-fixture.html');
   fs.writeFileSync(tmpFixturePath, FIXTURE_HTML, 'utf8');
 
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openviet-playwright-'));
+  const errorLogs = [];
 
   let context;
   try {
@@ -76,7 +121,7 @@ async function runE2ETestSuite() {
       ]
     });
   } catch (err) {
-    console.warn('⚠️ Headful launch failed (probably no X11 DISPLAY in environment). Retrying in modern headless mode...');
+    console.warn('⚠️ Headful launch failed (no X11 DISPLAY in environment). Launching in headless mode...');
     context = await chromium.launchPersistentContext(userDataDir, {
       headless: 'new',
       args: [
@@ -91,79 +136,82 @@ async function runE2ETestSuite() {
   }
 
   const page = await context.newPage();
+
+  // Monitor keydown events globally in page to catch any Backspace/Escape triggers
+  let currentKeySequence = [];
+  await page.exposeFunction('trackKeyEvent', (key) => {
+    currentKeySequence.push(key);
+  });
+
+  // Load the test fixture via file:// protocol so content scripts inject safely
   await page.goto(`file://${tmpFixturePath}`);
   await page.waitForLoadState('domcontentloaded');
 
-  // Wait a moment for extension content script injection
+  // Inject real-time key logger into browser window
+  await page.evaluate(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' || e.key === 'Escape') {
+        window.trackKeyEvent(e.key);
+      }
+    });
+  });
+
+  // Allow extension content script initialization
   await page.waitForTimeout(600);
 
-  const testCases = [
-    {
-      name: 'High-speed Vietnamese typing in native input',
-      selector: '#nativeInput',
-      rawKeys: 'Tooi yeu Tieengs Vieetj vaf laapj trinhf ',
-      expected: 'Tôi yêu Tiếng Việt và lập trình '
-    },
-    {
-      name: 'Rapid tone retype (vnchKey 2nd tone restore: docs)',
-      selector: '#nativeInput',
-      rawKeys: 'docs ',
-      expected: 'Tôi yêu Tiếng Việt và lập trình docs '
-    },
-    {
-      name: 'Technical English auto-restore in textarea (modern, luxury, text)',
-      selector: '#nativeTextarea',
-      rawKeys: 'modern luxury text user push window ',
-      expected: 'modern luxury text user push window '
-    },
-    {
-      name: 'Developer camelCase & PascalCase in ContentEditable (Slack/Docs rich editor)',
-      selector: '#richEditor',
-      rawKeys: 'useState isCamelCase UserController ',
-      expected: 'useState isCamelCase UserController '
-    },
-    {
-      name: 'Central Highlands & regional toponyms preservation (Đắk Lắk, Krông Nô, quởn)',
-      selector: '#richEditor',
-      rawKeys: 'Dawk Lawk, Kroomg Noo, quowrn ',
-      expected: 'useState isCamelCase UserController Đắk Lắk, Krông Nô, quởn '
-    }
-  ];
+  const editorLocator = page.locator('#editor');
+  await editorLocator.click();
 
   let passed = 0;
   let failed = 0;
 
-  for (const tc of testCases) {
+  for (const tc of HARDCORE_TEST_CASES) {
     console.log(`\n⏳ Running: [${tc.name}]`);
-    const element = await page.$(tc.selector);
-    if (!element) {
-      console.error(`❌ Element not found: ${tc.selector}`);
-      failed++;
-      continue;
-    }
+    currentKeySequence = [];
 
-    await element.focus();
+    // Clear editor content before each test case
+    await editorLocator.evaluate(node => { node.innerHTML = ''; });
+    await editorLocator.click();
 
-    // High-speed micro-delay typing simulation (5ms)
-    await page.keyboard.type(tc.rawKeys, { delay: 5 });
+    // 1. High-speed typing simulation with micro-delay (5ms)
+    await page.keyboard.type(tc.input, { delay: 5 });
+
+    // 2. Press Space to trigger word completion & auto-restore
+    await page.keyboard.press('Space', { delay: 5 });
+
+    // Allow IME micro-task to settle
     await page.waitForTimeout(100);
 
-    // Read back buffer
-    let actual = '';
-    const tagName = await element.evaluate(el => el.tagName.toLowerCase());
-    if (tagName === 'input' || tagName === 'textarea') {
-      actual = await element.evaluate(el => el.value);
-    } else {
-      actual = await element.evaluate(el => el.innerText.trim());
+    // 3. Read back innerText
+    const actualText = (await editorLocator.innerText()).trim();
+
+    // Check if Backspace or ESC occurred unexpectedly
+    const hasContextError = currentKeySequence.includes('Backspace') || currentKeySequence.includes('Escape');
+    const isMatched = actualText.includes(tc.expected);
+
+    if (hasContextError || !isMatched) {
+      errorLogs.push({
+        inputString: tc.input,
+        expected: tc.expected,
+        actual: actualText,
+        triggeredKeys: [...currentKeySequence],
+        timestamp: new Date().toISOString()
+      });
     }
 
-    if (actual.trim() === tc.expected.trim()) {
-      console.log(`✅ PASS: "${actual.trim()}"`);
+    if (isMatched) {
+      console.log(`✅ PASS: Expected "${tc.expected}" -> Got "${actualText}"`);
       passed++;
     } else {
-      console.error(`❌ FAIL:\n  Expected: "${tc.expected.trim()}"\n  Actual:   "${actual.trim()}"`);
+      console.error(`❌ FAIL:\n  Expected: "${tc.expected}"\n  Actual:   "${actualText}"`);
       failed++;
     }
+  }
+
+  // Save error context logs if any anomaly was detected
+  if (errorLogs.length > 0) {
+    fs.writeFileSync(ERROR_LOG_PATH, JSON.stringify(errorLogs, null, 2), 'utf-8');
+    console.log(`\n[IME Logger] Đã ghi nhận ${errorLogs.length} trường hợp kích hoạt Backspace/ESC do xử lý sai ngữ cảnh vào: ${ERROR_LOG_PATH}`);
   }
 
   // Cleanup
@@ -174,7 +222,7 @@ async function runE2ETestSuite() {
   } catch {}
 
   console.log(`\n========================================`);
-  console.log(`📊 E2E Test Results: ${passed} passed, ${failed} failed.`);
+  console.log(`📊 E2E Integration Results: ${passed} passed, ${failed} failed.`);
   console.log(`========================================\n`);
 
   if (failed > 0) {

@@ -31,3 +31,4 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(shouldAutoRestoreEnglish('cas', 'cá')).toBe(false);
   });
 });
+
