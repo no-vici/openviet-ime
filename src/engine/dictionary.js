@@ -248,14 +248,24 @@ export const ACCENT_TO_RAW_TELEX = {
 export function matchCasing(source, target) {
   if (!source || !target) return target || '';
 
-  const firstChar = source.charAt(0);
-  const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
-
   const isAllUpper = source.length > 1 && source === source.toUpperCase() && source !== source.toLowerCase();
   if (isAllUpper) {
     return target.toUpperCase();
   }
 
+  // If source has mixed/irregular internal uppercase (e.g. mIxEd, loWeRcAsE) and same length as target
+  if (source.length === target.length && /[a-z]/.test(source) && /[A-Z]/.test(source.slice(1))) {
+    return target
+      .split('')
+      .map((ch, i) => {
+        const s = source.charAt(i);
+        return s === s.toUpperCase() && s !== s.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase();
+      })
+      .join('');
+  }
+
+  const firstChar = source.charAt(0);
+  const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
   if (isFirstUpper) {
     return target.charAt(0).toUpperCase() + target.slice(1);
   }

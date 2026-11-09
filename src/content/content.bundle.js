@@ -1652,12 +1652,18 @@
   };
   function matchCasing(source, target) {
     if (!source || !target) return target || "";
-    const firstChar = source.charAt(0);
-    const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
     const isAllUpper = source.length > 1 && source === source.toUpperCase() && source !== source.toLowerCase();
     if (isAllUpper) {
       return target.toUpperCase();
     }
+    if (source.length === target.length && /[a-z]/.test(source) && /[A-Z]/.test(source.slice(1))) {
+      return target.split("").map((ch, i) => {
+        const s = source.charAt(i);
+        return s === s.toUpperCase() && s !== s.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase();
+      }).join("");
+    }
+    const firstChar = source.charAt(0);
+    const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
     if (isFirstUpper) {
       return target.charAt(0).toUpperCase() + target.slice(1);
     }
@@ -6182,6 +6188,7 @@
         autoCompleteEnabled: true,
         nextWordEnabled: true,
         gboardLearningEnabled: true,
+        debugTypingLog: false,
         macros: DEFAULT_MACROS,
         blacklistedDomains: []
       };
@@ -6766,6 +6773,12 @@
       }
       if (key === "Backspace") {
         this.hideSuggestions();
+        this._consecutiveBackspaces = (this._consecutiveBackspaces || 0) + 1;
+        if (this.settings.debugTypingLog && this._consecutiveBackspaces >= 2) {
+          if (this.avimEngine.lastTransformed && this.avimEngine.currentWordRaw) {
+            this.recordTypingLog("backspace_delete", this.avimEngine.currentWordRaw, this.avimEngine.lastTransformed);
+          }
+        }
         if (this.handleBackspaceUndo(target, event)) {
           return;
         }
@@ -6775,6 +6788,7 @@
         this.adoptWordBeforeBackspace(target, event);
       }
       if (key.length === 1) {
+        this._consecutiveBackspaces = 0;
         this.handleCharacterInput(target, key, event);
       }
     }
@@ -6917,10 +6931,42 @@
           }
           this.hideSuggestions();
           this.showHudToast(`Ho\xE0n t\xE1c: ${revert.result}`, true);
+          if (this.settings.debugTypingLog) {
+            this.recordTypingLog("escape_revert", this.avimEngine.currentWordRaw || wordInfo.word, wordInfo.word, revert.result);
+          }
           return true;
         }
       }
       return false;
+    }
+    /**
+     * Anonymous Debug Typing Log: records typing sessions where user Backspaced or Escaped
+     * suspected diacritic mismatches to identify edge cases without intruding on privacy.
+     */
+    async recordTypingLog(action, raw, transformed, reverted = "") {
+      if (!this.settings?.debugTypingLog) return;
+      if (!raw && !transformed) return;
+      try {
+        const entry = {
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          action,
+          raw: String(raw || ""),
+          transformed: String(transformed || ""),
+          reverted: String(reverted || ""),
+          host: typeof window !== "undefined" ? window.location?.hostname || "unknown" : "unknown"
+        };
+        const storage = typeof chrome !== "undefined" && chrome.storage && chrome.storage.local ? chrome.storage.local : typeof browser !== "undefined" && browser.storage && browser.storage.local ? browser.storage.local : null;
+        if (storage) {
+          const data = await storage.get(["openviet_typing_logs"]);
+          const logs = Array.isArray(data.openviet_typing_logs) ? data.openviet_typing_logs : [];
+          logs.push(entry);
+          if (logs.length > 100) {
+            logs.splice(0, logs.length - 100);
+          }
+          await storage.set({ openviet_typing_logs: logs });
+        }
+      } catch {
+      }
     }
     /**
      * Instant Retro-Rescue Hotkey Handler (Ctrl+Shift+R or Alt+R):

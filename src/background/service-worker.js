@@ -27,6 +27,7 @@ const DEFAULT_SETTINGS = {
   autoCompleteEnabled: true,
   nextWordEnabled: true,
   gboardLearningEnabled: true,
+  debugTypingLog: false,
   blacklistedDomains: []
 };
 

@@ -3496,6 +3496,7 @@
     autoCompleteEnabled: true,
     nextWordEnabled: true,
     gboardLearningEnabled: true,
+    debugTypingLog: false,
     blacklistedDomains: []
   };
   var editingTrigger = null;
@@ -3962,6 +3963,11 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const escRevertOption = document.getElementById("escRevertOption");
     const phonologyRulesOption = document.getElementById("phonologyRulesOption");
     const wordRescueOption = document.getElementById("wordRescueOption");
+    const debugTypingLogOption = document.getElementById("debugTypingLogOption");
+    const typingLogControls = document.getElementById("typingLogControls");
+    const typingLogCountBadge = document.getElementById("typingLogCountBadge");
+    const downloadTypingLogBtn = document.getElementById("downloadTypingLogBtn");
+    const clearTypingLogBtn = document.getElementById("clearTypingLogBtn");
     const blacklistTextarea = document.getElementById("blacklistTextarea");
     const newDomainInput = document.getElementById("newDomainInput");
     const newDomainMethodSelect = document.getElementById("newDomainMethodSelect");
@@ -3988,6 +3994,8 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
       if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
       if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
+      if (debugTypingLogOption) debugTypingLogOption.checked = Boolean(settings.debugTypingLog);
+      updateTypingLogUI();
       if (blacklistTextarea) blacklistTextarea.value = (settings.blacklistedDomains || []).join("\n");
       const isAutoComplete = settings.autoCompleteEnabled !== false;
       const isNextWord = settings.nextWordEnabled !== false;
@@ -4077,6 +4085,68 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       ctrlToggleOption.addEventListener("change", async () => {
         settings.ctrlToggleEnabled = ctrlToggleOption.checked;
         await saveState();
+      });
+    }
+    async function updateTypingLogUI() {
+      if (!typingLogControls) return;
+      const isEnabled = Boolean(settings.debugTypingLog);
+      typingLogControls.style.display = isEnabled ? "block" : "none";
+      if (!isEnabled) return;
+      try {
+        const storage = browserApi.storage && browserApi.storage.local ? browserApi.storage.local : null;
+        if (storage) {
+          const data = await storage.get(["openviet_typing_logs"]);
+          const count = Array.isArray(data.openviet_typing_logs) ? data.openviet_typing_logs.length : 0;
+          if (typingLogCountBadge) {
+            typingLogCountBadge.textContent = `${count} chu\u1ED7i ph\xEDm \u0111\xE3 ghi`;
+          }
+        }
+      } catch {
+      }
+    }
+    if (debugTypingLogOption) {
+      debugTypingLogOption.addEventListener("change", async () => {
+        settings.debugTypingLog = debugTypingLogOption.checked;
+        await saveState();
+        await updateTypingLogUI();
+      });
+    }
+    if (downloadTypingLogBtn) {
+      downloadTypingLogBtn.addEventListener("click", async () => {
+        try {
+          const storage = browserApi.storage && browserApi.storage.local ? browserApi.storage.local : null;
+          if (!storage) return;
+          const data = await storage.get(["openviet_typing_logs"]);
+          const logs = Array.isArray(data.openviet_typing_logs) ? data.openviet_typing_logs : [];
+          if (logs.length === 0) {
+            alert("Ch\u01B0a c\xF3 nh\u1EADt k\xFD g\xF5 n\xE0o \u0111\u01B0\u1EE3c ghi nh\u1EADn.");
+            return;
+          }
+          const jsonlContent = logs.map((e) => JSON.stringify(e)).join("\n");
+          const blob = new Blob([jsonlContent], { type: "application/x-jsonlines;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `openviet-typing-log-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.jsonl`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          console.error("Failed to export typing log", err);
+        }
+      });
+    }
+    if (clearTypingLogBtn) {
+      clearTypingLogBtn.addEventListener("click", async () => {
+        try {
+          const storage = browserApi.storage && browserApi.storage.local ? browserApi.storage.local : null;
+          if (storage) {
+            await storage.remove(["openviet_typing_logs"]);
+            await updateTypingLogUI();
+          }
+        } catch {
+        }
       });
     }
     const handleAutoCompleteChange = async (val) => {

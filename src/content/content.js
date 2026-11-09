@@ -39,6 +39,7 @@ class AvimContentScript {
       autoCompleteEnabled: true,
       nextWordEnabled: true,
       gboardLearningEnabled: true,
+      debugTypingLog: false,
       macros: DEFAULT_MACROS,
       blacklistedDomains: []
     };
@@ -741,6 +742,14 @@ class AvimContentScript {
     // 2. Backspace: check Macro Backtracking / Undo & Word Adoption
     if (key === 'Backspace') {
       this.hideSuggestions();
+      this._consecutiveBackspaces = (this._consecutiveBackspaces || 0) + 1;
+
+      if (this.settings.debugTypingLog && this._consecutiveBackspaces >= 2) {
+        if (this.avimEngine.lastTransformed && this.avimEngine.currentWordRaw) {
+          this.recordTypingLog('backspace_delete', this.avimEngine.currentWordRaw, this.avimEngine.lastTransformed);
+        }
+      }
+
       if (this.handleBackspaceUndo(target, event)) {
         return;
       }
@@ -752,6 +761,7 @@ class AvimContentScript {
 
     // 3. Single character typing
     if (key.length === 1) {
+      this._consecutiveBackspaces = 0;
       this.handleCharacterInput(target, key, event);
     }
   }
@@ -922,10 +932,49 @@ class AvimContentScript {
         }
         this.hideSuggestions();
         this.showHudToast(`Hoàn tác: ${revert.result}`, true);
+        if (this.settings.debugTypingLog) {
+          this.recordTypingLog('escape_revert', this.avimEngine.currentWordRaw || wordInfo.word, wordInfo.word, revert.result);
+        }
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Anonymous Debug Typing Log: records typing sessions where user Backspaced or Escaped
+   * suspected diacritic mismatches to identify edge cases without intruding on privacy.
+   */
+  async recordTypingLog(action, raw, transformed, reverted = '') {
+    if (!this.settings?.debugTypingLog) return;
+    if (!raw && !transformed) return;
+
+    try {
+      const entry = {
+        timestamp: new Date().toISOString(),
+        action,
+        raw: String(raw || ''),
+        transformed: String(transformed || ''),
+        reverted: String(reverted || ''),
+        host: typeof window !== 'undefined' ? (window.location?.hostname || 'unknown') : 'unknown'
+      };
+
+      const storage = (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local)
+        ? chrome.storage.local
+        : (typeof browser !== 'undefined' && browser.storage && browser.storage.local ? browser.storage.local : null);
+
+      if (storage) {
+        const data = await storage.get(['openviet_typing_logs']);
+        const logs = Array.isArray(data.openviet_typing_logs) ? data.openviet_typing_logs : [];
+        logs.push(entry);
+        if (logs.length > 100) {
+          logs.splice(0, logs.length - 100);
+        }
+        await storage.set({ openviet_typing_logs: logs });
+      }
+    } catch {
+      // Quiet fail to ensure typing remains fluid
+    }
   }
 
   /**
