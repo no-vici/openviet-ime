@@ -1,7 +1,7 @@
 # OpenViet IME - Modern Cross-Browser Vietnamese Input & Macro Engine
 
 <div align="center">
-    <img src="src/assets/icon128.png" alt="OpenViet IME Logo" width="128" height="128" />
+    <img src="src/assets/icon256.png" alt="OpenViet IME Logo" width="256" height="256" />
 
 
 [![Vietnamese IME](https://img.shields.io/badge/IME-Vietnamese-blue?style=flat-square)](#)

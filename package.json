@@ -14,6 +14,7 @@
     "bundle:firefox": "npm run build:firefox",
     "bundle:edge": "npm run build:edge",
     "build": "npm run bundle:extension",
+    "generate:icons": "node scripts/generate-icons.js",
     "test": "node --test test/avim.test.js test/macro.test.js test/autocomplete.test.js test/syllable-parser.test.js test/vietc-regression.test.js test/phonology-roundtrip.test.js test/mixed-corpus.test.js test/hardcore-edge-cases.test.js",
     "test:e2e": "node test/playwright-e2e.js"
   },

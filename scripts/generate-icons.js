@@ -6,7 +6,7 @@ const { Resvg } = pkg;
 const svgPath = path.resolve('src/assets/icon.svg');
 const svgBuffer = fs.readFileSync(svgPath);
 
-const sizes = [16, 32, 48, 64, 128];
+const sizes = [16, 32, 48, 64, 128, 256, 512];
 
 for (const size of sizes) {
   const resvg = new Resvg(svgBuffer, {
@@ -28,8 +28,11 @@ for (const size of sizes) {
     fs.writeFileSync('src/assets/icon64.png', pngBuffer);
   } else if (size === 128) {
     fs.writeFileSync('src/assets/icon128.png', pngBuffer);
+  } else if (size === 256) {
+    fs.writeFileSync('src/assets/icon256.png', pngBuffer);
+  } else if (size === 512) {
     fs.writeFileSync('src/assets/icon.png', pngBuffer);
   }
 }
 
-console.log('Successfully generated all OpenViet IME modern PNG icons!');
+console.log('Successfully generated all OpenViet IME modern PNG icons (16, 32, 48, 64, 128, 256, 512)!');

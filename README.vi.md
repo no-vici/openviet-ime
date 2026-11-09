@@ -1,7 +1,7 @@
 # OpenViet IME - Bộ Gõ Tiếng Việt & Gõ Tắt Macro Cho Trình Duyệt
 
 <div align="center">
-    <img src="src/assets/icon128.png" alt="OpenViet IME Logo" width="128" height="128" />
+    <img src="src/assets/icon256.png" alt="OpenViet IME Logo" width="256" height="256" />
 
 
 [![Bộ Gõ Tiếng Việt](https://img.shields.io/badge/IME-Ti%E1%BA%BFng%20Vi%E1%BB%87t-blue?style=flat-square)](#)
