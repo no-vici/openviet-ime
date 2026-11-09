@@ -2003,6 +2003,9 @@
     if (rawClean === curClean && /^[a-z0-9]+$/i.test(curClean)) {
       return false;
     }
+    if (/^[a-zA-Z]+$/.test(curClean) && (COMMON_ENGLISH_WORDS.has(curClean) || userDictionary.has(curClean))) {
+      return false;
+    }
     if (/\d/.test(rawClean)) {
       return false;
     }
@@ -2326,13 +2329,24 @@
         this.resetWordSession();
         return { restore: false, result: currentWord };
       }
+      const curLower = currentWord.toLowerCase();
+      if (/^[a-zA-Z]+$/.test(currentWord) && (COMMON_ENGLISH_WORDS.has(curLower) || userDictionary.has(curLower))) {
+        this.resetWordSession();
+        return { restore: false, result: currentWord };
+      }
       const raw = this.currentWordRaw;
       if (raw && /\d/.test(raw)) {
         this.resetWordSession();
         return { restore: false, result: currentWord };
       }
       if (shouldAutoRestoreEnglish(raw, currentWord)) {
-        let restored = raw && raw.length >= 3 && !/\d/.test(raw) ? raw : reverseVietnameseWord(currentWord);
+        const rawLower = (raw || "").toLowerCase();
+        let restored = "";
+        if (raw && !/\d/.test(raw) && (COMMON_ENGLISH_WORDS.has(rawLower) || userDictionary.has(rawLower))) {
+          restored = raw;
+        } else {
+          restored = reverseVietnameseWord(currentWord) || raw || currentWord;
+        }
         restored = matchCasing(currentWord, restored);
         this.resetWordSession();
         return { restore: true, result: restored };

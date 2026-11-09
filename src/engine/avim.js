@@ -229,6 +229,14 @@ export class AvimEngine {
       return { restore: false, result: currentWord };
     }
 
+    // Safety guard: If currentWord is already pure ASCII and is a known English word,
+    // it never needs restoration (prevents raw cancellation keystrokes like 'tesst' from corrupting it).
+    const curLower = currentWord.toLowerCase();
+    if (/^[a-zA-Z]+$/.test(currentWord) && (COMMON_ENGLISH_WORDS.has(curLower) || userDictionary.has(curLower))) {
+      this.resetWordSession();
+      return { restore: false, result: currentWord };
+    }
+
     const raw = this.currentWordRaw;
     // 3. Reject any raw sequence containing digits (VNI numbers or digits)
     if (raw && /\d/.test(raw)) {
@@ -237,7 +245,13 @@ export class AvimEngine {
     }
 
     if (shouldAutoRestoreEnglish(raw, currentWord)) {
-      let restored = (raw && raw.length >= 3 && !/\d/.test(raw)) ? raw : reverseVietnameseWord(currentWord);
+      const rawLower = (raw || '').toLowerCase();
+      let restored = '';
+      if (raw && !/\d/.test(raw) && (COMMON_ENGLISH_WORDS.has(rawLower) || userDictionary.has(rawLower))) {
+        restored = raw;
+      } else {
+        restored = reverseVietnameseWord(currentWord) || raw || currentWord;
+      }
       restored = matchCasing(currentWord, restored);
       this.resetWordSession();
       return { restore: true, result: restored };

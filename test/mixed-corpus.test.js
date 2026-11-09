@@ -334,6 +334,39 @@ test('Mixed Corpus - Extension & User Dictionary Auto-Restore', () => {
   assert.equal(engineOff.checkAutoRestore(typedUser).result, 'customdevterm');
 });
 
+test('Mixed Corpus - Telex Cancellation Keystrokes & Pure ASCII English Words Preservation', () => {
+  const engine = new AvimEngine({ method: IME_METHOD.TELEX, autoRestoreEnglish: true, spellCheck: false });
+
+  // 1. Typing 'test' via Telex: t -> e -> s (té) -> s (tes) -> t (test) -> Space
+  const resTest = simulateTypingSentence(engine, 'npm run tesst ');
+  assert.equal(resTest, 'npm run test ', `Expected "npm run test ", got "${resTest}"`);
+
+  // 2. Typing 'pass' via Telex: p -> a -> s (pá) -> s (pas) -> s (pass) -> Space
+  const resPass = simulateTypingSentence(engine, 'passs ');
+  assert.equal(resPass, 'pass ', `Expected "pass ", got "${resPass}"`);
+
+  // 3. Typing 'cast' via Telex: c -> a -> s (cá) -> s (cas) -> t (cast) -> Space
+  const resCast = simulateTypingSentence(engine, 'casst ');
+  assert.equal(resCast, 'cast ', `Expected "cast ", got "${resCast}"`);
+
+  // 4. Typing 'cost' via Telex: c -> o -> s (có) -> s (cos) -> t (cost) -> Space
+  const resCost = simulateTypingSentence(engine, 'cosst ');
+  assert.equal(resCost, 'cost ', `Expected "cost ", got "${resCost}"`);
+
+  // 5. Typing 'best' via Telex: b -> e -> s (bé) -> s (bes) -> t (best) -> Space
+  const resBest = simulateTypingSentence(engine, 'besst ');
+  assert.equal(resBest, 'best ', `Expected "best ", got "${resBest}"`);
+
+  // 6. Typing 'fast' directly (foreign onset 'f' naturally bypasses Telex tones): fast + Space -> fast
+  const resFast = simulateTypingSentence(engine, 'fast ');
+  assert.equal(resFast, 'fast ', `Expected "fast ", got "${resFast}"`);
+
+  // 7. Typing Vietnamese 'tét' (bánh tét): b-á-n-h t-e-t-s + Space -> bánh tét
+  const resTet = simulateTypingSentence(engine, 'bánh tets ');
+  assert.equal(resTet, 'bánh tét ', `Expected "bánh tét ", got "${resTet}"`);
+});
+
+
 
 
 

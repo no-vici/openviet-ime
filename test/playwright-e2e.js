@@ -60,6 +60,16 @@ const HARDCORE_TEST_CASES = [
     name: 'Foreign onset protection: playwright (không bị biến dị thành plăy/plăỷight)',
     input: 'playwright ',
     expected: 'playwright'
+  },
+  {
+    name: 'Telex tone cancellation preservation: test (tesst -> test on Space)',
+    input: 'tesst ',
+    expected: 'test'
+  },
+  {
+    name: 'Telex tone cancellation preservation: pass (passs -> pass on Space)',
+    input: 'passs ',
+    expected: 'pass'
   }
 ];
 

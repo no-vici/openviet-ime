@@ -547,6 +547,12 @@ export function shouldAutoRestoreEnglish(rawWord, currentWord) {
     return false;
   }
 
+  // If currentWord is already a valid pure ASCII English word without diacritics,
+  // do NOT attempt auto-restore (prevents cancellation keystrokes in raw from corrupting words like test -> tesst, fast -> fasst)
+  if (/^[a-zA-Z]+$/.test(curClean) && (COMMON_ENGLISH_WORDS.has(curClean) || userDictionary.has(curClean))) {
+    return false;
+  }
+
   // Rule 1: Reject any sequence containing digits (0-9)
   // Keystrokes with digits (e.g. a1, u1, o2, cuu71, duoc975) are VNI diacritic sequences
   // or numeric input. English words NEVER contain digits!

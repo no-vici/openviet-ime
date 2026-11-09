@@ -27,8 +27,13 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     // Từ tiếng Anh nằm trong danh mục trap phải được chấp nhận khôi phục khi nhấn Space
     expect(shouldAutoRestoreEnglish('text', 'têt')).toBe(true);
     expect(shouldAutoRestoreEnglish('user', 'úer')).toBe(true);
-    // Từ tiếng Việt hợp lệ (ví dụ: 'cá', 'toán') không được phép khôi phục bừa bãi
+    // Từ tiếng Việt hợp lệ (ví dụ: 'cá', 'toán', 'tét') không được phép khôi phục bừa bãi
     expect(shouldAutoRestoreEnglish('cas', 'cá')).toBe(false);
+    expect(shouldAutoRestoreEnglish('tes', 'tét')).toBe(false);
+    // Từ tiếng Anh đã ở dạng ASCII hợp lệ không bị corrupt bởi phím huỷ dấu (cancellation keystrokes)
+    expect(shouldAutoRestoreEnglish('tesst', 'test')).toBe(false);
+    expect(shouldAutoRestoreEnglish('passs', 'pass')).toBe(false);
+    expect(shouldAutoRestoreEnglish('fasst', 'fast')).toBe(false);
   });
 });
 
