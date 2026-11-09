@@ -2,15 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
-const svgPath = path.resolve('src/assets/icon-openviet-ime.svg');
+const svgPath = path.resolve('src/assets/icon.svg');
 
 if (!fs.existsSync(svgPath)) {
   console.error(`Error: ${svgPath} not found!`);
   process.exit(1);
 }
-
-// Keep icon.svg synchronized with icon-openviet-ime.svg
-fs.copyFileSync(svgPath, path.resolve('src/assets/icon.svg'));
 
 const sizes = [
   { size: 16, outFile: 'src/assets/icon16.png' },
@@ -22,7 +19,7 @@ const sizes = [
   { size: 512, outFile: 'src/assets/icon.png' }
 ];
 
-console.log('Rendering icons directly from src/assets/icon-openviet-ime.svg using Inkscape...');
+console.log('Rendering icons directly from src/assets/icon.svg using Inkscape...');
 
 for (const { size, outFile } of sizes) {
   const cmd = `inkscape "${svgPath}" -w ${size} -h ${size} -o "${path.resolve(outFile)}"`;
@@ -30,4 +27,4 @@ for (const { size, outFile } of sizes) {
   console.log(`Generated ${outFile} (${size}x${size})`);
 }
 
-console.log('Successfully generated all OpenViet IME modern PNG icons from user icon-openviet-ime.svg!');
+console.log('Successfully generated all OpenViet IME modern PNG icons directly from src/assets/icon.svg!');
