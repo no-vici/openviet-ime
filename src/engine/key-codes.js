@@ -149,6 +149,14 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
   // When a lowercase letter is followed by an uppercase letter (camelCase: e.g. useState, isReady, getUserName, onClick),
   // or a word starts with an uppercase letter, has lowercase, and has another uppercase (PascalCase: e.g. UserController, AppProps, ComponentName),
   // it is 100% a programming identifier and MUST NOT receive Vietnamese diacritic transformation.
+  // Exception: If the token contains accented characters and ends with an uppercase letter (e.g. 'úeS', 'íC'),
+  // do NOT lock code mode yet! Allow AvimEngine.processKey() to un-accent the prefix back to pure Latin (useS, isC).
+  const hasAccents = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/iu;
+  if ((hasAccents.test(currentChunk) && /[A-Z]$/.test(currentChunk)) ||
+      (hasAccents.test(token) && /[A-Z]$/.test(token))) {
+    return false;
+  }
+
   if (isCamelOrPascalCase(token) || isCamelOrPascalCase(currentChunk)) {
     return true;
   }

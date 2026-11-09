@@ -442,14 +442,16 @@ export function runAvimTests() {
   docSequence = telexBreakoutEngine.processKey(docSequence, 's').result;
   assert('Telex 3rd s appends normally: docs + s -> docss', docSequence === 'docss', 'docss', docSequence);
 
-  // Standard Vietnamese word tone toggle: cá + s -> ca
+  // Standard Vietnamese word tone toggle (vnchKey behavior): cá + s -> cas -> cass
   let caSequence = '';
   ['c', 'a', 's'].forEach(k => {
     caSequence = telexBreakoutEngine.processKey(caSequence, k).result;
   });
   assert('Telex 1st s on valid VN word: c a + s -> cá', caSequence === 'cá', 'cá', caSequence);
   caSequence = telexBreakoutEngine.processKey(caSequence, 's').result;
-  assert('Telex 2nd s on valid VN word toggles tone off: cá + s -> ca', caSequence === 'ca', 'ca', caSequence);
+  assert('Telex 2nd s on valid VN word toggles tone off and restores key (vnchKey): cá + s -> cas', caSequence === 'cas', 'cas', caSequence);
+  caSequence = telexBreakoutEngine.processKey(caSequence, 's').result;
+  assert('Telex 3rd s on valid VN word appends key: cas + s -> cass', caSequence === 'cass', 'cass', caSequence);
 
   // Auto-restore test on "docs" at boundary:
   const autoRestoreEngine = new AvimEngine({ method: IME_METHOD.AUTO });

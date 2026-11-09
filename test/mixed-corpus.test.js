@@ -98,6 +98,11 @@ test('Mixed Corpus - Auto-Restore on English Technical Words in Sentences', () =
       // Protect Vietnamese words 'rết' and 'tét' - they must NEVER auto-restore on Space
       input: 'Con rết bò qua miếng bánh tét vừa cắt',
       expected: 'Con rết bò qua miếng bánh tét vừa cắt'
+    },
+    {
+      // Comprehensive mixed corpus with mixed case, camelCase, uppercase traps, dialects, and ethnic place names
+      input: 'Khi Lập Trình Viên gõ mIxEd hoặc loWeRcAsE trong useState, hệ thống phải giữ nguyên mã nguồn. Các từ bẫy chữ hoa TEXT, USER, PUSH, WINDOW phải khôi phục thành CHỮ HOA, còn text, user, push, window thành chữ thường, và Text, User, Push, Window thành TitleCase. Thậm chí chuỗi loạn dòng như lUxUrY, mOdErN, vArIaBlE hoặc biến $mixed_CORPUS và path /usr/bin/env cũng không được biến dị thành chữ có dấu tiếng Việt lỗi. Từ địa phương quởn và địa danh Đắk Lắk, Krông Nô phải được bảo toàn chính xác.',
+      expected: 'Khi Lập Trình Viên gõ mIxEd hoặc loWeRcAsE trong useState, hệ thống phải giữ nguyên mã nguồn. Các từ bẫy chữ hoa TEXT, USER, PUSH, WINDOW phải khôi phục thành CHỮ HOA, còn text, user, push, window thành chữ thường, và Text, User, Push, Window thành TitleCase. Thậm chí chuỗi loạn dòng như lUxUrY, mOdErN, vArIaBlE hoặc biến $mixed_CORPUS và path /usr/bin/env cũng không được biến dị thành chữ có dấu tiếng Việt lỗi. Từ địa phương quởn và địa danh Đắk Lắk, Krông Nô phải được bảo toàn chính xác.'
     }
   ];
 
@@ -158,14 +163,27 @@ test('Mixed Corpus - vnchKey Rapid Tone Retype (dóc + s -> docs directly)', () 
   cur = engine.processKey(cur, 's').result;
   assert.equal(cur, 'docs');
 
-  // 3. Normal Vietnamese words still toggle off cleanly (cá + s -> ca)
+  // 3. Normal Vietnamese words toggle tone off and restore raw tone key (vnchKey: cá + s -> cas -> cass)
   let vnWord = '';
   for (const c of 'cas') {
     vnWord = engine.processKey(vnWord, c).result;
   }
   assert.equal(vnWord, 'cá');
   vnWord = engine.processKey(vnWord, 's').result;
-  assert.equal(vnWord, 'ca');
+  assert.equal(vnWord, 'cas');
+  vnWord = engine.processKey(vnWord, 's').result;
+  assert.equal(vnWord, 'cass');
+
+  // 4. pas -> pá -> 2nd s restores pas -> 3rd s produces pass
+  let pasWord = '';
+  for (const c of 'pas') {
+    pasWord = engine.processKey(pasWord, c).result;
+  }
+  assert.equal(pasWord, 'pá');
+  pasWord = engine.processKey(pasWord, 's').result;
+  assert.equal(pasWord, 'pas');
+  pasWord = engine.processKey(pasWord, 's').result;
+  assert.equal(pasWord, 'pass');
 });
 
 test('Mixed Corpus - Typing & Tone Placement Inside Quotation Marks', () => {

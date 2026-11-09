@@ -1330,30 +1330,12 @@ export class AvimEngine {
     // Determine target vowel index according to Modern/Classic placement rules
     const targetVowelIdx = this.getTargetVowelIndex(word, vowelIndices);
 
-    // Retyping the same tone key toggles/removes the tone
+    // Retyping the same tone key toggles/removes the tone and restores the raw key (vnchKey behavior)
+    // E.g. 'dóc' + 's' -> 'docs', 'pá' + 's' -> 'pas', 'cá' + 's' -> 'cas', 'mĩ' + 'x' -> 'mix', 'cà' + 'f' -> 'caf'
+    // Retyping a 3rd time appends normally ('docs' + 's' -> 'docss', 'pas' + 's' -> 'pass', 'cas' + 's' -> 'cass')
     if (currentTone === toneMap) {
       const cleaned = this.stripToneFromWord(word, vowelIndices);
-      const method = this.getEffectiveMethod(key);
-      let appendKey = '';
-
-      if (method === IME_METHOD.VNI) {
-        // In VNI mode, retyping the number key removes tone AND outputs the number (e.g. ca + 1 -> cá + 1 -> ca1)
-        appendKey = key;
-      } else {
-        // In Telex / Auto mode (vnchKey innovation):
-        // If retyping tone key on an English trap word (e.g. 'dóc' + 's' -> candidate 'docs'),
-        // or if the unaccented base is not a valid Vietnamese word (e.g. 'doc' is not a valid Vietnamese syllable):
-        // Restore the literal letter key immediately so 'dóc' + 's' yields 'docs' directly without requiring a 3rd 's'!
-        const candidate = (cleaned + key).toLowerCase();
-        if (
-          ENGLISH_TELEX_TRAPS.has(candidate) ||
-          COMMON_ENGLISH_WORDS.has(candidate) ||
-          !this.isValidVietnameseWord(cleaned)
-        ) {
-          appendKey = key;
-        }
-      }
-
+      const appendKey = key;
       const result = cleaned + appendKey;
       this.lastToneToggledWord = { base: result, key: lowerKey };
       return { transformed: true, result };

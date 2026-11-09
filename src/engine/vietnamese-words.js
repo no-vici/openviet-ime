@@ -35,6 +35,7 @@ export const RARE_AND_PLACE_SYLLABLES = [
   'chư', 'cư', 'sê', 'bông', 'năng', 'đức', 'cơ',
 
   // Rare, Classical & Dialect Vietnamese Syllables
+  'pa', 'pá', 'pà', 'pả', 'pã', 'pạ',
   'nguầy', 'nguậy', 'dzìa', 'dzí', 'dzị', 'dzô', 'dzậy', 'dzách', 'dách',
   'zị', 'zi', 'zia', 'hén', 'nghen', 'hổng', 'hạp', 'quớt', 'nư', 'quỉ',
   'lét', 'mụi', 'bẹo', 'bậu', 'tỏn', 'hum', 'chác', 'cháo',

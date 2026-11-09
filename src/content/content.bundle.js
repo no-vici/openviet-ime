@@ -97,6 +97,10 @@
     if (/<[a-zA-Z][a-zA-Z0-9_-]*/.test(currentChunk)) {
       return true;
     }
+    const hasAccents = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/iu;
+    if (hasAccents.test(currentChunk) && /[A-Z]$/.test(currentChunk) || hasAccents.test(token) && /[A-Z]$/.test(token)) {
+      return false;
+    }
     if (isCamelOrPascalCase(token) || isCamelOrPascalCase(currentChunk)) {
       return true;
     }
@@ -233,6 +237,12 @@
     "\u0111\u1EE9c",
     "c\u01A1",
     // Rare, Classical & Dialect Vietnamese Syllables
+    "pa",
+    "p\xE1",
+    "p\xE0",
+    "p\u1EA3",
+    "p\xE3",
+    "p\u1EA1",
     "ngu\u1EA7y",
     "ngu\u1EADy",
     "dz\xECa",
@@ -3177,16 +3187,7 @@
       const targetVowelIdx = this.getTargetVowelIndex(word, vowelIndices);
       if (currentTone === toneMap) {
         const cleaned = this.stripToneFromWord(word, vowelIndices);
-        const method = this.getEffectiveMethod(key);
-        let appendKey = "";
-        if (method === IME_METHOD.VNI) {
-          appendKey = key;
-        } else {
-          const candidate = (cleaned + key).toLowerCase();
-          if (ENGLISH_TELEX_TRAPS.has(candidate) || COMMON_ENGLISH_WORDS.has(candidate) || !this.isValidVietnameseWord(cleaned)) {
-            appendKey = key;
-          }
-        }
+        const appendKey = key;
         const result = cleaned + appendKey;
         this.lastToneToggledWord = { base: result, key: lowerKey };
         return { transformed: true, result };

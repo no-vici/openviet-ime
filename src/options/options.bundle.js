@@ -521,6 +521,12 @@
     "\u0111\u1EE9c",
     "c\u01A1",
     // Rare, Classical & Dialect Vietnamese Syllables
+    "pa",
+    "p\xE1",
+    "p\xE0",
+    "p\u1EA3",
+    "p\xE3",
+    "p\u1EA1",
     "ngu\u1EA7y",
     "ngu\u1EADy",
     "dz\xECa",
