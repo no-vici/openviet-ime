@@ -1,13 +1,7 @@
-import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { chromium } from 'playwright';
 
 const svgPath = path.resolve('src/assets/icon.svg');
-
-if (!fs.existsSync(svgPath)) {
-  console.error(`Error: ${svgPath} not found!`);
-  process.exit(1);
-}
 
 const sizes = [
   { size: 16, outFile: 'src/assets/icon16.png' },
@@ -19,12 +13,23 @@ const sizes = [
   { size: 512, outFile: 'src/assets/icon.png' }
 ];
 
-console.log('Rendering icons directly from src/assets/icon.svg using Inkscape...');
+console.log('Rendering all icon PNG sizes directly from src/assets/icon.svg...');
+
+const browser = await chromium.launch({ headless: true });
 
 for (const { size, outFile } of sizes) {
-  const cmd = `inkscape "${svgPath}" -w ${size} -h ${size} -o "${path.resolve(outFile)}"`;
-  execSync(cmd, { stdio: 'pipe' });
+  const scale = size / 128;
+  const page = await browser.newPage({
+    viewport: { width: size, height: size },
+    deviceScaleFactor: scale
+  });
+  await page.goto('file://' + svgPath);
+  await page.waitForTimeout(60);
+  const svgEl = page.locator('svg').first();
+  await svgEl.screenshot({ path: path.resolve(outFile), omitBackground: true });
+  await page.close();
   console.log(`Generated ${outFile} (${size}x${size})`);
 }
 
-console.log('Successfully generated all OpenViet IME modern PNG icons directly from src/assets/icon.svg!');
+await browser.close();
+console.log('Successfully generated all OpenViet IME PNG icons directly from user icon.svg!');
