@@ -642,6 +642,9 @@
       if (/ơ[eaouêăâ]/i.test(lowerVowels)) {
         return false;
       }
+      if (/ă[aeiouyăâêôơư]/i.test(lowerVowels)) {
+        return false;
+      }
       const lowerCoda = this.coda.toLowerCase();
       const VALID_CODAS = /* @__PURE__ */ new Set(["", "c", "ch", "m", "n", "ng", "nh", "p", "t", "k", "l", "r"]);
       if (!VALID_CODAS.has(lowerCoda)) {
@@ -2416,6 +2419,12 @@
       if (this.phonologyRules && hasPhonologyViolation(word)) {
         return { transformed: false, result: word + key };
       }
+      if (this.phonologyRules && hasForeignOnset(word)) {
+        const vnSet = getVietnameseWordSet();
+        if (!vnSet.has(canon(word))) {
+          return { transformed: false, result: word + key };
+        }
+      }
       if (word && word.endsWith("\\")) {
         const res = { transformed: true, result: word.slice(0, -1) + key };
         this.lastTransformed = res.result;
@@ -3030,9 +3039,16 @@
               const targetBase = isUpper ? target.toUpperCase() : target.toLowerCase();
               const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
               const appendLetter = ["\u0103", "\u01A1", "\u01B0"].includes(lowerBase) ? "w" : "";
+              const newWord = word.slice(0, i) + newChar + word.slice(i + 1) + appendLetter;
+              if (this.phonologyRules && !appendLetter) {
+                const parsedNew = parseSyllable(newWord);
+                if (parsedNew && !parsedNew.isValid()) {
+                  return { transformed: false, result: word + "w" };
+                }
+              }
               return {
                 transformed: true,
-                result: word.slice(0, i) + newChar + word.slice(i + 1) + appendLetter
+                result: newWord
               };
             }
           }

@@ -261,6 +261,12 @@ export class ParsedSyllable {
       return false;
     }
 
+    // Phonology Constraint: Impossible Vietnamese vowel clusters with ă (ăy, ăi, ău, ăo)
+    // In Vietnamese, ă is a short monophthong that can NEVER be followed by another vowel or semi-vowel
+    if (/ă[aeiouyăâêôơư]/i.test(lowerVowels)) {
+      return false;
+    }
+
     // 2. Coda must be a recognized Vietnamese coda
     const lowerCoda = this.coda.toLowerCase();
     const VALID_CODAS = new Set(['', 'c', 'ch', 'm', 'n', 'ng', 'nh', 'p', 't', 'k', 'l', 'r']);

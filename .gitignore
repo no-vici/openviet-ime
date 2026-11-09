@@ -22,6 +22,8 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*error-context-logs.json
+typing-log*.jsonl
 
 # Editor & AI Tooling directories
 .vscode/

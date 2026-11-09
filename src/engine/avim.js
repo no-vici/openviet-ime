@@ -7,7 +7,7 @@
  */
 
 import { IME_METHOD, TONE_STYLE, isCamelOrPascalCase } from './key-codes.js';
-import { getVietnameseWordSet } from './vietnamese-words.js';
+import { getVietnameseWordSet, canon } from './vietnamese-words.js';
 import { parseSyllable, ParsedSyllable, TONE_MARK } from './syllable-parser.js';
 import {
   hasForeignOnset,
@@ -355,6 +355,17 @@ export class AvimEngine {
     // Phonology Rules Check (GoNhanh): if word has c/k, g/gh, ng/ngh violation (e.g. center, city, get), do not modify
     if (this.phonologyRules && hasPhonologyViolation(word)) {
       return { transformed: false, result: word + key };
+    }
+
+    // Phonology Rules Check: Foreign onset protection (GoNhanh / vnchKey)
+    // Words starting with English/foreign consonant clusters (pl-, fl-, cl-, gl-, bl-, sl-, pr-, dr-, cr-, br-, gr-, fr-, sp-, st-, sk-, sm-, sn-, sw-, tw-, str-, etc.)
+    // such as 'play', 'playwright', 'flow', 'slow', 'status', 'start', 'clean', 'spring', 'browser'
+    // are 100% foreign and must never receive Vietnamese diacritics, UNLESS they are recognized Vietnamese toponyms (e.g. 'pleiku', 'krông').
+    if (this.phonologyRules && hasForeignOnset(word)) {
+      const vnSet = getVietnameseWordSet();
+      if (!vnSet.has(canon(word))) {
+        return { transformed: false, result: word + key };
+      }
     }
 
     // 0. AVIM Escape mechanism: if preceding character is '\', remove '\' and pass key literally
@@ -1128,9 +1139,18 @@ export class AvimEngine {
             const targetBase = isUpper ? target.toUpperCase() : target.toLowerCase();
             const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
             const appendLetter = ['ă', 'ơ', 'ư'].includes(lowerBase) ? 'w' : '';
+            const newWord = word.slice(0, i) + newChar + word.slice(i + 1) + appendLetter;
+
+            if (this.phonologyRules && !appendLetter) {
+              const parsedNew = parseSyllable(newWord);
+              if (parsedNew && !parsedNew.isValid()) {
+                return { transformed: false, result: word + 'w' };
+              }
+            }
+
             return {
               transformed: true,
-              result: word.slice(0, i) + newChar + word.slice(i + 1) + appendLetter
+              result: newWord
             };
           }
         }
