@@ -366,6 +366,83 @@ test('Mixed Corpus - Telex Cancellation Keystrokes & Pure ASCII English Words Pr
   assert.equal(resTet, 'bánh tét ', `Expected "bánh tét ", got "${resTet}"`);
 });
 
+test('Auto-Capitalization - File Extensions, Paths, Code Tokens, and Sentence Boundaries', () => {
+  // Logic mirror of shouldAutoCapitalize in src/content/content.js
+  function testShouldAutoCapitalize(textBefore) {
+    if (/`/.test(textBefore)) {
+      if (/`\s*$/.test(textBefore)) return false;
+      const strippedClosed = textBefore.replace(/`[^`\n\r]*`/g, '');
+      if (strippedClosed.includes('`')) return false;
+      if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
+    }
+
+    if (/([\/\\#@\$~]|\-\-)$/.test(textBefore)) {
+      return false;
+    }
+
+    let context = textBefore;
+    const quoteMatch = context.match(/([\x22\x27\u2018\u201C\u00AB\u2039\u201E\u201A]+)$/);
+    if (quoteMatch) {
+      context = context.slice(0, -quoteMatch[1].length);
+      if (/:(\s*)$/.test(context)) return true;
+    }
+
+    if (!context || context.trim().length === 0) return true;
+    if (/[\n\r]\s*$/.test(context)) return true;
+
+    const match = context.match(/([.!?])(\s+)$/);
+    if (match) {
+      const trimmed = context.slice(0, -match[0].length).trim().toLowerCase();
+      const lastWordMatch = trimmed.match(/([\p{L}\p{N}_.]+)$/iu);
+      if (lastWordMatch) {
+        const lastWord = lastWordMatch[1];
+        const ABBRS = new Set([
+          'v.v', 'tp', 'ts', 'ths', 'gs', 'mr', 'mrs', 'ms', 'dr', 'e.g', 'i.e', 'etc',
+          'bs', 'th', 'vs', 'co', 'ltd', 'inc', 'corp', 'no', 'op', 'cit'
+        ]);
+        if (ABBRS.has(lastWord)) return false;
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  // 1. File extensions (e.g. typing 's' right after 'src/assets/icon.')
+  assert.equal(testShouldAutoCapitalize('src/assets/icon.'), false);
+  assert.equal(testShouldAutoCapitalize('icon.'), false);
+  assert.equal(testShouldAutoCapitalize('document.'), false);
+  assert.equal(testShouldAutoCapitalize('192.168.1.'), false);
+  assert.equal(testShouldAutoCapitalize('version3.'), false);
+
+  // 2. Path separators and code symbols
+  assert.equal(testShouldAutoCapitalize('src/'), false);
+  assert.equal(testShouldAutoCapitalize('C:\\'), false);
+  assert.equal(testShouldAutoCapitalize('git@'), false);
+  assert.equal(testShouldAutoCapitalize('#'), false);
+  assert.equal(testShouldAutoCapitalize('$'), false);
+  assert.equal(testShouldAutoCapitalize('--'), false);
+
+  // 3. Normal sentence boundaries followed by space MUST capitalize
+  assert.equal(testShouldAutoCapitalize(''), true);
+  assert.equal(testShouldAutoCapitalize('   '), true);
+  assert.equal(testShouldAutoCapitalize('Hôm nay trời đẹp. '), true);
+  assert.equal(testShouldAutoCapitalize('Xin chào! '), true);
+  assert.equal(testShouldAutoCapitalize('Bạn khỏe không? '), true);
+  assert.equal(testShouldAutoCapitalize('Dòng mới:\n'), true);
+
+  // 4. Sentences legitimately ending in a file path followed by dot and space MUST capitalize next sentence
+  assert.equal(testShouldAutoCapitalize('Xem chi tiết tại icon.svg. '), true);
+  assert.equal(testShouldAutoCapitalize('Vui lòng kiểm tra file src/assets/icon.svg. '), true);
+
+  // 5. Common abbreviations followed by dot and space MUST NOT capitalize
+  assert.equal(testShouldAutoCapitalize('Danh sách gồm cam, táo, v.v. '), false);
+  assert.equal(testShouldAutoCapitalize('Báo cáo gửi về tp. '), false);
+  assert.equal(testShouldAutoCapitalize('Gặp bs. '), false);
+  assert.equal(testShouldAutoCapitalize('Công ty cổ phần ABC ltd. '), false);
+});
+
+
 
 
 

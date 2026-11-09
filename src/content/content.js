@@ -857,6 +857,12 @@ class AvimContentScript {
       if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
     }
 
+    // Developer-Aware Code & Path Guard:
+    // If immediately preceded by path slashes, code symbols, or protocol prefixes
+    if (/([\/\\#@\$~]|\-\-)$/.test(textBefore)) {
+      return false;
+    }
+
     // Opening quote allowance: if immediately preceded by an opening quotation mark,
     // evaluate sentence boundary on context before the quote (e.g. '"chào' -> capitalize 'C', nói: "hôm nay -> 'H')
     let context = textBefore;
@@ -872,14 +878,18 @@ class AvimContentScript {
     // If right after newline
     if (/[\n\r]\s*$/.test(context)) return true;
 
-    // If after sentence punctuation (. ! ?) followed by whitespace
-    const match = context.match(/([.!?])(\s*)$/);
+    // If after sentence punctuation (. ! ?) followed by at least one whitespace
+    // (a dot immediately followed by non-space is a file extension, dot notation, or IP/number)
+    const match = context.match(/([.!?])(\s+)$/);
     if (match) {
       const trimmed = context.slice(0, -match[0].length).trim().toLowerCase();
-      const lastWordMatch = trimmed.match(/([a-z0-9_.]+)$/i);
+      const lastWordMatch = trimmed.match(/([\p{L}\p{N}_.]+)$/iu);
       if (lastWordMatch) {
         const lastWord = lastWordMatch[1];
-        const ABBRS = new Set(['v.v', 'tp', 'ts', 'ths', 'gs', 'mr', 'mrs', 'ms', 'dr', 'e.g', 'i.e', 'etc']);
+        const ABBRS = new Set([
+          'v.v', 'tp', 'ts', 'ths', 'gs', 'mr', 'mrs', 'ms', 'dr', 'e.g', 'i.e', 'etc',
+          'bs', 'th', 'vs', 'co', 'ltd', 'inc', 'corp', 'no', 'op', 'cit'
+        ]);
         if (ABBRS.has(lastWord)) return false;
       }
       return true;

@@ -6902,6 +6902,9 @@
         if (strippedClosed.includes("`")) return false;
         if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
       }
+      if (/([\/\\#@\$~]|\-\-)$/.test(textBefore)) {
+        return false;
+      }
       let context = textBefore;
       const quoteMatch = context.match(/([\x22\x27\u2018\u201C\u00AB\u2039\u201E\u201A]+)$/);
       if (quoteMatch) {
@@ -6910,13 +6913,36 @@
       }
       if (!context || context.trim().length === 0) return true;
       if (/[\n\r]\s*$/.test(context)) return true;
-      const match = context.match(/([.!?])(\s*)$/);
+      const match = context.match(/([.!?])(\s+)$/);
       if (match) {
         const trimmed = context.slice(0, -match[0].length).trim().toLowerCase();
-        const lastWordMatch = trimmed.match(/([a-z0-9_.]+)$/i);
+        const lastWordMatch = trimmed.match(/([\p{L}\p{N}_.]+)$/iu);
         if (lastWordMatch) {
           const lastWord = lastWordMatch[1];
-          const ABBRS = /* @__PURE__ */ new Set(["v.v", "tp", "ts", "ths", "gs", "mr", "mrs", "ms", "dr", "e.g", "i.e", "etc"]);
+          const ABBRS = /* @__PURE__ */ new Set([
+            "v.v",
+            "tp",
+            "ts",
+            "ths",
+            "gs",
+            "mr",
+            "mrs",
+            "ms",
+            "dr",
+            "e.g",
+            "i.e",
+            "etc",
+            "bs",
+            "th",
+            "vs",
+            "co",
+            "ltd",
+            "inc",
+            "corp",
+            "no",
+            "op",
+            "cit"
+          ]);
           if (ABBRS.has(lastWord)) return false;
         }
         return true;
