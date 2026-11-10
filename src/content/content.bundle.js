@@ -6531,7 +6531,17 @@
       this.suggestionBar.textContent = "";
       const titleEl = document.createElement("div");
       titleEl.className = "gboard-title";
-      titleEl.innerHTML = `<span>${type === "nextword" ? "\u2728 K\u1EBF ti\u1EBFp:" : "\u2726 G\u1EE3i \xFD:"}</span> <span class="gboard-nav-hint" style="color: #94a3b8; font-size: 10px; font-weight: normal; margin-left: 4px;">[Tab/Shift+Tab: duy\u1EC7t \u2022 Enter: ch\u1ECDn \u2022 Esc: \u1EA9n]</span>`;
+      const mainSpan = document.createElement("span");
+      mainSpan.textContent = type === "nextword" ? "\u2728 K\u1EBF ti\u1EBFp:" : "\u2726 G\u1EE3i \xFD:";
+      const hintSpan = document.createElement("span");
+      hintSpan.className = "gboard-nav-hint";
+      hintSpan.style.color = "#94a3b8";
+      hintSpan.style.fontSize = "10px";
+      hintSpan.style.fontWeight = "normal";
+      hintSpan.style.marginLeft = "4px";
+      hintSpan.textContent = " [Tab/Shift+Tab: duy\u1EC7t \u2022 Enter: ch\u1ECDn \u2022 Esc: \u1EA9n]";
+      titleEl.appendChild(mainSpan);
+      titleEl.appendChild(hintSpan);
       this.suggestionBar.appendChild(titleEl);
       visibleItems.forEach((item, idx) => {
         const chip = document.createElement("div");

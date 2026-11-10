@@ -4213,12 +4213,21 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
         select.className = "form-select";
         select.style.padding = "4px 8px";
         select.style.fontSize = "12px";
-        select.innerHTML = `
-        <option value="0" ${currentMethod === 0 ? "selected" : ""}>T\u1EAET (Ti\u1EBFng Anh)</option>
-        <option value="1" ${currentMethod === 1 ? "selected" : ""}>Telex</option>
-        <option value="2" ${currentMethod === 2 ? "selected" : ""}>VNI</option>
-        <option value="3" ${currentMethod === 3 ? "selected" : ""}>T\u1EF1 \u0111\u1ED9ng</option>
-      `;
+        const methodOptions = [
+          { value: "0", text: "T\u1EAET (Ti\u1EBFng Anh)" },
+          { value: "1", text: "Telex" },
+          { value: "2", text: "VNI" },
+          { value: "3", text: "T\u1EF1 \u0111\u1ED9ng" }
+        ];
+        for (const optData of methodOptions) {
+          const option = document.createElement("option");
+          option.value = optData.value;
+          option.textContent = optData.text;
+          if (currentMethod === parseInt(optData.value, 10)) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        }
         select.addEventListener("change", async () => {
           settings.domainMethods[domain] = parseInt(select.value, 10);
           await saveState();

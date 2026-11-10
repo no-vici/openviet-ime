@@ -392,7 +392,17 @@ class AvimContentScript {
     // Title label
     const titleEl = document.createElement('div');
     titleEl.className = 'gboard-title';
-    titleEl.innerHTML = `<span>${type === 'nextword' ? '✨ Kế tiếp:' : '✦ Gợi ý:'}</span> <span class="gboard-nav-hint" style="color: #94a3b8; font-size: 10px; font-weight: normal; margin-left: 4px;">[Tab/Shift+Tab: duyệt • Enter: chọn • Esc: ẩn]</span>`;
+    const mainSpan = document.createElement('span');
+    mainSpan.textContent = type === 'nextword' ? '✨ Kế tiếp:' : '✦ Gợi ý:';
+    const hintSpan = document.createElement('span');
+    hintSpan.className = 'gboard-nav-hint';
+    hintSpan.style.color = '#94a3b8';
+    hintSpan.style.fontSize = '10px';
+    hintSpan.style.fontWeight = 'normal';
+    hintSpan.style.marginLeft = '4px';
+    hintSpan.textContent = ' [Tab/Shift+Tab: duyệt • Enter: chọn • Esc: ẩn]';
+    titleEl.appendChild(mainSpan);
+    titleEl.appendChild(hintSpan);
     this.suggestionBar.appendChild(titleEl);
 
     visibleItems.forEach((item, idx) => {
