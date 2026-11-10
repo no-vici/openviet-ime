@@ -938,21 +938,29 @@ export class GboardLearnedModel {
   }
 
   /**
-   * Calculate score incorporating Recency and Frequency (Exponential Decay):
+   * Calculate score incorporating Recency and Frequency with Domain-Isolation Weight Lock:
    * Score = count * exp(-lambda * delta_hours)
-   * Half-life ~ 14 days (lambda = 0.002 per hour)
+   * Half-life ~ 14 days (lambda = 0.002 per hour for general words)
+   * If isDevDomain is true:
+   *   - Freezes decay (lambda = 0.0001, effectively zero decay)
+   *   - Grants a robust base anchor bonus (+5.0) so technical tokens and commands
+   *     are never eclipsed by fast conversational chat volume.
    */
-  calculateRecencyFrequencyScore(entry, now = Date.now()) {
+  calculateRecencyFrequencyScore(entry, now = Date.now(), isDevDomain = false) {
     if (!entry) return 0;
     if (typeof entry === 'number') {
-      return entry; // Legacy format fallback
+      return isDevDomain ? entry + 5 : entry;
     }
     const count = entry.count || 1;
     const lastUsed = entry.lastUsed || now;
     const hoursElapsed = Math.max(0, (now - lastUsed) / (1000 * 60 * 60));
-    // lambda ~ 0.002 gives a gentle half-life around 2 weeks
-    const decay = Math.exp(-0.002 * hoursElapsed);
-    return count * decay;
+
+    // Domain-Isolation: developer commands decay at negligible rate
+    const lambda = isDevDomain ? 0.0001 : 0.002;
+    const decay = Math.exp(-lambda * hoursElapsed);
+    const score = count * decay;
+
+    return isDevDomain ? score + 5.0 : score;
   }
 
   async loadFromStorage() {
@@ -1502,6 +1510,9 @@ export class AutoCompleteEngine {
     const seen = new Set();
     const now = Date.now();
 
+    // Check Domain-Isolation Weight Lock for Developer tokens
+    const isDevDomain = Boolean(DEVELOPER_WHITELIST_BIGRAMS[prevLower]);
+
     // ── TẦNG 1: Trigram Inference (W_n-2 + W_n-1 -> W_n) ──
     if (priorLower) {
       const trigramKey = `${priorLower} ${prevLower}`;
@@ -1512,7 +1523,7 @@ export class AutoCompleteEngine {
         const sortedTrigrams = Object.entries(userTrigramFollowers)
           .map(([w, entry]) => ({
             w,
-            score: this.learnedModel.calculateRecencyFrequencyScore(entry, now),
+            score: this.learnedModel.calculateRecencyFrequencyScore(entry, now, isDevDomain),
             rawCount: typeof entry === 'number' ? entry : (entry?.count || 1)
           }))
           .sort((a, b) => b.score - a.score);
@@ -1550,13 +1561,13 @@ export class AutoCompleteEngine {
       }
     }
 
-    // ── TẦNG 2: User-Learned Bigrams (với Recency & Frequency Decay Ranking) ──
+    // ── TẦNG 2: User-Learned Bigrams (với Domain-Isolation Weight Lock) ──
     const userFollowers = this.learnedModel.userBigrams[prevLower];
     if (userFollowers && candidates.length < limit) {
       const sortedUserFollowers = Object.entries(userFollowers)
         .map(([w, entry]) => ({
           w,
-          score: this.learnedModel.calculateRecencyFrequencyScore(entry, now),
+          score: this.learnedModel.calculateRecencyFrequencyScore(entry, now, isDevDomain),
           rawCount: typeof entry === 'number' ? entry : (entry?.count || 1)
         }))
         .sort((a, b) => b.score - a.score);

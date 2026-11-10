@@ -5511,20 +5511,26 @@
       this.loadFromStorage();
     }
     /**
-     * Calculate score incorporating Recency and Frequency (Exponential Decay):
+     * Calculate score incorporating Recency and Frequency with Domain-Isolation Weight Lock:
      * Score = count * exp(-lambda * delta_hours)
-     * Half-life ~ 14 days (lambda = 0.002 per hour)
+     * Half-life ~ 14 days (lambda = 0.002 per hour for general words)
+     * If isDevDomain is true:
+     *   - Freezes decay (lambda = 0.0001, effectively zero decay)
+     *   - Grants a robust base anchor bonus (+5.0) so technical tokens and commands
+     *     are never eclipsed by fast conversational chat volume.
      */
-    calculateRecencyFrequencyScore(entry, now = Date.now()) {
+    calculateRecencyFrequencyScore(entry, now = Date.now(), isDevDomain = false) {
       if (!entry) return 0;
       if (typeof entry === "number") {
-        return entry;
+        return isDevDomain ? entry + 5 : entry;
       }
       const count = entry.count || 1;
       const lastUsed = entry.lastUsed || now;
       const hoursElapsed = Math.max(0, (now - lastUsed) / (1e3 * 60 * 60));
-      const decay = Math.exp(-2e-3 * hoursElapsed);
-      return count * decay;
+      const lambda = isDevDomain ? 1e-4 : 2e-3;
+      const decay = Math.exp(-lambda * hoursElapsed);
+      const score = count * decay;
+      return isDevDomain ? score + 5 : score;
     }
     async loadFromStorage() {
       try {
@@ -6012,13 +6018,14 @@
       const candidates = [];
       const seen = /* @__PURE__ */ new Set();
       const now = Date.now();
+      const isDevDomain = Boolean(DEVELOPER_WHITELIST_BIGRAMS[prevLower]);
       if (priorLower) {
         const trigramKey = `${priorLower} ${prevLower}`;
         const userTrigramFollowers = this.learnedModel.userTrigrams[trigramKey];
         if (userTrigramFollowers) {
           const sortedTrigrams = Object.entries(userTrigramFollowers).map(([w, entry]) => ({
             w,
-            score: this.learnedModel.calculateRecencyFrequencyScore(entry, now),
+            score: this.learnedModel.calculateRecencyFrequencyScore(entry, now, isDevDomain),
             rawCount: typeof entry === "number" ? entry : entry?.count || 1
           })).sort((a, b) => b.score - a.score);
           for (const { w, rawCount, score } of sortedTrigrams) {
@@ -6055,7 +6062,7 @@
       if (userFollowers && candidates.length < limit) {
         const sortedUserFollowers = Object.entries(userFollowers).map(([w, entry]) => ({
           w,
-          score: this.learnedModel.calculateRecencyFrequencyScore(entry, now),
+          score: this.learnedModel.calculateRecencyFrequencyScore(entry, now, isDevDomain),
           rawCount: typeof entry === "number" ? entry : entry?.count || 1
         })).sort((a, b) => b.score - a.score);
         for (const { w, rawCount, score } of sortedUserFollowers) {
