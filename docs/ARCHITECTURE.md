@@ -119,6 +119,14 @@ Cho phép người dùng gõ tắt nhanh:
 
 ---
 
+### Module 5: Dự Đoán Từ Tiếp Theo & Học Thói Quen On-Device (`src/engine/autocomplete.js`)
+Xem tài liệu chuyên sâu: [PREDICTION_ENGINE.md](PREDICTION_ENGINE.md).
+- **Mô hình ngữ cảnh 4 tầng**: Trigram Inference $\rightarrow$ User-Learned Bigrams $\rightarrow$ Curated Base Bigrams $\rightarrow$ Compound Phrases Index.
+- **Domain-Isolation Weight Lock**: Khóa hệ số suy hao thời gian ($\lambda = 0.0001$) và cộng điểm neo sàn (`+5.0`) cho các lệnh lập trình và DevOps (`git`, `docker`, `npm`, `kubectl`, `python`, `supabase`,...) để không bao giờ bị các cuộc hội thoại thường ngày lấn át.
+- **Bảo vệ Chat Apps**: Tự động vô hiệu hóa can thiệp phím `Enter` khi hiển thị gợi ý từ kế tiếp, giúp việc gửi tin nhắn trong Telegram Web, Slack, Messenger diễn ra tức thì, không bị cản trở.
+
+---
+
 ## 4. Hướng Dẫn Bắt Đầu Dành Cho Người Mới (Getting Started)
 
 ### Bước 1: Cài đặt và Chạy Thử Nghiệm
