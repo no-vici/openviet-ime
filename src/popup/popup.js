@@ -20,6 +20,17 @@ async function initPopup() {
   const nextWordToggle = document.getElementById('nextWordToggle');
   const gboardLearningToggle = document.getElementById('gboardLearningToggle');
   const openOptionsBtn = document.getElementById('openOptions');
+  const appVersionEl = document.getElementById('appVersion');
+
+  // Display version dynamically from manifest if available
+  if (appVersionEl && browserApi.runtime && browserApi.runtime.getManifest) {
+    try {
+      const manifest = browserApi.runtime.getManifest();
+      if (manifest && manifest.version) {
+        appVersionEl.textContent = `v${manifest.version}`;
+      }
+    } catch (_) {}
+  }
 
   // Load current settings
   let settings = {
