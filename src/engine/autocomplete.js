@@ -125,7 +125,7 @@ export const COMMON_VIETNAMESE_COMPOUNDS = [
  * Curated Vietnamese Bigram Collocations (Word_A -> [Word_B1, Word_B2, ...])
  * Pre-trained base language model for instant next-word prediction
  */
-export const DEFAULT_VIETNAMESE_BIGRAMS = {
+export const RAW_VIETNAMESE_BIGRAMS = {
   // ── Quốc gia / dân tộc / địa danh ──
   'việt': ['nam', 'cộng', 'kiều', 'trì', 'dã', 'vị', 'hóa'],
   'cộng': ['hòa', 'sản', 'đồng', 'tác', 'sự', 'hưởng'],
@@ -276,27 +276,6 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'yên': ['tâm', 'tĩnh', 'lặng', 'ổn'],
   'phúc': ['hậu', 'phần', 'đức', 'đáp'],
   'ăn': ['uống', 'nhậu', 'sáng', 'trưa', 'chiều', 'tối', 'khuya', 'sang', 'dơ', 'tạp', 'dày', 'bẩn'],
-
-  // ── Developer & DevOps Whitelist ──
-  'git': ['push', 'commit', 'pull', 'status', 'add', 'checkout', 'branch', 'merge', 'rebase', 'clone', 'diff', 'log', 'stash', 'reset'],
-  'docker': ['run', 'compose', 'build', 'ps', 'stop', 'restart', 'exec', 'images', 'logs', 'network', 'volume'],
-  'npm': ['install', 'run', 'test', 'start', 'build', 'publish', 'update', 'init', 'ci', 'audit'],
-  'yarn': ['add', 'install', 'build', 'start', 'test', 'dev'],
-  'pnpm': ['add', 'install', 'run', 'build', 'test'],
-  'bun': ['run', 'install', 'test', 'add', 'build'],
-  'cargo': ['build', 'run', 'test', 'check', 'add', 'update'],
-  'python': ['main.py', 'app.py', 'test.py', 'manage.py', '-m', 'script.py'],
-  'pip': ['install', 'uninstall', 'freeze', 'list', 'show'],
-  'node': ['index.js', 'server.js', 'app.js', '--version', '--test'],
-  'npx': ['playwright', 'esbuild', 'prettier', 'eslint', 'tsc', 'web-ext'],
-  'deno': ['run', 'task', 'test', 'compile', 'fmt', 'lint'],
-  'go': ['run', 'build', 'test', 'mod', 'get', 'install'],
-  'rust': ['edition', 'analyzer'],
-  'kubectl': ['get', 'describe', 'apply', 'delete', 'logs', 'exec'],
-  'aws': ['s3', 'ec2', 'lambda', 'configure', 'ecs'],
-  'code': ['.', 'review', 'base', 'split'],
-  'pull': ['request', 'origin'],
-  'merge': ['request', 'conflict', 'branch'],
 
   // ── Văn phòng / Email / Giao tiếp công sở ──
   'kính': ['gửi', 'gởi', 'chào', 'mong', 'báo'],
@@ -808,6 +787,58 @@ export const DEFAULT_VIETNAMESE_BIGRAMS = {
   'ống': ['bơm', 'dẫn', 'dòm'],
   'ứng': ['biến', 'chiến', 'cử'],
 };
+
+/**
+ * Developer & DevOps Command Line Bigram Whitelist
+ */
+export const DEVELOPER_WHITELIST_BIGRAMS = {
+  // Version Control & Containerization
+  'git': ['push', 'commit', 'pull', 'status', 'checkout', 'branch', 'merge', 'rebase', 'clone', 'fetch', 'stash'],
+  'docker': ['run', 'compose', 'build', 'images', 'ps', 'exec', 'logs', 'stop', 'volume', 'network'],
+
+  // Package Managers
+  'npm': ['install', 'run', 'start', 'test', 'publish', 'update', 'uninstall', 'ci', 'init'],
+  'yarn': ['install', 'add', 'remove', 'run', 'start', 'build', 'why'],
+  'pnpm': ['add', 'install', 'run', 'store', 'update', 'remove'],
+  'cargo': ['build', 'run', 'test', 'check', 'clippy', 'fmt', 'update', 'publish', 'doc'],
+  'pip': ['install', 'uninstall', 'freeze', 'list', 'show'],
+  'bun': ['run', 'install', 'add', 'test', 'build'],
+
+  // Programming Languages & Tooling Scripts
+  'python': ['run', 'manage.py', 'main.py', '-m', 'venv'],
+  'node': ['index.js', 'server.js', 'dist/main.js', '--watch', '--version'],
+  'go': ['run', 'build', 'test', 'mod', 'fmt', 'vet'],
+  'rustc': ['--version', '-O'],
+  'deno': ['run', 'task', 'test', 'compile', 'fmt', 'lint'],
+  'npx': ['playwright', 'esbuild', 'prettier', 'eslint', 'tsc', 'web-ext'],
+
+  // Cloud Infrastructure & Web Engines
+  'kubectl': ['get', 'apply', 'delete', 'describe', 'logs', 'exec', 'rollout'],
+  'aws': ['configure', 's3', 'ec2', 'lambda', 'iam'],
+  'supabase': ['init', 'start', 'stop', 'db', 'functions', 'login'],
+  'firebase': ['login', 'init', 'deploy', 'serve', 'emulators'],
+  'pull': ['request', 'origin'],
+  'merge': ['request', 'conflict', 'branch']
+};
+
+/**
+ * Injects developer bigram whitelist into base bigrams map while preserving O(1) lookup
+ */
+export function injectDeveloperBigrams(baseBigrams) {
+  if (!baseBigrams || typeof baseBigrams !== 'object') return baseBigrams;
+  const merged = { ...baseBigrams };
+
+  for (const [key, candidates] of Object.entries(DEVELOPER_WHITELIST_BIGRAMS)) {
+    if (!merged[key]) {
+      merged[key] = candidates;
+    } else {
+      merged[key] = Array.from(new Set([...candidates, ...merged[key]])).slice(0, 4);
+    }
+  }
+  return merged;
+}
+
+export const DEFAULT_VIETNAMESE_BIGRAMS = injectDeveloperBigrams(RAW_VIETNAMESE_BIGRAMS);
 
 /**
  * Curated Vietnamese Trigram Collocations (Word_A + " " + Word_B -> [Word_C1, Word_C2, ...])

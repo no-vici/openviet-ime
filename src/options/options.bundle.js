@@ -2024,7 +2024,7 @@
     "b\xE1o c\xE1o",
     "ph\u1EA3n h\u1ED3i"
   ];
-  var DEFAULT_VIETNAMESE_BIGRAMS = {
+  var RAW_VIETNAMESE_BIGRAMS = {
     // ── Quốc gia / dân tộc / địa danh ──
     "vi\u1EC7t": ["nam", "c\u1ED9ng", "ki\u1EC1u", "tr\xEC", "d\xE3", "v\u1ECB", "h\xF3a"],
     "c\u1ED9ng": ["h\xF2a", "s\u1EA3n", "\u0111\u1ED3ng", "t\xE1c", "s\u1EF1", "h\u01B0\u1EDFng"],
@@ -2168,26 +2168,6 @@
     "y\xEAn": ["t\xE2m", "t\u0129nh", "l\u1EB7ng", "\u1ED5n"],
     "ph\xFAc": ["h\u1EADu", "ph\u1EA7n", "\u0111\u1EE9c", "\u0111\xE1p"],
     "\u0103n": ["u\u1ED1ng", "nh\u1EADu", "s\xE1ng", "tr\u01B0a", "chi\u1EC1u", "t\u1ED1i", "khuya", "sang", "d\u01A1", "t\u1EA1p", "d\xE0y", "b\u1EA9n"],
-    // ── Developer & DevOps Whitelist ──
-    "git": ["push", "commit", "pull", "status", "add", "checkout", "branch", "merge", "rebase", "clone", "diff", "log", "stash", "reset"],
-    "docker": ["run", "compose", "build", "ps", "stop", "restart", "exec", "images", "logs", "network", "volume"],
-    "npm": ["install", "run", "test", "start", "build", "publish", "update", "init", "ci", "audit"],
-    "yarn": ["add", "install", "build", "start", "test", "dev"],
-    "pnpm": ["add", "install", "run", "build", "test"],
-    "bun": ["run", "install", "test", "add", "build"],
-    "cargo": ["build", "run", "test", "check", "add", "update"],
-    "python": ["main.py", "app.py", "test.py", "manage.py", "-m", "script.py"],
-    "pip": ["install", "uninstall", "freeze", "list", "show"],
-    "node": ["index.js", "server.js", "app.js", "--version", "--test"],
-    "npx": ["playwright", "esbuild", "prettier", "eslint", "tsc", "web-ext"],
-    "deno": ["run", "task", "test", "compile", "fmt", "lint"],
-    "go": ["run", "build", "test", "mod", "get", "install"],
-    "rust": ["edition", "analyzer"],
-    "kubectl": ["get", "describe", "apply", "delete", "logs", "exec"],
-    "aws": ["s3", "ec2", "lambda", "configure", "ecs"],
-    "code": [".", "review", "base", "split"],
-    "pull": ["request", "origin"],
-    "merge": ["request", "conflict", "branch"],
     // ── Văn phòng / Email / Giao tiếp công sở ──
     "k\xEDnh": ["g\u1EEDi", "g\u1EDFi", "ch\xE0o", "mong", "b\xE1o"],
     "tr\xE2n": ["tr\u1ECDng", "qu\xFD"],
@@ -2692,6 +2672,45 @@
     "\u1ED1ng": ["b\u01A1m", "d\u1EABn", "d\xF2m"],
     "\u1EE9ng": ["bi\u1EBFn", "chi\u1EBFn", "c\u1EED"]
   };
+  var DEVELOPER_WHITELIST_BIGRAMS = {
+    // Version Control & Containerization
+    "git": ["push", "commit", "pull", "status", "checkout", "branch", "merge", "rebase", "clone", "fetch", "stash"],
+    "docker": ["run", "compose", "build", "images", "ps", "exec", "logs", "stop", "volume", "network"],
+    // Package Managers
+    "npm": ["install", "run", "start", "test", "publish", "update", "uninstall", "ci", "init"],
+    "yarn": ["install", "add", "remove", "run", "start", "build", "why"],
+    "pnpm": ["add", "install", "run", "store", "update", "remove"],
+    "cargo": ["build", "run", "test", "check", "clippy", "fmt", "update", "publish", "doc"],
+    "pip": ["install", "uninstall", "freeze", "list", "show"],
+    "bun": ["run", "install", "add", "test", "build"],
+    // Programming Languages & Tooling Scripts
+    "python": ["run", "manage.py", "main.py", "-m", "venv"],
+    "node": ["index.js", "server.js", "dist/main.js", "--watch", "--version"],
+    "go": ["run", "build", "test", "mod", "fmt", "vet"],
+    "rustc": ["--version", "-O"],
+    "deno": ["run", "task", "test", "compile", "fmt", "lint"],
+    "npx": ["playwright", "esbuild", "prettier", "eslint", "tsc", "web-ext"],
+    // Cloud Infrastructure & Web Engines
+    "kubectl": ["get", "apply", "delete", "describe", "logs", "exec", "rollout"],
+    "aws": ["configure", "s3", "ec2", "lambda", "iam"],
+    "supabase": ["init", "start", "stop", "db", "functions", "login"],
+    "firebase": ["login", "init", "deploy", "serve", "emulators"],
+    "pull": ["request", "origin"],
+    "merge": ["request", "conflict", "branch"]
+  };
+  function injectDeveloperBigrams(baseBigrams) {
+    if (!baseBigrams || typeof baseBigrams !== "object") return baseBigrams;
+    const merged = { ...baseBigrams };
+    for (const [key, candidates] of Object.entries(DEVELOPER_WHITELIST_BIGRAMS)) {
+      if (!merged[key]) {
+        merged[key] = candidates;
+      } else {
+        merged[key] = Array.from(/* @__PURE__ */ new Set([...candidates, ...merged[key]])).slice(0, 4);
+      }
+    }
+    return merged;
+  }
+  var DEFAULT_VIETNAMESE_BIGRAMS = injectDeveloperBigrams(RAW_VIETNAMESE_BIGRAMS);
   var DEFAULT_VIETNAMESE_TRIGRAMS = {
     // Phương ngữ Sài Gòn xưa & Nam Bộ dân gian
     "s\xE0i g\xF2n": ["x\u01B0a", "\u0111\u1EB9p l\u1EAFm", "hoa l\u1EC7"],
