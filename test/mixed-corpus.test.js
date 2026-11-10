@@ -442,6 +442,61 @@ test('Auto-Capitalization - File Extensions, Paths, Code Tokens, and Sentence Bo
   assert.equal(testShouldAutoCapitalize('Công ty cổ phần ABC ltd. '), false);
 });
 
+test('User Dictionary Whitelist with SpellCheck ON - Allows informal / slang syllables', () => {
+  const engine = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: true });
+
+  // 1. Without userDictionary, informal slang 'rùi' and 'ẹc' are rejected by Hunspell spellCheck
+  let w1 = '';
+  for (const c of 'ruif') {
+    const step = engine.processKey(w1, c);
+    w1 = step.transformed ? step.result : w1 + c;
+  }
+  assert.equal(w1, 'ruif', 'Without whitelist, ruif must not form rùi');
+
+  let w2 = '';
+  for (const c of 'ecj') {
+    const step = engine.processKey(w2, c);
+    w2 = step.transformed ? step.result : w2 + c;
+  }
+  assert.equal(w2, 'ecj', 'Without whitelist, ecj must not form ẹc');
+
+  // 2. Add 'rùi' and 'ẹc' into userDictionary
+  userDictionary.add('rùi');
+  userDictionary.add('ẹc');
+
+  // 3. Now typing 'ruif' and 'ecj' with spellCheck ON must succeed!
+  let resRui = '';
+  for (const c of 'ruif') {
+    const step = engine.processKey(resRui, c);
+    resRui = step.transformed ? step.result : resRui + c;
+  }
+  assert.equal(resRui, 'rùi', 'With userDictionary whitelist, ruif must transform into rùi');
+
+  let resEc = '';
+  for (const c of 'ecj') {
+    const step = engine.processKey(resEc, c);
+    resEc = step.transformed ? step.result : resEc + c;
+  }
+  assert.equal(resEc, 'ẹc', 'With userDictionary whitelist, ecj must transform into ẹc');
+
+  // 4. Test VNI mode as well (rui2 -> rùi, ec5 -> ẹc)
+  const vniEngine = new AvimEngine({ method: IME_METHOD.VNI, spellCheck: true });
+  let resVniRui = '';
+  for (const c of 'rui2') {
+    const step = vniEngine.processKey(resVniRui, c);
+    resVniRui = step.transformed ? step.result : resVniRui + c;
+  }
+  assert.equal(resVniRui, 'rùi', 'With userDictionary whitelist, VNI rui2 must transform into rùi');
+
+  let resVniEc = '';
+  for (const c of 'ec5') {
+    const step = vniEngine.processKey(resVniEc, c);
+    resVniEc = step.transformed ? step.result : resVniEc + c;
+  }
+  assert.equal(resVniEc, 'ẹc', 'With userDictionary whitelist, VNI ec5 must transform into ẹc');
+});
+
+
 
 
 

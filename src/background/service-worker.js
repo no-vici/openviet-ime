@@ -83,10 +83,10 @@ function updateBadge(method) {
 // Listen for storage changes and broadcast to all tabs
 if (browserApi.storage && browserApi.storage.onChanged) {
   browserApi.storage.onChanged.addListener((changes, areaName) => {
-    // CRITICAL: Strictly only broadcast when settings or macros change!
+    // CRITICAL: Strictly only broadcast when settings, macros, or user dictionary change!
     // NEVER broadcast on habit model (avim_gboard_habit_model) or local caches,
     // which caused an exponential broadcast storm freezing the browser.
-    if (!changes.avim_settings && !changes.avim_macros) {
+    if (!changes.avim_settings && !changes.avim_macros && !changes.avim_user_dictionary) {
       return;
     }
 
@@ -106,7 +106,8 @@ if (browserApi.storage && browserApi.storage.onChanged) {
             browserApi.tabs.sendMessage(tab.id, {
               type: 'SETTINGS_UPDATED',
               settings: changes.avim_settings?.newValue,
-              macros: changes.avim_macros?.newValue
+              macros: changes.avim_macros?.newValue,
+              userDictionary: changes.avim_user_dictionary?.newValue
             }).catch(() => {
               // Tab may not have content script injected
             });

@@ -1360,8 +1360,16 @@
         if (typeof localStorage !== "undefined") {
           localStorage.setItem("avim_user_dictionary", JSON.stringify(list));
         }
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
-          await chrome.storage.sync.set({ avim_user_dictionary: list });
+        const storageSync = typeof browser !== "undefined" && browser.storage && browser.storage.sync ? browser.storage.sync : typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync ? chrome.storage.sync : null;
+        if (storageSync) {
+          await new Promise((resolve) => {
+            try {
+              const p = storageSync.set({ avim_user_dictionary: list }, () => resolve());
+              if (p && typeof p.then === "function") p.then(resolve).catch(resolve);
+            } catch {
+              resolve();
+            }
+          });
         }
       } catch (err) {
         console.warn("Could not save user dictionary:", err);
@@ -1369,8 +1377,16 @@
     }
     async loadFromStorage() {
       try {
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
-          const res = await chrome.storage.sync.get(["avim_user_dictionary"]);
+        const storageSync = typeof browser !== "undefined" && browser.storage && browser.storage.sync ? browser.storage.sync : typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync ? chrome.storage.sync : null;
+        if (storageSync) {
+          const res = await new Promise((resolve) => {
+            try {
+              const p = storageSync.get(["avim_user_dictionary"], (r) => resolve(r || {}));
+              if (p && typeof p.then === "function") p.then(resolve).catch(() => resolve({}));
+            } catch {
+              resolve({});
+            }
+          });
           if (Array.isArray(res.avim_user_dictionary) && res.avim_user_dictionary.length > 0) {
             this.loadWords(res.avim_user_dictionary);
             return;

@@ -12,6 +12,7 @@ import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode } from '../engi
 import { DomObserver } from './dom-observer.js';
 import { TextReplacer } from './text-replacer.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
+import { userDictionary } from '../engine/dictionary.js';
 import { EMOJI_MAP, checkEmojiShortcut } from '../engine/emoji.js';
 
 class AvimContentScript {
@@ -120,9 +121,12 @@ class AvimContentScript {
       }
     }
 
-    // Load shared on-device habit model
+    // Load shared on-device habit model & user custom dictionary
     try {
-      await autoCompleteEngine.loadFromStorage();
+      await Promise.all([
+        autoCompleteEngine.loadFromStorage(),
+        userDictionary.loadFromStorage()
+      ]);
     } catch {}
     this.applySettings();
   }
@@ -163,13 +167,17 @@ class AvimContentScript {
   }
 
   listenMessages() {
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    const runtime = (typeof browser !== 'undefined' && browser.runtime) ? browser.runtime : ((typeof chrome !== 'undefined' && chrome.runtime) ? chrome.runtime : null);
+    if (runtime && runtime.onMessage) {
+      runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === 'SETTINGS_UPDATED') {
           const oldMethod = this.settings.method;
           if (message.settings) Object.assign(this.settings, message.settings);
           if (message.macros) this.settings.macros = message.macros;
-          if (message.settings || message.macros) {
+          if (message.userDictionary && Array.isArray(message.userDictionary)) {
+            userDictionary.loadWords(message.userDictionary);
+          }
+          if (message.settings || message.macros || message.userDictionary) {
             this.applySettings();
           }
           // If turning ON from OFF via popup or global shortcut, trigger word rescue
@@ -178,11 +186,32 @@ class AvimContentScript {
           }
           sendResponse({ success: true });
         }
+        if (message.type === 'USER_DICT_UPDATED') {
+          if (Array.isArray(message.words)) {
+            userDictionary.loadWords(message.words);
+          } else {
+            userDictionary.loadFromStorage();
+          }
+          sendResponse({ success: true });
+        }
         if (message.type === 'GET_STATUS') {
           sendResponse({
             method: this.settings.method,
             macroEnabled: this.settings.macroEnabled
           });
+        }
+      });
+    }
+
+    // Direct storage listener as fallback for cross-context sync
+    const storageApi = (typeof browser !== 'undefined' && browser.storage) ? browser.storage : ((typeof chrome !== 'undefined' && chrome.storage) ? chrome.storage : null);
+    if (storageApi && storageApi.onChanged) {
+      storageApi.onChanged.addListener((changes, areaName) => {
+        if (changes.avim_user_dictionary) {
+          const newWords = changes.avim_user_dictionary.newValue;
+          if (Array.isArray(newWords)) {
+            userDictionary.loadWords(newWords);
+          }
         }
       });
     }

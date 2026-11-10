@@ -2130,8 +2130,16 @@
         if (typeof localStorage !== "undefined") {
           localStorage.setItem("avim_user_dictionary", JSON.stringify(list));
         }
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
-          await chrome.storage.sync.set({ avim_user_dictionary: list });
+        const storageSync = typeof browser !== "undefined" && browser.storage && browser.storage.sync ? browser.storage.sync : typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync ? chrome.storage.sync : null;
+        if (storageSync) {
+          await new Promise((resolve) => {
+            try {
+              const p = storageSync.set({ avim_user_dictionary: list }, () => resolve());
+              if (p && typeof p.then === "function") p.then(resolve).catch(resolve);
+            } catch {
+              resolve();
+            }
+          });
         }
       } catch (err) {
         console.warn("Could not save user dictionary:", err);
@@ -2139,8 +2147,16 @@
     }
     async loadFromStorage() {
       try {
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
-          const res = await chrome.storage.sync.get(["avim_user_dictionary"]);
+        const storageSync = typeof browser !== "undefined" && browser.storage && browser.storage.sync ? browser.storage.sync : typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync ? chrome.storage.sync : null;
+        if (storageSync) {
+          const res = await new Promise((resolve) => {
+            try {
+              const p = storageSync.get(["avim_user_dictionary"], (r) => resolve(r || {}));
+              if (p && typeof p.then === "function") p.then(resolve).catch(() => resolve({}));
+            } catch {
+              resolve({});
+            }
+          });
           if (Array.isArray(res.avim_user_dictionary) && res.avim_user_dictionary.length > 0) {
             this.loadWords(res.avim_user_dictionary);
             return;
@@ -6286,7 +6302,10 @@
         }
       }
       try {
-        await autoCompleteEngine.loadFromStorage();
+        await Promise.all([
+          autoCompleteEngine.loadFromStorage(),
+          userDictionary.loadFromStorage()
+        ]);
       } catch {
       }
       this.applySettings();
@@ -6323,17 +6342,29 @@
       this.domObserver.setBlacklistedDomains(this.settings.blacklistedDomains || []);
     }
     listenMessages() {
-      if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
-        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      const runtime = typeof browser !== "undefined" && browser.runtime ? browser.runtime : typeof chrome !== "undefined" && chrome.runtime ? chrome.runtime : null;
+      if (runtime && runtime.onMessage) {
+        runtime.onMessage.addListener((message, sender, sendResponse) => {
           if (message.type === "SETTINGS_UPDATED") {
             const oldMethod = this.settings.method;
             if (message.settings) Object.assign(this.settings, message.settings);
             if (message.macros) this.settings.macros = message.macros;
-            if (message.settings || message.macros) {
+            if (message.userDictionary && Array.isArray(message.userDictionary)) {
+              userDictionary.loadWords(message.userDictionary);
+            }
+            if (message.settings || message.macros || message.userDictionary) {
               this.applySettings();
             }
             if (oldMethod === IME_METHOD.OFF && this.settings.method !== IME_METHOD.OFF) {
               this.performOnActivationWordRescue();
+            }
+            sendResponse({ success: true });
+          }
+          if (message.type === "USER_DICT_UPDATED") {
+            if (Array.isArray(message.words)) {
+              userDictionary.loadWords(message.words);
+            } else {
+              userDictionary.loadFromStorage();
             }
             sendResponse({ success: true });
           }
@@ -6342,6 +6373,17 @@
               method: this.settings.method,
               macroEnabled: this.settings.macroEnabled
             });
+          }
+        });
+      }
+      const storageApi = typeof browser !== "undefined" && browser.storage ? browser.storage : typeof chrome !== "undefined" && chrome.storage ? chrome.storage : null;
+      if (storageApi && storageApi.onChanged) {
+        storageApi.onChanged.addListener((changes, areaName) => {
+          if (changes.avim_user_dictionary) {
+            const newWords = changes.avim_user_dictionary.newValue;
+            if (Array.isArray(newWords)) {
+              userDictionary.loadWords(newWords);
+            }
           }
         });
       }
