@@ -6983,22 +6983,31 @@
         const sel = window.getSelection();
         if (sel && sel.rangeCount) {
           const range = sel.getRangeAt(0);
-          let node = range.startContainer;
-          let offset = range.startOffset;
-          if (node.nodeType === Node.TEXT_NODE) {
-            let text = (node.textContent || "").slice(0, offset);
-            let prev = node.previousSibling;
-            while (prev) {
-              text = (prev.textContent || "") + text;
-              prev = prev.previousSibling;
+          try {
+            let container = range.commonAncestorContainer;
+            if (container.nodeType === Node.TEXT_NODE) {
+              container = container.parentNode;
             }
-            textBefore = text;
-          } else if (node.nodeType === Node.ELEMENT_NODE) {
-            let text = "";
-            for (let i = 0; i < offset && i < node.childNodes.length; i++) {
-              text += node.childNodes[i].textContent || "";
+            while (container && container !== target && !/^(P|DIV|LI|H[1-6]|BLOCKQUOTE|PRE|SECTION|ARTICLE)$/i.test(container.nodeName)) {
+              container = container.parentNode;
             }
-            textBefore = text;
+            const block = container || target;
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(block);
+            preCaretRange.setEnd(range.startContainer, range.startOffset);
+            textBefore = preCaretRange.toString();
+          } catch (_) {
+            let node = range.startContainer;
+            let offset = range.startOffset;
+            if (node.nodeType === Node.TEXT_NODE) {
+              let text = (node.textContent || "").slice(0, offset);
+              let prev = node.previousSibling;
+              while (prev) {
+                text = (prev.textContent || "") + text;
+                prev = prev.previousSibling;
+              }
+              textBefore = text;
+            }
           }
         }
       }

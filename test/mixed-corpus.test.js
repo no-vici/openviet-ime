@@ -441,6 +441,14 @@ test('Auto-Capitalization - File Extensions, Paths, Code Tokens, and Sentence Bo
   assert.equal(testShouldAutoCapitalize('Hãy nhấn Ctrl+Shift+Z. '), true);
   assert.equal(testShouldAutoCapitalize('Hãy nhấn Crtl+Shift+Z. '), true);
 
+  // 2c. Backtick inline code tokens (StackEdit, Markdown, Notion, GitHub)
+  assert.equal(testShouldAutoCapitalize('`idle_keystroke_timeout` '), false);
+  assert.equal(testShouldAutoCapitalize('Cấu hình `idle_keystroke_timeout` '), false);
+  assert.equal(testShouldAutoCapitalize('`idle_keystroke_timeout`'), false);
+  assert.equal(testShouldAutoCapitalize('`console.log` '), false);
+  // Legitimate sentence ending with inline code followed by period and space MUST capitalize
+  assert.equal(testShouldAutoCapitalize('Kiểm tra giá trị `idle_keystroke_timeout`. '), true);
+
   // 3. Normal sentence boundaries followed by space MUST capitalize
   assert.equal(testShouldAutoCapitalize(''), true);
   assert.equal(testShouldAutoCapitalize('   '), true);

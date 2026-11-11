@@ -869,32 +869,50 @@ class AvimContentScript {
       const sel = window.getSelection();
       if (sel && sel.rangeCount) {
         const range = sel.getRangeAt(0);
-        let node = range.startContainer;
-        let offset = range.startOffset;
 
-        if (node.nodeType === Node.TEXT_NODE) {
-          let text = (node.textContent || '').slice(0, offset);
-          let prev = node.previousSibling;
-          while (prev) {
-            text = (prev.textContent || '') + text;
-            prev = prev.previousSibling;
+        // Robust ContentEditable text extraction:
+        // Use standard preCaretRange.toString() bounded to the current editable block/container.
+        // This traverses all nested inline tags (<span>, <code>, <kbd>, Prism tokens, cledit-sections)
+        // accurately without getting trapped in leaf-node sibling boundaries.
+        try {
+          let container = range.commonAncestorContainer;
+          if (container.nodeType === Node.TEXT_NODE) {
+            container = container.parentNode;
           }
-          textBefore = text;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          // If range is on an ELEMENT_NODE (like <p> in TipTap/ProseMirror on Telegram Web A or <div>):
-          // Gather text from all previous child nodes inside this element up to offset
-          let text = '';
-          for (let i = 0; i < offset && i < node.childNodes.length; i++) {
-            text += node.childNodes[i].textContent || '';
+          // Find the nearest block ancestor or stop at target
+          while (
+            container &&
+            container !== target &&
+            !/^(P|DIV|LI|H[1-6]|BLOCKQUOTE|PRE|SECTION|ARTICLE)$/i.test(container.nodeName)
+          ) {
+            container = container.parentNode;
           }
-          textBefore = text;
+          const block = container || target;
+
+          const preCaretRange = range.cloneRange();
+          preCaretRange.selectNodeContents(block);
+          preCaretRange.setEnd(range.startContainer, range.startOffset);
+          textBefore = preCaretRange.toString();
+        } catch (_) {
+          // Fallback if Range API throws on disconnected/pseudo elements:
+          let node = range.startContainer;
+          let offset = range.startOffset;
+          if (node.nodeType === Node.TEXT_NODE) {
+            let text = (node.textContent || '').slice(0, offset);
+            let prev = node.previousSibling;
+            while (prev) {
+              text = (prev.textContent || '') + text;
+              prev = prev.previousSibling;
+            }
+            textBefore = text;
+          }
         }
       }
     }
 
     // 1. Backtick and Code Guard:
     // - If preceded by an opening/unclosed backtick ` (odd count or trailing `) -> NEVER auto-capitalize inside code!
-    // - If preceded by an empty pair ``, a closed span `code`, or `code` [space] -> NEVER auto-capitalize right after code!
+    // - If preceded by a closed code token (`...` or `...` [space]) without a sentence delimiter -> NEVER auto-capitalize right after code!
     if (/`/.test(textBefore)) {
       if (/`\s*$/.test(textBefore)) return false;
       const strippedClosed = textBefore.replace(/`[^`\n\r]*`/g, '');
