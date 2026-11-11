@@ -129,3 +129,4 @@ Cơ sở dữ liệu lệnh kỹ thuật được tổ chức module hóa trong 
 2. **Bảo vệ phím Enter khi nhắn tin (Chat Application Enter Pass-Through)**:
    - Trong các ứng dụng nhắn tin thời gian thực như **Telegram Web, Slack, Facebook Messenger, Zalo**: người dùng có thói quen bấm `Enter` để gửi tin nhắn.
    - Nếu thanh ribbon đang ở chế độ `nextword`, bộ gõ **tuyệt đối không chặn sự kiện `Enter`** và không tự ý chèn từ vào ô chat. Thay vào đó, nó âm thầm đóng thanh gợi ý và cho phép sự kiện `Enter` tự nhiên đi qua để tin nhắn được gửi đi tức thì.
+

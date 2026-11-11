@@ -873,7 +873,13 @@ class AvimContentScript {
         let offset = range.startOffset;
 
         if (node.nodeType === Node.TEXT_NODE) {
-          textBefore = (node.textContent || '').slice(0, offset);
+          let text = (node.textContent || '').slice(0, offset);
+          let prev = node.previousSibling;
+          while (prev) {
+            text = (prev.textContent || '') + text;
+            prev = prev.previousSibling;
+          }
+          textBefore = text;
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           // If range is on an ELEMENT_NODE (like <p> in TipTap/ProseMirror on Telegram Web A or <div>):
           // Gather text from all previous child nodes inside this element up to offset
@@ -896,9 +902,15 @@ class AvimContentScript {
       if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
     }
 
-    // Developer-Aware Code & Path Guard:
-    // If immediately preceded by path slashes, code symbols, or protocol prefixes
-    if (/([\/\\#@\$~]|\-\-)$/.test(textBefore)) {
+    // Developer-Aware Code, Shortcut, Math & Path Guard:
+    // 1) If immediately preceded by path slashes, code/symbol tokens, plus sign or '--'
+    if (/([\/\\#@\$~+]|\-\-)$/.test(textBefore)) {
+      return false;
+    }
+
+    // 2) Keyboard shortcuts & hotkey combinations: e.g. Ctrl+Shift+Z, Crtl+Shift+Z, Cmd+Alt+Del, etc.
+    // When typed in prose or code without sentence terminators, never trigger capitalization.
+    if (/(?:Ctrl|Crtl|Shift|Alt|Cmd|Option|Command|Win|Super)\+[^\s.]+\s*$/i.test(textBefore)) {
       return false;
     }
 

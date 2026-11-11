@@ -376,7 +376,11 @@ test('Auto-Capitalization - File Extensions, Paths, Code Tokens, and Sentence Bo
       if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
     }
 
-    if (/([\/\\#@\$~]|\-\-)$/.test(textBefore)) {
+    if (/([\/\\#@\$~+]|\-\-)$/.test(textBefore)) {
+      return false;
+    }
+
+    if (/(?:Ctrl|Crtl|Shift|Alt|Cmd|Option|Command|Win|Super)\+[^\s.]+\s*$/i.test(textBefore)) {
       return false;
     }
 
@@ -415,13 +419,27 @@ test('Auto-Capitalization - File Extensions, Paths, Code Tokens, and Sentence Bo
   assert.equal(testShouldAutoCapitalize('192.168.1.'), false);
   assert.equal(testShouldAutoCapitalize('version3.'), false);
 
-  // 2. Path separators and code symbols
+  // 2. Path separators, code symbols, and plus operators
   assert.equal(testShouldAutoCapitalize('src/'), false);
   assert.equal(testShouldAutoCapitalize('C:\\'), false);
   assert.equal(testShouldAutoCapitalize('git@'), false);
   assert.equal(testShouldAutoCapitalize('#'), false);
   assert.equal(testShouldAutoCapitalize('$'), false);
   assert.equal(testShouldAutoCapitalize('--'), false);
+  assert.equal(testShouldAutoCapitalize('1+'), false);
+  assert.equal(testShouldAutoCapitalize('a + '), false);
+
+  // 2b. Keyboard shortcuts & hotkey tokens (Ctrl+Shift+Z, Crtl+Shift+Z, Cmd+K, etc.)
+  assert.equal(testShouldAutoCapitalize('Ctrl+Shift+Z '), false);
+  assert.equal(testShouldAutoCapitalize('Crtl+Shift+Z '), false);
+  assert.equal(testShouldAutoCapitalize('soạn docs nói đến tính năng tổ hợp phím Ctrl+Shift+Z '), false);
+  assert.equal(testShouldAutoCapitalize('soạn docs nói đến tính năng tổ hợp phím Crtl+Shift+Z '), false);
+  assert.equal(testShouldAutoCapitalize('bấm Cmd+K '), false);
+  assert.equal(testShouldAutoCapitalize('nhấn Alt+F4 '), false);
+  assert.equal(testShouldAutoCapitalize('Ctrl+Shift+'), false);
+  // Legitimate sentence ending with shortcut followed by period and space MUST capitalize
+  assert.equal(testShouldAutoCapitalize('Hãy nhấn Ctrl+Shift+Z. '), true);
+  assert.equal(testShouldAutoCapitalize('Hãy nhấn Crtl+Shift+Z. '), true);
 
   // 3. Normal sentence boundaries followed by space MUST capitalize
   assert.equal(testShouldAutoCapitalize(''), true);

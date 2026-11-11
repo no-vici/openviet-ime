@@ -6986,7 +6986,13 @@
           let node = range.startContainer;
           let offset = range.startOffset;
           if (node.nodeType === Node.TEXT_NODE) {
-            textBefore = (node.textContent || "").slice(0, offset);
+            let text = (node.textContent || "").slice(0, offset);
+            let prev = node.previousSibling;
+            while (prev) {
+              text = (prev.textContent || "") + text;
+              prev = prev.previousSibling;
+            }
+            textBefore = text;
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             let text = "";
             for (let i = 0; i < offset && i < node.childNodes.length; i++) {
@@ -7002,7 +7008,10 @@
         if (strippedClosed.includes("`")) return false;
         if (/`[^`\n\r]*`\s*$/.test(textBefore)) return false;
       }
-      if (/([\/\\#@\$~]|\-\-)$/.test(textBefore)) {
+      if (/([\/\\#@\$~+]|\-\-)$/.test(textBefore)) {
+        return false;
+      }
+      if (/(?:Ctrl|Crtl|Shift|Alt|Cmd|Option|Command|Win|Super)\+[^\s.]+\s*$/i.test(textBefore)) {
         return false;
       }
       let context = textBefore;
