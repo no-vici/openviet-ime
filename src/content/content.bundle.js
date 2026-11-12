@@ -2349,6 +2349,17 @@
         this.resetWordSession();
         return { restore: false, result: currentWord };
       }
+      if (this.phonologyRules) {
+        const parsed = parseSyllable(currentWord);
+        if (parsed && parsed.nucleus) {
+          const lowerN = parsed.nucleus.toLowerCase();
+          if ((lowerN === "\u0103" || lowerN === "\xE2") && parsed.coda.length === 0 && !userDictionary.has(currentWord.toLowerCase())) {
+            const rawSeq = this.currentWordRaw || reverseVietnameseWord(currentWord) || currentWord;
+            this.resetWordSession();
+            return { restore: true, result: matchCasing(currentWord, rawSeq) };
+          }
+        }
+      }
       const curLower = currentWord.toLowerCase();
       if (/^[a-zA-Z]+$/.test(currentWord) && (COMMON_ENGLISH_WORDS.has(curLower) || userDictionary.has(curLower))) {
         this.resetWordSession();

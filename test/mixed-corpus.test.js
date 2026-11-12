@@ -578,6 +578,17 @@ test('Telex & Auto - Immediate Breve w Placement (ddawng -> đăng, ddangw -> đ
   assert.equal(typeSequence(autoEngine, 'ddangw'), 'đăng');
   assert.equal(typeSequence(autoEngine, 'd9a8ng'), 'đăng');
   assert.equal(typeSequence(autoEngine, 'd9ang8'), 'đăng');
+
+  // 4. Incomplete short vowels standalone on Space -> auto-restore to raw
+  assert.equal(telexEngine.checkAutoRestore('đă').result, 'ddaw');
+  assert.equal(telexEngine.checkAutoRestore('câ').result, 'caa');
+  assert.equal(telexEngine.checkAutoRestore('bă').result, 'baw');
+  assert.equal(telexEngine.checkAutoRestore('tắ').result, 'taws');
+
+  // 5. Complete words with short vowels and coda on Space -> KEEP Vietnamese word
+  assert.equal(telexEngine.checkAutoRestore('đăng').restore, false);
+  assert.equal(telexEngine.checkAutoRestore('cân').restore, false);
+  assert.equal(telexEngine.checkAutoRestore('băng').restore, false);
 });
 
 

@@ -229,6 +229,21 @@ export class AvimEngine {
       return { restore: false, result: currentWord };
     }
 
+    // 2b. Phonological Strictness: Short vowels ă, â can NEVER stand alone without a coda consonant at word completion.
+    // If user stops typing and hits Space right after 'đă', 'câ', 'bă', 'tắ', auto-restore to raw keys (e.g. 'ddaw', 'caa')
+    // unless the word is a known exception (e.g. in userDictionary).
+    if (this.phonologyRules) {
+      const parsed = parseSyllable(currentWord);
+      if (parsed && parsed.nucleus) {
+        const lowerN = parsed.nucleus.toLowerCase();
+        if ((lowerN === 'ă' || lowerN === 'â') && parsed.coda.length === 0 && !userDictionary.has(currentWord.toLowerCase())) {
+          const rawSeq = this.currentWordRaw || reverseVietnameseWord(currentWord) || currentWord;
+          this.resetWordSession();
+          return { restore: true, result: matchCasing(currentWord, rawSeq) };
+        }
+      }
+    }
+
     // Safety guard: If currentWord is already pure ASCII and is a known English word,
     // it never needs restoration (prevents raw cancellation keystrokes like 'tesst' from corrupting it).
     const curLower = currentWord.toLowerCase();
