@@ -39,6 +39,7 @@ class AvimContentScript {
       wordRescue: true,
       autoCompleteEnabled: true,
       nextWordEnabled: true,
+      suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
       gboardLearningEnabled: true,
       debugTypingLog: false,
       macros: DEFAULT_MACROS,
@@ -59,6 +60,7 @@ class AvimContentScript {
     this.suggestionHost = null;
     this.suggestionShadow = null;
     this.suggestionBar = null;
+    this.ghostTextEl = null;
     this.suggestionInactivityTimeout = null;
     this.suggestionInactivityMs = 2800; // Auto-dismiss after 2.8s of inactivity
 
@@ -367,10 +369,41 @@ class AvimContentScript {
         color: #ffffff;
         border-color: #ffffff;
       }
+      .openviet-ghost-text {
+        position: fixed;
+        pointer-events: none;
+        z-index: 2147483647;
+        color: #94a3b8;
+        opacity: 0.58;
+        white-space: pre;
+        line-height: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        user-select: none;
+        -webkit-user-select: none;
+        transition: opacity 0.1s ease;
+      }
+      .openviet-ghost-text.hidden {
+        display: none;
+      }
+      .openviet-ghost-text .ghost-badge {
+        display: inline-block;
+        margin-left: 6px;
+        font-size: 10px;
+        padding: 1px 4px;
+        border-radius: 3px;
+        background: rgba(148, 163, 184, 0.25);
+        color: #cbd5e1;
+        font-family: monospace;
+        vertical-align: middle;
+      }
     `;
 
     this.suggestionBar = document.createElement('div');
     this.suggestionBar.className = 'gboard-bar hidden';
+
+    this.ghostTextEl = document.createElement('div');
+    this.ghostTextEl.className = 'openviet-ghost-text hidden';
 
     // Pause auto-dismiss when hovering over suggestions
     this.suggestionBar.addEventListener('mouseenter', () => {
@@ -385,6 +418,7 @@ class AvimContentScript {
 
     this.suggestionShadow.appendChild(style);
     this.suggestionShadow.appendChild(this.suggestionBar);
+    this.suggestionShadow.appendChild(this.ghostTextEl);
     mount.appendChild(this.suggestionHost);
   }
 
@@ -398,6 +432,138 @@ class AvimContentScript {
         this.hideSuggestions();
       }, this.suggestionInactivityMs);
     }
+  }
+
+  getCaretCoordinates(target) {
+    if (!target) return null;
+    const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+
+    if (isNative) {
+      try {
+        const pos = target.selectionStart ?? target.value.length;
+        const rect = target.getBoundingClientRect();
+        const style = window.getComputedStyle(target);
+
+        // Build a mirror div with identical layout and typography to measure exact text metrics
+        const mirror = document.createElement('div');
+        mirror.style.position = 'fixed';
+        mirror.style.visibility = 'hidden';
+        mirror.style.top = '0px';
+        mirror.style.left = '0px';
+        mirror.style.whiteSpace = target instanceof HTMLTextAreaElement ? 'pre-wrap' : 'pre';
+        mirror.style.wordWrap = 'break-word';
+        mirror.style.font = style.font;
+        mirror.style.fontSize = style.fontSize;
+        mirror.style.fontFamily = style.fontFamily;
+        mirror.style.fontWeight = style.fontWeight;
+        mirror.style.letterSpacing = style.letterSpacing;
+        mirror.style.lineHeight = style.lineHeight;
+        mirror.style.padding = style.padding;
+        mirror.style.border = style.border;
+        mirror.style.boxSizing = style.boxSizing;
+        mirror.style.width = `${target.clientWidth}px`;
+
+        const textBefore = target.value.slice(0, pos);
+        mirror.textContent = textBefore;
+
+        const marker = document.createElement('span');
+        marker.textContent = '|';
+        mirror.appendChild(marker);
+
+        document.body.appendChild(mirror);
+        const markerRect = marker.getBoundingClientRect();
+        const mirrorRect = mirror.getBoundingClientRect();
+        document.body.removeChild(mirror);
+
+        const scrollLeft = target.scrollLeft || 0;
+        const scrollTop = target.scrollTop || 0;
+
+        const left = rect.left + (markerRect.left - mirrorRect.left) - scrollLeft;
+        const top = rect.top + (markerRect.top - mirrorRect.top) - scrollTop;
+        const height = markerRect.height || parseInt(style.fontSize, 10) || 16;
+
+        return { left, top, height };
+      } catch {
+        const rect = target.getBoundingClientRect();
+        return { left: rect.left, top: rect.top, height: rect.height || 20 };
+      }
+    } else if (target.isContentEditable) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount) {
+        const range = sel.getRangeAt(0);
+        let rect = range.getBoundingClientRect();
+
+        // If collapsed range rect has 0 width or height (happens at line start or empty lines)
+        if (!rect || (rect.width === 0 && rect.height === 0)) {
+          const marker = document.createElement('span');
+          marker.textContent = '\uFEFF';
+          const clone = range.cloneRange();
+          clone.insertNode(marker);
+          rect = marker.getBoundingClientRect();
+          if (marker.parentNode) marker.parentNode.removeChild(marker);
+        }
+
+        if (rect && rect.top > 0) {
+          return { left: rect.left, top: rect.top, height: rect.height || 20 };
+        }
+      }
+      const rect = target.getBoundingClientRect();
+      return { left: rect.left, top: rect.top, height: rect.height || 20 };
+    }
+    return null;
+  }
+
+  showGhostText(target, candidate, type, query = '') {
+    if (!candidate || !this.ghostTextEl) return;
+
+    const currentWord = query || '';
+    let ghostSuffix = '';
+    if (type === 'autocomplete') {
+      if (candidate.toLowerCase().startsWith(currentWord.toLowerCase())) {
+        ghostSuffix = candidate.slice(currentWord.length);
+      } else {
+        ghostSuffix = ' ' + candidate;
+      }
+    } else {
+      // Next-word prediction ghost text
+      ghostSuffix = (currentWord.endsWith(' ') ? '' : ' ') + candidate;
+    }
+
+    if (!ghostSuffix) {
+      this.hideSuggestions();
+      return;
+    }
+
+    const coords = this.getCaretCoordinates(target);
+    if (!coords) {
+      this.hideSuggestions();
+      return;
+    }
+
+    this.ghostTextEl.textContent = '';
+    const textNode = document.createTextNode(ghostSuffix);
+    this.ghostTextEl.appendChild(textNode);
+
+    const badge = document.createElement('span');
+    badge.className = 'ghost-badge';
+    badge.textContent = 'Tab ⇥';
+    this.ghostTextEl.appendChild(badge);
+
+    // Copy typography from target to ensure seamless inline appearance
+    try {
+      const style = window.getComputedStyle(target);
+      this.ghostTextEl.style.fontFamily = style.fontFamily;
+      this.ghostTextEl.style.fontSize = style.fontSize;
+      this.ghostTextEl.style.fontWeight = style.fontWeight;
+      this.ghostTextEl.style.letterSpacing = style.letterSpacing;
+      this.ghostTextEl.style.lineHeight = style.lineHeight;
+    } catch (_) {}
+
+    this.ghostTextEl.style.top = `${coords.top}px`;
+    this.ghostTextEl.style.left = `${coords.left}px`;
+    this.ghostTextEl.classList.remove('hidden');
+
+    this.resetSuggestionInactivityTimer();
   }
 
   showSuggestions(target, items, type, query = '') {
@@ -415,6 +581,19 @@ class AvimContentScript {
 
     if (!this.suggestionBar) this.initSuggestionHost();
     if (!this.suggestionBar) return;
+
+    // Check suggestion style: Ghost Text vs Floating Ribbon
+    if (this.settings.suggestionStyle === 'ghost_text') {
+      if (this.suggestionBar) this.suggestionBar.classList.add('hidden');
+      const topCandidate = visibleItems[0]?.word;
+      this.showGhostText(target, topCandidate, type, query);
+      return;
+    }
+
+    if (this.ghostTextEl) {
+      this.ghostTextEl.classList.add('hidden');
+      this.ghostTextEl.textContent = '';
+    }
 
     this.suggestionBar.textContent = '';
 
@@ -543,12 +722,18 @@ class AvimContentScript {
     if (this.suggestionBar) {
       this.suggestionBar.classList.add('hidden');
     }
+    if (this.ghostTextEl) {
+      this.ghostTextEl.classList.add('hidden');
+      this.ghostTextEl.textContent = '';
+    }
     this.activeSuggestions = [];
     this.selectedSuggestionIndex = 0;
   }
 
   isSuggestionsVisible() {
-    return this.suggestionBar && !this.suggestionBar.classList.contains('hidden') && this.activeSuggestions.length > 0;
+    const isRibbonVisible = this.suggestionBar && !this.suggestionBar.classList.contains('hidden');
+    const isGhostVisible = this.ghostTextEl && !this.ghostTextEl.classList.contains('hidden');
+    return (isRibbonVisible || isGhostVisible) && this.activeSuggestions.length > 0;
   }
 
   applySuggestion(chosenWord) {
@@ -660,10 +845,21 @@ class AvimContentScript {
       this.lastCtrlTime = 0;
     }
 
-    // Tab / Shift+Tab key: Cycle suggestions forward or backward when ribbon is showing
+    // Tab / Shift+Tab key: Cycle suggestions or accept Ghost Text
     if (event.key === 'Tab' && this.isSuggestionsVisible()) {
       event.preventDefault();
       event.stopPropagation();
+
+      // If in ghost text mode: Tab instantly accepts top suggestion!
+      if (this.settings.suggestionStyle === 'ghost_text') {
+        const candidate = this.activeSuggestions[0]?.word;
+        if (candidate) {
+          this.applySuggestion(candidate);
+        }
+        return;
+      }
+
+      // Ribbon mode: cycle through suggestions
       const count = this.activeSuggestions.length;
       if (count > 0) {
         if (event.shiftKey) {
@@ -676,6 +872,17 @@ class AvimContentScript {
         this.updateSuggestionHighlight();
       }
       return;
+    }
+
+    // Right Arrow key: When in ghost text mode, accept suggestion if cursor is at the end
+    if (event.key === 'ArrowRight' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && this.isSuggestionsVisible() && this.settings.suggestionStyle === 'ghost_text') {
+      const candidate = this.activeSuggestions[0]?.word;
+      if (candidate) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.applySuggestion(candidate);
+        return;
+      }
     }
 
     // Enter key: When suggestions are visible

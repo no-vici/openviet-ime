@@ -130,3 +130,19 @@ Cơ sở dữ liệu lệnh kỹ thuật được tổ chức module hóa trong 
    - Trong các ứng dụng nhắn tin thời gian thực như **Telegram Web, Slack, Facebook Messenger, Zalo**: người dùng có thói quen bấm `Enter` để gửi tin nhắn.
    - Nếu thanh ribbon đang ở chế độ `nextword`, bộ gõ **tuyệt đối không chặn sự kiện `Enter`** và không tự ý chèn từ vào ô chat. Thay vào đó, nó âm thầm đóng thanh gợi ý và cho phép sự kiện `Enter` tự nhiên đi qua để tin nhắn được gửi đi tức thì.
 
+---
+
+## 6. Kiểu Hiển Thị Gợi Ý: Floating Ribbon vs Inline Ghost Text
+
+Người dùng có thể linh hoạt chuyển đổi giữa 2 phong cách giao diện trong Options Page (`suggestionStyle`):
+
+1. **Thanh danh sách nổi (Floating Ribbon - Mặc định)**:
+   - Hiển thị 1 đến 5 ứng viên theo hàng ngang phía trên/dưới ô nhập liệu.
+   - Chọn nhanh bằng phím `Enter`, số `1-5` hoặc dùng phím `Tab`/`Shift+Tab` để duyệt.
+
+2. **Chữ mờ ngay sau con trỏ (Inline Ghost Text)**:
+   - Lấy ứng viên xếp hạng #1 (top 1) và tính toán phần hậu tố còn thiếu (`ghostSuffix`).
+   - Hiển thị bằng chữ mờ (opacity: 0.58, màu xám nhạt) nằm trong Shadow DOM riêng biệt, bám sát tọa độ con trỏ (Caret Coordinates) trong cả `<input>`, `<textarea>` và `contenteditable`.
+   - **Ưu điểm vượt trội**: Không bao giờ che khuất các menu dropdown autocomplete riêng của trang web (như ô tìm kiếm Google, Mention list trong Slack/Discord).
+   - **Thao tác chấp nhận (Acceptance)**: Nhấn phím `Tab` hoặc mũi tên phải `→` để chèn tức thì phần chữ mờ vào văn bản. Bấm phím bất kỳ khác hoặc `Esc` sẽ tự động ẩn chữ mờ.
+

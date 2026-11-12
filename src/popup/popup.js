@@ -50,6 +50,7 @@ async function initPopup() {
     phonologyRules: true,
     autoCompleteEnabled: true,
     nextWordEnabled: true,
+    suggestionStyle: 'ribbon',
     gboardLearningEnabled: true
   };
 

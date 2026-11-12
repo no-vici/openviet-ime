@@ -3559,6 +3559,7 @@
     wordRescue: true,
     autoCompleteEnabled: true,
     nextWordEnabled: true,
+    suggestionStyle: "ribbon",
     gboardLearningEnabled: true,
     debugTypingLog: false,
     blacklistedDomains: []
@@ -4040,9 +4041,11 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const autoCompleteOption = document.getElementById("autoCompleteOption");
     const nextWordOption = document.getElementById("nextWordOption");
     const gboardLearningOption = document.getElementById("gboardLearningOption");
+    const suggestionStyleSelect = document.getElementById("suggestionStyleSelect");
     const aiTabAutoComplete = document.getElementById("aiTabAutoComplete");
     const aiTabNextWord = document.getElementById("aiTabNextWord");
     const aiTabLearning = document.getElementById("aiTabLearning");
+    const aiTabSuggestionStyle = document.getElementById("aiTabSuggestionStyle");
     window.syncPreferencesUI = function syncPreferencesUI() {
       if (methodSelect) methodSelect.value = String(settings.method ?? 3);
       if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || "modern";
@@ -4070,6 +4073,9 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (aiTabNextWord) aiTabNextWord.checked = isNextWord;
       if (gboardLearningOption) gboardLearningOption.checked = isLearning;
       if (aiTabLearning) aiTabLearning.checked = isLearning;
+      const styleVal = settings.suggestionStyle || "ribbon";
+      if (suggestionStyleSelect) suggestionStyleSelect.value = styleVal;
+      if (aiTabSuggestionStyle) aiTabSuggestionStyle.value = styleVal;
       autoCompleteEngine.setEnabled(isAutoComplete);
       autoCompleteEngine.setNextWordEnabled(isNextWord);
       autoCompleteEngine.setLearningEnabled(isLearning);
@@ -4234,12 +4240,20 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       autoCompleteEngine.setLearningEnabled(val);
       await saveState();
     };
+    const handleSuggestionStyleChange = async (val) => {
+      settings.suggestionStyle = val;
+      if (suggestionStyleSelect) suggestionStyleSelect.value = val;
+      if (aiTabSuggestionStyle) aiTabSuggestionStyle.value = val;
+      await saveState();
+    };
     autoCompleteOption?.addEventListener("change", () => handleAutoCompleteChange(autoCompleteOption.checked));
     aiTabAutoComplete?.addEventListener("change", () => handleAutoCompleteChange(aiTabAutoComplete.checked));
     nextWordOption?.addEventListener("change", () => handleNextWordChange(nextWordOption.checked));
     aiTabNextWord?.addEventListener("change", () => handleNextWordChange(aiTabNextWord.checked));
     gboardLearningOption?.addEventListener("change", () => handleLearningChange(gboardLearningOption.checked));
     aiTabLearning?.addEventListener("change", () => handleLearningChange(aiTabLearning.checked));
+    suggestionStyleSelect?.addEventListener("change", () => handleSuggestionStyleChange(suggestionStyleSelect.value));
+    aiTabSuggestionStyle?.addEventListener("change", () => handleSuggestionStyleChange(aiTabSuggestionStyle.value));
     blacklistTextarea.addEventListener("change", async () => {
       const lines = blacklistTextarea.value.split("\n").map((s) => s.trim().toLowerCase()).filter(Boolean);
       settings.blacklistedDomains = lines;

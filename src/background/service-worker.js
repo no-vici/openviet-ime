@@ -26,6 +26,7 @@ const DEFAULT_SETTINGS = {
   wordRescue: true,
   autoCompleteEnabled: true,
   nextWordEnabled: true,
+  suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
   gboardLearningEnabled: true,
   debugTypingLog: false,
   blacklistedDomains: []

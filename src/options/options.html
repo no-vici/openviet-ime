@@ -534,6 +534,20 @@
                 <div style="font-size: 12px; color: var(--text-muted);">Ghi nhận các cặp từ bạn hay gõ để ưu tiên xếp lên đầu. Dữ liệu lưu 100% cục bộ trên máy bạn, bảo mật tuyệt đối.</div>
               </div>
             </label>
+
+            <div class="form-group" style="margin-top: 12px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 6px;">
+              <label class="form-label" for="suggestionStyleSelect" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span><strong>Kiểu hiển thị gợi ý (Suggestion Display Style)</strong></span>
+              </label>
+              <select id="suggestionStyleSelect" class="form-select" style="margin-top: 4px;">
+                <option value="ribbon">Thanh danh sách nổi (Floating Ribbon - Mặc định)</option>
+                <option value="ghost_text">Chữ mờ sau con trỏ (Inline Ghost Text - Kiểu Smart Compose / Copilot)</option>
+              </select>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+                • <em>Thanh danh sách nổi</em>: Hiển thị 1-5 từ gợi ý kèm phím số/Enter để chọn.<br>
+                • <em>Chữ mờ sau con trỏ</em>: Hiển thị từ gợi ý top 1 bằng chữ mờ ngay sau caret, không che dropdown hay giao diện của trang web; nhấn <code>Tab</code> hoặc <code>&rarr;</code> để điền.
+              </div>
+            </div>
           </div>
 
           <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);">
@@ -598,6 +612,20 @@
               <div style="font-size: 12px; color: var(--text-muted);">Cặp từ nào bạn hay gõ cùng nhau sẽ được học và ưu tiên lên vị trí #1 với nhãn "Thói quen".</div>
             </div>
           </label>
+
+          <div class="form-group" style="margin-top: 14px; padding: 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 6px;">
+            <label class="form-label" for="aiTabSuggestionStyle" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span><strong>Kiểu hiển thị gợi ý (Suggestion Style)</strong></span>
+            </label>
+            <select id="aiTabSuggestionStyle" class="form-select" style="margin-top: 4px;">
+              <option value="ribbon">Thanh danh sách nổi (Floating Ribbon - Mặc định)</option>
+              <option value="ghost_text">Chữ mờ sau con trỏ (Inline Ghost Text - Kiểu Smart Compose / Copilot)</option>
+            </select>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+              • <em>Thanh danh sách nổi</em>: Phù hợp người thích xem nhiều phương án từ 1 đến 5.<br>
+              • <em>Chữ mờ sau con trỏ</em>: Không che khuất dropdown hay form nhập liệu; nhấn <code>Tab</code> hoặc <code>&rarr;</code> để chấp nhận.
+            </div>
+          </div>
         </div>
       </div>
 

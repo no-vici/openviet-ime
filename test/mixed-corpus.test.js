@@ -522,6 +522,32 @@ test('User Dictionary Whitelist with SpellCheck ON - Allows informal / slang syl
   assert.equal(resVniEc, 'ẹc', 'With userDictionary whitelist, VNI ec5 must transform into ẹc');
 });
 
+test('Inline Ghost Text - Suffix calculation & Suggestion Style Settings', () => {
+  // Test ghost suffix calculation logic
+  function calculateGhostSuffix(candidate, query, type) {
+    const currentWord = query || '';
+    if (type === 'autocomplete') {
+      if (candidate.toLowerCase().startsWith(currentWord.toLowerCase())) {
+        return candidate.slice(currentWord.length);
+      } else {
+        return ' ' + candidate;
+      }
+    } else {
+      return (currentWord.endsWith(' ') ? '' : ' ') + candidate;
+    }
+  }
+
+  // Autocomplete suffix:
+  assert.equal(calculateGhostSuffix('Việt Nam', 'Việt', 'autocomplete'), ' Nam');
+  assert.equal(calculateGhostSuffix('công nghệ', 'công', 'autocomplete'), ' nghệ');
+  assert.equal(calculateGhostSuffix('chính tả', 'chính', 'autocomplete'), ' tả');
+  assert.equal(calculateGhostSuffix('nghiên cứu', 'nghiên', 'autocomplete'), ' cứu');
+
+  // Next-word prediction suffix (after space):
+  assert.equal(calculateGhostSuffix('Nam', 'Việt ', 'nextword'), 'Nam');
+  assert.equal(calculateGhostSuffix('nghệ', 'công ', 'nextword'), 'nghệ');
+});
+
 
 
 
