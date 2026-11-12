@@ -19,6 +19,7 @@ async function initPopup() {
   const autoCompleteToggle = document.getElementById('autoCompleteToggle');
   const nextWordToggle = document.getElementById('nextWordToggle');
   const gboardLearningToggle = document.getElementById('gboardLearningToggle');
+  const ghostTextToggle = document.getElementById('ghostTextToggle');
   const openOptionsBtn = document.getElementById('openOptions');
   const appVersionEl = document.getElementById('appVersion');
 
@@ -121,6 +122,9 @@ async function initPopup() {
     }
     if (gboardLearningToggle) {
       gboardLearningToggle.checked = settings.gboardLearningEnabled !== false;
+    }
+    if (ghostTextToggle) {
+      ghostTextToggle.checked = settings.suggestionStyle === 'ghost_text';
     }
   }
 
@@ -250,6 +254,13 @@ async function initPopup() {
   if (gboardLearningToggle) {
     gboardLearningToggle.addEventListener('change', async () => {
       settings.gboardLearningEnabled = gboardLearningToggle.checked;
+      await saveSettings();
+    });
+  }
+
+  if (ghostTextToggle) {
+    ghostTextToggle.addEventListener('change', async () => {
+      settings.suggestionStyle = ghostTextToggle.checked ? 'ghost_text' : 'ribbon';
       await saveSettings();
     });
   }
