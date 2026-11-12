@@ -4,34 +4,12 @@
  */
 
 import { DEFAULT_MACROS, SAIGON_XUA_MACROS, MacroEngine } from '../engine/macro.js';
+import { DEFAULT_SETTINGS } from '../engine/config.js';
 import { userDictionary } from '../engine/dictionary.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
 
 let macroEngine = new MacroEngine(DEFAULT_MACROS);
-let settings = {
-  method: 3,
-  toneStyle: 'classic',
-  macroEnabled: true,
-  spellCheck: true,
-  autoUndo: true,
-  ctrlToggleEnabled: true,
-  quickConsonants: false,
-  quickTelex: true,
-  emojiShortcuts: true,
-  autoCapitalize: true,
-  perDomainMemory: true,
-  domainMethods: {},
-  autoRestoreEnglish: true,
-  escRevert: true,
-  phonologyRules: true,
-  wordRescue: true,
-  autoCompleteEnabled: true,
-  nextWordEnabled: true,
-  suggestionStyle: 'ribbon',
-  gboardLearningEnabled: true,
-  debugTypingLog: false,
-  blacklistedDomains: []
-};
+let settings = { ...DEFAULT_SETTINGS };
 
 let editingTrigger = null;
 

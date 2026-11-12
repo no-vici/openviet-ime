@@ -8,6 +8,7 @@
 
 import { AvimEngine } from '../engine/avim.js';
 import { MacroEngine, DEFAULT_MACROS } from '../engine/macro.js';
+import { DEFAULT_SETTINGS } from '../engine/config.js';
 import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode } from '../engine/key-codes.js';
 import { DomObserver } from './dom-observer.js';
 import { TextReplacer } from './text-replacer.js';
@@ -21,29 +22,10 @@ class AvimContentScript {
     this.textReplacer = new TextReplacer();
 
     this.settings = {
+      ...DEFAULT_SETTINGS,
       method: IME_METHOD.AUTO,
       toneStyle: TONE_STYLE.CLASSIC,
-      macroEnabled: true,
-      spellCheck: true,
-      autoUndo: true,
-      ctrlToggleEnabled: true,
-      quickConsonants: false,
-      quickTelex: true,
-      emojiShortcuts: true,
-      autoCapitalize: true,
-      perDomainMemory: true,
-      domainMethods: {},
-      autoRestoreEnglish: true,
-      escRevert: true,
-      phonologyRules: true,
-      wordRescue: true,
-      autoCompleteEnabled: true,
-      nextWordEnabled: true,
-      suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
-      gboardLearningEnabled: true,
-      debugTypingLog: false,
-      macros: DEFAULT_MACROS,
-      blacklistedDomains: []
+      macros: DEFAULT_MACROS
     };
 
     this.lastCtrlTime = 0;
@@ -61,6 +43,8 @@ class AvimContentScript {
     this.suggestionShadow = null;
     this.suggestionBar = null;
     this.ghostTextEl = null;
+    this.caretMirror = null;
+    this.caretMarker = null;
     this.suggestionInactivityTimeout = null;
     this.suggestionInactivityMs = 2800; // Auto-dismiss after 2.8s of inactivity
 
@@ -405,6 +389,19 @@ class AvimContentScript {
     this.ghostTextEl = document.createElement('div');
     this.ghostTextEl.className = 'openviet-ghost-text hidden';
 
+    // Isolated Caret Mirror for measuring input/textarea cursor coordinates inside Shadow DOM
+    this.caretMirror = document.createElement('div');
+    this.caretMirror.className = 'openviet-caret-mirror';
+    this.caretMirror.style.position = 'fixed';
+    this.caretMirror.style.visibility = 'hidden';
+    this.caretMirror.style.top = '0px';
+    this.caretMirror.style.left = '0px';
+    this.caretMirror.style.pointerEvents = 'none';
+    this.caretMirror.style.zIndex = '-99999';
+
+    this.caretMarker = document.createElement('span');
+    this.caretMarker.textContent = '|';
+
     // Pause auto-dismiss when hovering over suggestions
     this.suggestionBar.addEventListener('mouseenter', () => {
       if (this.suggestionInactivityTimeout) {
@@ -419,6 +416,7 @@ class AvimContentScript {
     this.suggestionShadow.appendChild(style);
     this.suggestionShadow.appendChild(this.suggestionBar);
     this.suggestionShadow.appendChild(this.ghostTextEl);
+    this.suggestionShadow.appendChild(this.caretMirror);
     mount.appendChild(this.suggestionHost);
   }
 
@@ -444,12 +442,13 @@ class AvimContentScript {
         const rect = target.getBoundingClientRect();
         const style = window.getComputedStyle(target);
 
-        // Build a mirror div with identical layout and typography to measure exact text metrics
-        const mirror = document.createElement('div');
-        mirror.style.position = 'fixed';
-        mirror.style.visibility = 'hidden';
-        mirror.style.top = '0px';
-        mirror.style.left = '0px';
+        // Use isolated mirror element inside Shadow DOM to prevent triggering page MutationObservers
+        if (!this.caretMirror) {
+          this.initSuggestionHost();
+        }
+        const mirror = this.caretMirror;
+        if (!mirror) return { left: rect.left, top: rect.top, height: rect.height || 20 };
+
         mirror.style.whiteSpace = target instanceof HTMLTextAreaElement ? 'pre-wrap' : 'pre';
         mirror.style.wordWrap = 'break-word';
         mirror.style.font = style.font;
@@ -466,14 +465,15 @@ class AvimContentScript {
         const textBefore = target.value.slice(0, pos);
         mirror.textContent = textBefore;
 
-        const marker = document.createElement('span');
-        marker.textContent = '|';
-        mirror.appendChild(marker);
+        if (!this.caretMarker) {
+          this.caretMarker = document.createElement('span');
+          this.caretMarker.textContent = '|';
+        }
+        mirror.appendChild(this.caretMarker);
 
-        document.body.appendChild(mirror);
-        const markerRect = marker.getBoundingClientRect();
+        const markerRect = this.caretMarker.getBoundingClientRect();
         const mirrorRect = mirror.getBoundingClientRect();
-        document.body.removeChild(mirror);
+        mirror.textContent = ''; // Clean up text after measurement
 
         const scrollLeft = target.scrollLeft || 0;
         const scrollTop = target.scrollTop || 0;
@@ -608,7 +608,7 @@ class AvimContentScript {
     hintSpan.style.fontSize = '10px';
     hintSpan.style.fontWeight = 'normal';
     hintSpan.style.marginLeft = '4px';
-    hintSpan.textContent = ' [Tab/Shift+Tab: duyệt • Enter: chọn • Esc: ẩn]';
+    hintSpan.textContent = ' [↓/↑ hoặc Tab: duyệt • Enter: chọn • Esc: ẩn]';
     titleEl.appendChild(mainSpan);
     titleEl.appendChild(hintSpan);
     this.suggestionBar.appendChild(titleEl);
@@ -843,6 +843,33 @@ class AvimContentScript {
       return;
     } else {
       this.lastCtrlTime = 0;
+    }
+
+    // ArrowUp / ArrowDown key: Cycle suggestions in Ribbon mode
+    if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && this.isSuggestionsVisible() && this.settings.suggestionStyle !== 'ghost_text') {
+      const count = this.activeSuggestions.length;
+      if (count > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.key === 'ArrowUp') {
+          this.selectedSuggestionIndex = (this.selectedSuggestionIndex - 1 + count) % count;
+        } else {
+          this.selectedSuggestionIndex = (this.selectedSuggestionIndex + 1) % count;
+        }
+        this.updateSuggestionHighlight();
+        return;
+      }
+    }
+
+    // Number keys 1-5 to pick suggestion directly in Ribbon mode (Alt+1..5 or Ctrl+1..5)
+    if ((event.altKey || event.ctrlKey) && ['1', '2', '3', '4', '5'].includes(event.key) && this.isSuggestionsVisible() && this.settings.suggestionStyle !== 'ghost_text') {
+      const idx = parseInt(event.key, 10) - 1;
+      if (this.activeSuggestions[idx]) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.applySuggestion(this.activeSuggestions[idx].word);
+        return;
+      }
     }
 
     // Tab / Shift+Tab key: Cycle suggestions or accept Ghost Text
@@ -1646,12 +1673,13 @@ class AvimContentScript {
     // A. Check Word Delimiter Actions: Auto-Restore English (GoNhanh) & Macro Trigger & Emoji & Gboard Next-Word
     if (isDelimiter(key)) {
       if (wordInfo && wordInfo.word) {
-        // Emoji Shorthand Expansion on Delimiter (e.g. ":tim" + Space -> "❤️ ")
+        // Emoji Shorthand Expansion on Delimiter (e.g. ":tim:" or ":tim" + Space -> "❤️ ")
         if (this.settings.emojiShortcuts !== false && currentWord.startsWith(':')) {
-          const emoji = checkEmojiShortcut(currentWord);
-          if (emoji) {
+          const queryToken = currentWord.endsWith(':') ? currentWord : `${currentWord}:`;
+          const emojiRes = checkEmojiShortcut(queryToken);
+          if (emojiRes && emojiRes.match && emojiRes.emoji) {
             event.preventDefault();
-            const fullReplacement = emoji + (key === ' ' ? ' ' : key);
+            const fullReplacement = emojiRes.emoji + (key === ' ' ? ' ' : key);
             if (isNative) {
               this.textReplacer.replaceInNativeInput(
                 target,
@@ -1783,8 +1811,9 @@ class AvimContentScript {
       const match = textBefore.match(/(:[a-zA-Z0-9_+-]+)$/);
       if (match) {
         const queryWithColon = match[1] + ':';
-        const emoji = checkEmojiShortcut(queryWithColon);
-        if (emoji) {
+        const emojiRes = checkEmojiShortcut(queryWithColon);
+        if (emojiRes && emojiRes.match && emojiRes.emoji) {
+          const emoji = emojiRes.emoji;
           event.preventDefault();
           const matchStart = isNative
             ? (target.selectionStart ?? target.value.length) - match[1].length

@@ -11,7 +11,7 @@ const DEFAULT_SETTINGS = {
   lastMethod: 3,      // memory of last non-off method (for toggle restore)
   toneStyle: 'classic', // Kiểu truyền thống / cổ điển: hòa, hóa, thủy, khỏe (đẹp, cân đối, hài hòa)
   macroEnabled: true,
-  spellCheck: false,
+  spellCheck: true,
   autoUndo: true,
   ctrlToggleEnabled: true,
   quickConsonants: false,

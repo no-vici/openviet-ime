@@ -46,7 +46,8 @@
     { trigger: "sg", value: "S\xE0i G\xF2n", enabled: true },
     { trigger: "dc", value: "\u0111\u01B0\u1EE3c", enabled: true },
     { trigger: "ko", value: "kh\xF4ng", enabled: true },
-    { trigger: "k", value: "kh\xF4ng", enabled: true },
+    { trigger: "k", value: "kh\xF4ng", enabled: false },
+    // Disabled by default to prevent false positives on standalone 'K' (e.g. Vitamin K)
     { trigger: "ntn", value: "nh\u01B0 th\u1EBF n\xE0o", enabled: true },
     { trigger: "vs", value: "v\u1EDBi", enabled: true },
     { trigger: "bt", value: "bi\u1EBFt", enabled: true },
@@ -89,7 +90,7 @@
     { trigger: "ss", value: "s\u01B0\u01A1ng s\u01B0\u01A1ng", enabled: true },
     { trigger: "tq", value: "tr\u1EDBt qu\u1EDBt", enabled: true },
     { trigger: "ts", value: "tr\xF9m s\xF2", enabled: true },
-    { trigger: "tm", value: "tr\xFAng m\xE1nh", enabled: true },
+    { trigger: "tmanh", value: "tr\xFAng m\xE1nh", enabled: true },
     { trigger: "tt", value: "tr\xFAng t\u1EE7", enabled: true },
     { trigger: "tto", value: "tr\u1EDDi th\u1EA7n \u01A1i", enabled: true },
     { trigger: "tdtd", value: "tr\u1EDDi \u0111\xE1nh th\xE1nh \u0111\xE2m", enabled: true },
@@ -401,6 +402,38 @@
         return { success: false, error: err.message };
       }
     }
+  };
+
+  // src/engine/config.js
+  var DEFAULT_SETTINGS = {
+    method: 3,
+    // 1: TELEX, 2: VNI, 3: AUTO, 0: OFF
+    lastMethod: 3,
+    // Memory of last non-off method (for toggle restore)
+    toneStyle: "classic",
+    // Kiểu truyền thống / cổ điển: hòa, hóa, thủy, khỏe
+    macroEnabled: true,
+    spellCheck: true,
+    // Standardized default across all components
+    autoUndo: true,
+    ctrlToggleEnabled: true,
+    quickConsonants: false,
+    quickTelex: true,
+    emojiShortcuts: true,
+    autoCapitalize: true,
+    perDomainMemory: true,
+    domainMethods: {},
+    autoRestoreEnglish: true,
+    escRevert: true,
+    phonologyRules: true,
+    wordRescue: true,
+    autoCompleteEnabled: true,
+    nextWordEnabled: true,
+    suggestionStyle: "ribbon",
+    // 'ribbon' | 'ghost_text'
+    gboardLearningEnabled: true,
+    debugTypingLog: false,
+    blacklistedDomains: []
   };
 
   // src/engine/vietnamese-words.js
@@ -1272,6 +1305,7 @@
   var UserDictionary = class {
     constructor(initialWords = DEFAULT_USER_WORDS) {
       this.words = /* @__PURE__ */ new Set();
+      this.cachedIndex = null;
       this.loadWords(initialWords);
     }
     loadWords(wordsList) {
@@ -1280,7 +1314,18 @@
           const clean = canon(w);
           if (clean) this.words.add(clean);
         });
+        this.cachedIndex = null;
       }
+    }
+    getIndex() {
+      if (!this.cachedIndex) {
+        this.cachedIndex = Array.from(this.words).map((w) => ({
+          word: w,
+          lower: w.toLowerCase(),
+          stripped: w.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase()
+        }));
+      }
+      return this.cachedIndex;
     }
     has(word) {
       if (!word) return false;
@@ -1290,6 +1335,7 @@
       const clean = canon(word);
       if (!clean) return false;
       this.words.add(clean);
+      this.cachedIndex = null;
       this.saveToStorage();
       return true;
     }
@@ -1297,11 +1343,15 @@
       const clean = canon(word);
       if (!clean) return false;
       const deleted = this.words.delete(clean);
-      if (deleted) this.saveToStorage();
+      if (deleted) {
+        this.cachedIndex = null;
+        this.saveToStorage();
+      }
       return deleted;
     }
     clear() {
       this.words.clear();
+      this.cachedIndex = null;
       this.saveToStorage();
     }
     getWords() {
@@ -1352,7 +1402,8 @@
       return list.join("\n");
     }
     /**
-     * Persistence with chrome.storage.sync or localStorage
+     * Persistence with chrome.storage.local (to prevent 8KB quota exhaustion on sync)
+     * Falls back to chrome.storage.sync (for legacy migrations) and localStorage.
      */
     async saveToStorage() {
       const list = this.getWords();
@@ -1360,11 +1411,11 @@
         if (typeof localStorage !== "undefined") {
           localStorage.setItem("avim_user_dictionary", JSON.stringify(list));
         }
-        const storageSync = typeof browser !== "undefined" && browser.storage && browser.storage.sync ? browser.storage.sync : typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync ? chrome.storage.sync : null;
-        if (storageSync) {
+        const storageLocal = typeof browser !== "undefined" && browser.storage && browser.storage.local ? browser.storage.local : typeof chrome !== "undefined" && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
+        if (storageLocal) {
           await new Promise((resolve) => {
             try {
-              const p = storageSync.set({ avim_user_dictionary: list }, () => resolve());
+              const p = storageLocal.set({ avim_user_dictionary: list }, () => resolve());
               if (p && typeof p.then === "function") p.then(resolve).catch(resolve);
             } catch {
               resolve();
@@ -1377,11 +1428,11 @@
     }
     async loadFromStorage() {
       try {
-        const storageSync = typeof browser !== "undefined" && browser.storage && browser.storage.sync ? browser.storage.sync : typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync ? chrome.storage.sync : null;
-        if (storageSync) {
+        const storageLocal = typeof browser !== "undefined" && browser.storage && browser.storage.local ? browser.storage.local : typeof chrome !== "undefined" && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
+        if (storageLocal) {
           const res = await new Promise((resolve) => {
             try {
-              const p = storageSync.get(["avim_user_dictionary"], (r) => resolve(r || {}));
+              const p = storageLocal.get(["avim_user_dictionary"], (r) => resolve(r || {}));
               if (p && typeof p.then === "function") p.then(resolve).catch(() => resolve({}));
             } catch {
               resolve({});
@@ -1389,6 +1440,22 @@
           });
           if (Array.isArray(res.avim_user_dictionary) && res.avim_user_dictionary.length > 0) {
             this.loadWords(res.avim_user_dictionary);
+            return;
+          }
+        }
+        const storageSync = typeof browser !== "undefined" && browser.storage && browser.storage.sync ? browser.storage.sync : typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync ? chrome.storage.sync : null;
+        if (storageSync) {
+          const syncRes = await new Promise((resolve) => {
+            try {
+              const p = storageSync.get(["avim_user_dictionary"], (r) => resolve(r || {}));
+              if (p && typeof p.then === "function") p.then(resolve).catch(() => resolve({}));
+            } catch {
+              resolve({});
+            }
+          });
+          if (Array.isArray(syncRes.avim_user_dictionary) && syncRes.avim_user_dictionary.length > 0) {
+            this.loadWords(syncRes.avim_user_dictionary);
+            this.saveToStorage();
             return;
           }
         }
@@ -3176,6 +3243,7 @@
     constructor() {
       this.compounds = [...COMMON_VIETNAMESE_COMPOUNDS];
       this.compoundIndex = this.buildCompoundIndex();
+      this.syllableIndex = this.buildSyllableIndex();
       this.bigrams = { ...DEFAULT_VIETNAMESE_BIGRAMS };
       this.trigrams = { ...DEFAULT_VIETNAMESE_TRIGRAMS };
       this.learnedModel = new GboardLearnedModel();
@@ -3211,6 +3279,20 @@
         type: "compound",
         displayType: "C\u1EE5m t\u1EEB"
       }));
+    }
+    buildSyllableIndex() {
+      const vnSet = getVietnameseWordSet();
+      const index = [];
+      for (const word of vnSet) {
+        index.push({
+          word,
+          lower: word.toLowerCase(),
+          stripped: stripVietnameseAccents(word),
+          type: "syllable",
+          displayType: "T\u1EEB \u0111\u01A1n"
+        });
+      }
+      return index;
     }
     /**
      * Add new compound words or phrases dynamically
@@ -3416,30 +3498,28 @@
       const isAllUpper = prefix.length > 1 && prefix === prefix.toUpperCase();
       const results = [];
       const seenWords = /* @__PURE__ */ new Set();
-      const userWords = userDictionary.getWords();
+      const userIndex = userDictionary.getIndex();
       const now = Date.now();
-      for (const uWord of userWords) {
-        const uLower = uWord.toLowerCase();
-        const uStripped = stripVietnameseAccents(uWord);
-        const learnedEntry = this.learnedModel.userUnigrams[uLower];
+      for (const item of userIndex) {
+        const learnedEntry = this.learnedModel.userUnigrams[item.lower];
         const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
         const learnedBoost = Math.min(learnedScore * 4, 30);
-        if (uLower.startsWith(prefixLower)) {
+        if (item.lower.startsWith(prefixLower)) {
           results.push({
-            word: this.formatWordCase(uWord, isFirstUpper, isAllUpper),
+            word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
             type: "user",
             displayType: "T\u1EEB ri\xEAng",
-            matchScore: 100 - (uWord.length - prefix.length) + learnedBoost
+            matchScore: 100 - (item.word.length - prefix.length) + learnedBoost
           });
-          seenWords.add(uLower);
-        } else if (uStripped.startsWith(prefixStripped)) {
+          seenWords.add(item.lower);
+        } else if (item.stripped.startsWith(prefixStripped)) {
           results.push({
-            word: this.formatWordCase(uWord, isFirstUpper, isAllUpper),
+            word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
             type: "user",
             displayType: "T\u1EEB ri\xEAng",
-            matchScore: 80 - (uWord.length - prefix.length) + learnedBoost
+            matchScore: 80 - (item.word.length - prefix.length) + learnedBoost
           });
-          seenWords.add(uLower);
+          seenWords.add(item.lower);
         }
         if (results.length >= limit * 2) break;
       }
@@ -3468,31 +3548,28 @@
         if (results.length >= limit * 3) break;
       }
       if (results.length < limit) {
-        const vnSet = getVietnameseWordSet();
-        for (const sWord of vnSet) {
-          if (sWord.length <= prefix.length && sWord.toLowerCase() === prefixLower) continue;
-          const sLower = sWord.toLowerCase();
-          if (seenWords.has(sLower)) continue;
-          const learnedEntry = this.learnedModel.userUnigrams[sLower];
+        for (const item of this.syllableIndex) {
+          if (item.word.length <= prefix.length && item.lower === prefixLower) continue;
+          if (seenWords.has(item.lower)) continue;
+          const learnedEntry = this.learnedModel.userUnigrams[item.lower];
           const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
           const learnedBoost = Math.min(learnedScore * 4, 30);
-          const sStripped = stripVietnameseAccents(sWord);
-          if (sLower.startsWith(prefixLower)) {
+          if (item.lower.startsWith(prefixLower)) {
             results.push({
-              word: this.formatWordCase(sWord, isFirstUpper, isAllUpper),
-              type: "syllable",
-              displayType: "T\u1EEB \u0111\u01A1n",
-              matchScore: 60 - (sWord.length - prefix.length) + learnedBoost
+              word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
+              type: item.type,
+              displayType: item.displayType,
+              matchScore: 60 - (item.word.length - prefix.length) + learnedBoost
             });
-            seenWords.add(sLower);
-          } else if (sStripped.startsWith(prefixStripped)) {
+            seenWords.add(item.lower);
+          } else if (item.stripped.startsWith(prefixStripped)) {
             results.push({
-              word: this.formatWordCase(sWord, isFirstUpper, isAllUpper),
-              type: "syllable",
-              displayType: "T\u1EEB \u0111\u01A1n",
-              matchScore: 40 - (sWord.length - prefix.length) + learnedBoost
+              word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
+              type: item.type,
+              displayType: item.displayType,
+              matchScore: 40 - (item.word.length - prefix.length) + learnedBoost
             });
-            seenWords.add(sLower);
+            seenWords.add(item.lower);
           }
           if (results.length >= limit * 2) break;
         }
@@ -3540,30 +3617,7 @@
 
   // src/options/options.js
   var macroEngine = new MacroEngine(DEFAULT_MACROS);
-  var settings = {
-    method: 3,
-    toneStyle: "classic",
-    macroEnabled: true,
-    spellCheck: true,
-    autoUndo: true,
-    ctrlToggleEnabled: true,
-    quickConsonants: false,
-    quickTelex: true,
-    emojiShortcuts: true,
-    autoCapitalize: true,
-    perDomainMemory: true,
-    domainMethods: {},
-    autoRestoreEnglish: true,
-    escRevert: true,
-    phonologyRules: true,
-    wordRescue: true,
-    autoCompleteEnabled: true,
-    nextWordEnabled: true,
-    suggestionStyle: "ribbon",
-    gboardLearningEnabled: true,
-    debugTypingLog: false,
-    blacklistedDomains: []
-  };
+  var settings = { ...DEFAULT_SETTINGS };
   var editingTrigger = null;
   var browserApi = typeof browser !== "undefined" ? browser : typeof chrome !== "undefined" ? chrome : {};
   var storageArea = browserApi.storage && browserApi.storage.sync ? browserApi.storage.sync : browserApi.storage && browserApi.storage.local ? browserApi.storage.local : null;
@@ -4600,6 +4654,12 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
 /**
  * Macro / Text Expansion Engine (Inspired by xmannv/xkey)
  * Handles macro lookup, casing preservation, word-boundary triggers, and Backspace undo.
+ *
+ * @license Apache-2.0
+ */
+/**
+ * OpenViet IME Shared Configuration & Default Settings
+ * Shared across Service Worker, Content Scripts, Options, and Popup.
  *
  * @license Apache-2.0
  */

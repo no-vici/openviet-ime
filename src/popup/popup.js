@@ -33,6 +33,24 @@ async function initPopup() {
     } catch (_) {}
   }
 
+  // Active tab hostname for per-domain memory
+  let activeTabHostname = '';
+  if (browserApi.tabs && browserApi.tabs.query) {
+    try {
+      const tabs = await new Promise(resolve => {
+        browserApi.tabs.query({ active: true, currentWindow: true }, (tabs) => resolve(tabs || []));
+      });
+      if (tabs.length > 0 && tabs[0].url) {
+        try {
+          const urlObj = new URL(tabs[0].url);
+          if (urlObj.hostname) {
+            activeTabHostname = urlObj.hostname.toLowerCase();
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
   // Load current settings
   let settings = {
     method: 3,
@@ -59,7 +77,7 @@ async function initPopup() {
     try {
       const stored = await new Promise(resolve => {
         try {
-          const p = storageArea.get(['avim_settings'], res => resolve(res || {}));
+          const p = storageArea.get(['avim_settings', 'avim_domain_methods'], res => resolve(res || {}));
           if (p && typeof p.then === 'function') p.then(resolve).catch(() => resolve({}));
         } catch {
           resolve({});
@@ -68,12 +86,20 @@ async function initPopup() {
       if (stored && stored.avim_settings) {
         settings = { ...settings, ...stored.avim_settings };
       }
+      if (stored && stored.avim_domain_methods) {
+        settings.domainMethods = { ...(settings.domainMethods || {}), ...stored.avim_domain_methods };
+      }
     } catch {}
   } else {
     try {
       const saved = localStorage.getItem('avim_settings');
       if (saved) settings = { ...settings, ...JSON.parse(saved) };
     } catch {}
+  }
+
+  // If per-domain memory is enabled and current tab has an assigned method, apply to UI
+  if (settings.perDomainMemory !== false && activeTabHostname && settings.domainMethods && typeof settings.domainMethods[activeTabHostname] === 'number') {
+    settings.method = settings.domainMethods[activeTabHostname];
   }
 
   // Update UI state
@@ -126,6 +152,35 @@ async function initPopup() {
     if (ghostTextToggle) {
       ghostTextToggle.checked = settings.suggestionStyle === 'ghost_text';
     }
+
+    // Update active domain banner
+    const domainBanner = document.getElementById('domainBanner');
+    const domainBannerName = document.getElementById('domainBannerName');
+    const domainBannerStatus = document.getElementById('domainBannerStatus');
+    const toggleCurrentDomainBtn = document.getElementById('toggleCurrentDomainBtn');
+
+    if (domainBanner && activeTabHostname && settings.perDomainMemory !== false) {
+      domainBanner.style.display = 'flex';
+      domainBannerName.textContent = activeTabHostname;
+      const isDomainDisabled = settings.domainMethods && settings.domainMethods[activeTabHostname] === 0;
+      if (isDomainDisabled) {
+        domainBannerStatus.textContent = 'Đang TẮT trên trang này';
+        domainBannerStatus.style.color = '#f87171';
+        toggleCurrentDomainBtn.textContent = 'Bật lại';
+        toggleCurrentDomainBtn.style.background = '#0284c7';
+      } else {
+        const methodNames = { 1: 'Telex', 2: 'VNI', 3: 'Auto', 0: 'Tắt' };
+        const curM = settings.domainMethods && typeof settings.domainMethods[activeTabHostname] === 'number'
+          ? methodNames[settings.domainMethods[activeTabHostname]]
+          : 'Theo mặc định';
+        domainBannerStatus.textContent = `Kiểu gõ riêng: ${curM}`;
+        domainBannerStatus.style.color = '#94a3b8';
+        toggleCurrentDomainBtn.textContent = 'Luôn tắt';
+        toggleCurrentDomainBtn.style.background = '#334155';
+      }
+    } else if (domainBanner) {
+      domainBanner.style.display = 'none';
+    }
   }
 
   async function saveSettings() {
@@ -133,16 +188,21 @@ async function initPopup() {
       try {
         const stored = await new Promise(resolve => {
           try {
-            const p = storageArea.get(['avim_settings'], res => resolve(res || {}));
+            const p = storageArea.get(['avim_settings', 'avim_domain_methods'], res => resolve(res || {}));
             if (p && typeof p.then === 'function') p.then(resolve).catch(() => resolve({}));
           } catch {
             resolve({});
           }
         });
         const updated = { ...(stored.avim_settings || {}), ...settings };
+        const dataToSet = { avim_settings: updated };
+        if (settings.domainMethods) {
+          dataToSet.avim_domain_methods = settings.domainMethods;
+        }
+
         await new Promise(resolve => {
           try {
-            const p = storageArea.set({ avim_settings: updated }, () => resolve());
+            const p = storageArea.set(dataToSet, () => resolve());
             if (p && typeof p.then === 'function') p.then(resolve).catch(() => resolve());
           } catch {
             resolve();
@@ -160,10 +220,38 @@ async function initPopup() {
     btn.addEventListener('click', async () => {
       const methodVal = parseInt(btn.getAttribute('data-method'), 10);
       settings.method = methodVal;
+
+      // Sync with per-domain memory for the active tab if enabled
+      if (settings.perDomainMemory !== false && activeTabHostname) {
+        if (!settings.domainMethods) settings.domainMethods = {};
+        settings.domainMethods[activeTabHostname] = methodVal;
+      }
+
       updateUI();
       await saveSettings();
     });
   });
+
+  // Toggle button on active domain banner
+  const toggleCurrentDomainBtn = document.getElementById('toggleCurrentDomainBtn');
+  if (toggleCurrentDomainBtn) {
+    toggleCurrentDomainBtn.addEventListener('click', async () => {
+      if (!activeTabHostname) return;
+      if (!settings.domainMethods) settings.domainMethods = {};
+      const isCurrentlyDisabled = settings.domainMethods[activeTabHostname] === 0;
+      if (isCurrentlyDisabled) {
+        // Restore to Auto
+        settings.domainMethods[activeTabHostname] = 3;
+        settings.method = 3;
+      } else {
+        // Turn off on this domain
+        settings.domainMethods[activeTabHostname] = 0;
+        settings.method = 0;
+      }
+      updateUI();
+      await saveSettings();
+    });
+  }
 
   // Toggles
   macroToggle.addEventListener('change', async () => {

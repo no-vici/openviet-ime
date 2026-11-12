@@ -41,7 +41,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
    - [Nguồn Dữ Liệu Từ Điển Đa Tầng](#nguồn-dữ-liệu-từ-điển-đa-tầng)
    - [Dự Đoán Từ Kế Tiếp & Tối Ưu Cho Ứng Dụng Chat](#dự-đoán-từ-kế-tiếp--tối-ưu-cho-ứng-dụng-chat)
    - [Tự Học Thói Quen Người Dùng Cục Bộ (Bảo Mật 100%)](#tự-học-thói-quen-người-dùng-cục-bộ-bảo-mật-100)
-4. [Từ Điển Cá Nhân & Danh Sách Bỏ Qua Chính Tả](#từ-điển-cá-nhân--danh-sách-bỏ-qua-chính-tả)
+4. [Từ Điển Cá Nhân & Danh Sách Bỏ Qua Chánh Tả](#từ-điển-cá-nhân--danh-sách-bỏ-qua-chính-tả)
 5. [Bộ Gõ Tắt Macro (Theo Phong Cách xKey)](#bộ-gõ-tắt-macro-theo-phong-cách-xkey)
    - [Kích Hoạt Theo Ranh Giới Từ & Giữ Nguyên Kiểu Chữ](#kích-hoạt-theo-ranh-giới-từ--giữ-nguyên-kiểu-chữ)
    - [Hoàn Tác 2 Bước Bằng Phím Backspace](#hoàn-tác-2-bước-bằng-phím-backspace)
@@ -84,7 +84,7 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Tự Học Thói Quen Người Dùng (On-Device Machine Learning)**: Tự động ghi nhớ các cặp từ bạn hay gõ (như `họp team`, `chuyển khoản`, `gửi email`, `chúc anh`) và đưa lên đầu danh sách với huy hiệu xanh **Thói quen**. Toàn bộ dữ liệu lưu trong `localStorage` máy bạn, không gửi bất kỳ byte nào ra ngoài internet.
 - **Tự Động Khôi Phục Từ Tiếng Anh & Công Cụ Giả Lập Bẫy Gõ Phím**: Khi nhấn phím Cách (Space), tự động hoàn trả các từ tiếng Anh hay bị dính bẫy gõ nhầm (`text` thay vì `tẽt`, `user` thay vì `úer`, `push` thay vì `púh`, `modern` thay vì `modẻn`, `luxury` thay vì `lủuy`, `window` thay vì `ưindoư`). Tích hợp bộ công cụ `scripts/gen-english-traps.mjs` tự động giả lập luồng gõ phím thực tế qua bộ parser Telex để duy trì 144 bẫy va chạm chuẩn xác. Đặc biệt, **kiểu gõ VNI hoàn toàn miễn nhiễm** với các bẫy này do dùng phím số (`1-9`), trong khi Telex và Auto Mode sử dụng cơ chế Auto-Restore để bảo toàn trải nghiệm gõ song ngữ mượt mà.
 - **Hoàn Tác Nhanh Bằng Phím ESC (Instant ESC Revert)**: Nhấn `ESC` để đưa ngay từ đang gõ dở dang về lại chuỗi phím thô ban đầu mà không cần bấm xóa lùi từng ký tự.
-- **Quy Tắc Chính Tả Chặt Chẽ**: Kiểm tra chính tả tiếng Việt (`c/k`, `g/gh`, `ng/ngh` để bảo vệ từ tiếng Anh như `center`, `city`, `get`) và kiểm soát âm khép (`-c, -ch, -p, -t` chỉ nhận dấu Sắc hoặc Nặng).
+- **Quy Tắc Chánh Tả Chặt Chẽ**: Kiểm tra chính tả tiếng Việt (`c/k`, `g/gh`, `ng/ngh` để bảo vệ từ tiếng Anh như `center`, `city`, `get`) và kiểm soát âm khép (`-c, -ch, -p, -t` chỉ nhận dấu Sắc hoặc Nặng).
 - **Bộ Gõ Tắt Macro Cực Nhanh (Kiểu xKey) Với Hoàn Tác 2 Bước & Hút Dấu Câu**: Thay thế từ viết tắt tức thì (`vn` -> `Việt Nam`, `dc` -> `được`, `tv` -> `Tiếng Việt`) với khả năng chuyển hoa/thường tự động, hoàn tác 2 bước bằng phím Backspace (bước 1 xóa khoảng trắng thừa, bước 2 khôi phục ký tự tắt gốc), và cơ chế tự động dính hút dấu câu (`. , ; : ! ?` dính sát vào từ đã bung).
 - **Biến Thời Gian Thực Động Trong Macro**: Hỗ trợ chèn ngày giờ thực tế theo định dạng địa phương: `$DATE` (`DD/MM/YYYY`), `$TIME` (`HH:mm`), `$DATETIME` và `$YEAR` (với tiền tố an toàn như `+today`, `+now`).
 - **Bộ Từ Điển Gõ Tắt Sài Gòn Xưa Đậm Chất Nam Bộ**: Tích hợp sẵn hơn 100+ từ lóng, cụm từ ba chữ, thành ngữ dân gian thời Sài Gòn xưa và phương ngữ Nam Bộ (`bá cháy bù chét`, `cà rịch cà tang`, `mèn đéc ơi`, `quởn đời`, `hết sảy con bà bảy`), dễ dàng nạp nhanh chỉ bằng 1 cú nhấp chuột trong Cài Đặt.
@@ -324,7 +324,7 @@ Khi bạn vừa gõ xong một từ, thanh gợi ý ribbon sẽ đưa ra các t�
 
 ---
 
-## Từ Điển Cá Nhân & Danh Sách Bỏ Qua Chính Tả
+## Từ Điển Cá Nhân & Danh Sách Bỏ Qua Chánh Tả
 
 - Truy cập dễ dàng từ trang Cài đặt Tùy chọn (`/options.html`).
 - Cho phép thêm, tìm kiếm và xóa các từ ngữ chuyên ngành, tên riêng tiếng nước ngoài hoặc mã sản phẩm.

@@ -14,7 +14,7 @@ export const DEFAULT_MACROS = [
   { trigger: 'sg', value: 'Sài Gòn', enabled: true },
   { trigger: 'dc', value: 'được', enabled: true },
   { trigger: 'ko', value: 'không', enabled: true },
-  { trigger: 'k', value: 'không', enabled: true },
+  { trigger: 'k', value: 'không', enabled: false }, // Disabled by default to prevent false positives on standalone 'K' (e.g. Vitamin K)
   { trigger: 'ntn', value: 'như thế nào', enabled: true },
   { trigger: 'vs', value: 'với', enabled: true },
   { trigger: 'bt', value: 'biết', enabled: true },
@@ -63,7 +63,7 @@ export const SAIGON_XUA_MACROS = [
   { trigger: 'ss', value: 'sương sương', enabled: true },
   { trigger: 'tq', value: 'trớt quớt', enabled: true },
   { trigger: 'ts', value: 'trùm sò', enabled: true },
-  { trigger: 'tm', value: 'trúng mánh', enabled: true },
+  { trigger: 'tmanh', value: 'trúng mánh', enabled: true },
   { trigger: 'tt', value: 'trúng tủ', enabled: true },
   { trigger: 'tto', value: 'trời thần ơi', enabled: true },
   { trigger: 'tdtd', value: 'trời đánh thánh đâm', enabled: true },

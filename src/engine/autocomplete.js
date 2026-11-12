@@ -1367,6 +1367,7 @@ export class AutoCompleteEngine {
   constructor() {
     this.compounds = [...COMMON_VIETNAMESE_COMPOUNDS];
     this.compoundIndex = this.buildCompoundIndex();
+    this.syllableIndex = this.buildSyllableIndex();
     this.bigrams = { ...DEFAULT_VIETNAMESE_BIGRAMS };
     this.trigrams = { ...DEFAULT_VIETNAMESE_TRIGRAMS };
     this.learnedModel = new GboardLearnedModel();
@@ -1408,6 +1409,21 @@ export class AutoCompleteEngine {
       type: 'compound',
       displayType: 'Cụm từ'
     }));
+  }
+
+  buildSyllableIndex() {
+    const vnSet = getVietnameseWordSet();
+    const index = [];
+    for (const word of vnSet) {
+      index.push({
+        word,
+        lower: word.toLowerCase(),
+        stripped: stripVietnameseAccents(word),
+        type: 'syllable',
+        displayType: 'Từ đơn'
+      });
+    }
+    return index;
   }
 
   /**
@@ -1654,32 +1670,30 @@ export class AutoCompleteEngine {
     const results = [];
     const seenWords = new Set();
 
-    // 1. Check User Dictionary (Highest priority)
-    const userWords = userDictionary.getWords();
+    // 1. Check User Dictionary (Highest priority - pre-indexed)
+    const userIndex = userDictionary.getIndex();
     const now = Date.now();
-    for (const uWord of userWords) {
-      const uLower = uWord.toLowerCase();
-      const uStripped = stripVietnameseAccents(uWord);
-      const learnedEntry = this.learnedModel.userUnigrams[uLower];
+    for (const item of userIndex) {
+      const learnedEntry = this.learnedModel.userUnigrams[item.lower];
       const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
       const learnedBoost = Math.min(learnedScore * 4, 30);
 
-      if (uLower.startsWith(prefixLower)) {
+      if (item.lower.startsWith(prefixLower)) {
         results.push({
-          word: this.formatWordCase(uWord, isFirstUpper, isAllUpper),
+          word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
           type: 'user',
           displayType: 'Từ riêng',
-          matchScore: 100 - (uWord.length - prefix.length) + learnedBoost
+          matchScore: 100 - (item.word.length - prefix.length) + learnedBoost
         });
-        seenWords.add(uLower);
-      } else if (uStripped.startsWith(prefixStripped)) {
+        seenWords.add(item.lower);
+      } else if (item.stripped.startsWith(prefixStripped)) {
         results.push({
-          word: this.formatWordCase(uWord, isFirstUpper, isAllUpper),
+          word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
           type: 'user',
           displayType: 'Từ riêng',
-          matchScore: 80 - (uWord.length - prefix.length) + learnedBoost
+          matchScore: 80 - (item.word.length - prefix.length) + learnedBoost
         });
-        seenWords.add(uLower);
+        seenWords.add(item.lower);
       }
       if (results.length >= limit * 2) break;
     }
@@ -1715,34 +1729,32 @@ export class AutoCompleteEngine {
       if (results.length >= limit * 3) break;
     }
 
-    // 3. Check Built-in Vietnamese Single Syllables (~6,700 words)
+    // 3. Check Built-in Vietnamese Single Syllables (~6,700 words - pre-indexed)
     if (results.length < limit) {
-      const vnSet = getVietnameseWordSet();
-      for (const sWord of vnSet) {
-        if (sWord.length <= prefix.length && sWord.toLowerCase() === prefixLower) continue;
-        const sLower = sWord.toLowerCase();
-        if (seenWords.has(sLower)) continue;
+      for (const item of this.syllableIndex) {
+        if (item.word.length <= prefix.length && item.lower === prefixLower) continue;
+        if (seenWords.has(item.lower)) continue;
 
-        const learnedEntry = this.learnedModel.userUnigrams[sLower];
+        const learnedEntry = this.learnedModel.userUnigrams[item.lower];
         const learnedScore = this.learnedModel.calculateRecencyFrequencyScore(learnedEntry, now);
         const learnedBoost = Math.min(learnedScore * 4, 30);
-        const sStripped = stripVietnameseAccents(sWord);
-        if (sLower.startsWith(prefixLower)) {
+
+        if (item.lower.startsWith(prefixLower)) {
           results.push({
-            word: this.formatWordCase(sWord, isFirstUpper, isAllUpper),
-            type: 'syllable',
-            displayType: 'Từ đơn',
-            matchScore: 60 - (sWord.length - prefix.length) + learnedBoost
+            word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
+            type: item.type,
+            displayType: item.displayType,
+            matchScore: 60 - (item.word.length - prefix.length) + learnedBoost
           });
-          seenWords.add(sLower);
-        } else if (sStripped.startsWith(prefixStripped)) {
+          seenWords.add(item.lower);
+        } else if (item.stripped.startsWith(prefixStripped)) {
           results.push({
-            word: this.formatWordCase(sWord, isFirstUpper, isAllUpper),
-            type: 'syllable',
-            displayType: 'Từ đơn',
-            matchScore: 40 - (sWord.length - prefix.length) + learnedBoost
+            word: this.formatWordCase(item.word, isFirstUpper, isAllUpper),
+            type: item.type,
+            displayType: item.displayType,
+            matchScore: 40 - (item.word.length - prefix.length) + learnedBoost
           });
-          seenWords.add(sLower);
+          seenWords.add(item.lower);
         }
 
         if (results.length >= limit * 2) break;

@@ -658,6 +658,7 @@ export function isForeignWord(word) {
 export class UserDictionary {
   constructor(initialWords = DEFAULT_USER_WORDS) {
     this.words = new Set();
+    this.cachedIndex = null;
     this.loadWords(initialWords);
   }
 
@@ -667,7 +668,19 @@ export class UserDictionary {
         const clean = canon(w);
         if (clean) this.words.add(clean);
       });
+      this.cachedIndex = null;
     }
+  }
+
+  getIndex() {
+    if (!this.cachedIndex) {
+      this.cachedIndex = Array.from(this.words).map(w => ({
+        word: w,
+        lower: w.toLowerCase(),
+        stripped: w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+      }));
+    }
+    return this.cachedIndex;
   }
 
   has(word) {
@@ -679,6 +692,7 @@ export class UserDictionary {
     const clean = canon(word);
     if (!clean) return false;
     this.words.add(clean);
+    this.cachedIndex = null;
     this.saveToStorage();
     return true;
   }
@@ -687,12 +701,16 @@ export class UserDictionary {
     const clean = canon(word);
     if (!clean) return false;
     const deleted = this.words.delete(clean);
-    if (deleted) this.saveToStorage();
+    if (deleted) {
+      this.cachedIndex = null;
+      this.saveToStorage();
+    }
     return deleted;
   }
 
   clear() {
     this.words.clear();
+    this.cachedIndex = null;
     this.saveToStorage();
   }
 
@@ -752,7 +770,8 @@ export class UserDictionary {
   }
 
   /**
-   * Persistence with chrome.storage.sync or localStorage
+   * Persistence with chrome.storage.local (to prevent 8KB quota exhaustion on sync)
+   * Falls back to chrome.storage.sync (for legacy migrations) and localStorage.
    */
   async saveToStorage() {
     const list = this.getWords();
@@ -760,14 +779,14 @@ export class UserDictionary {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('avim_user_dictionary', JSON.stringify(list));
       }
-      const storageSync = (typeof browser !== 'undefined' && browser.storage && browser.storage.sync)
-        ? browser.storage.sync
-        : ((typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) ? chrome.storage.sync : null);
+      const storageLocal = (typeof browser !== 'undefined' && browser.storage && browser.storage.local)
+        ? browser.storage.local
+        : ((typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) ? chrome.storage.local : null);
 
-      if (storageSync) {
+      if (storageLocal) {
         await new Promise(resolve => {
           try {
-            const p = storageSync.set({ avim_user_dictionary: list }, () => resolve());
+            const p = storageLocal.set({ avim_user_dictionary: list }, () => resolve());
             if (p && typeof p.then === 'function') p.then(resolve).catch(resolve);
           } catch {
             resolve();
@@ -781,14 +800,14 @@ export class UserDictionary {
 
   async loadFromStorage() {
     try {
-      const storageSync = (typeof browser !== 'undefined' && browser.storage && browser.storage.sync)
-        ? browser.storage.sync
-        : ((typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) ? chrome.storage.sync : null);
+      const storageLocal = (typeof browser !== 'undefined' && browser.storage && browser.storage.local)
+        ? browser.storage.local
+        : ((typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) ? chrome.storage.local : null);
 
-      if (storageSync) {
+      if (storageLocal) {
         const res = await new Promise(resolve => {
           try {
-            const p = storageSync.get(['avim_user_dictionary'], r => resolve(r || {}));
+            const p = storageLocal.get(['avim_user_dictionary'], r => resolve(r || {}));
             if (p && typeof p.then === 'function') p.then(resolve).catch(() => resolve({}));
           } catch {
             resolve({});
@@ -799,6 +818,29 @@ export class UserDictionary {
           return;
         }
       }
+
+      // Legacy fallback: check chrome.storage.sync for existing users migrating over
+      const storageSync = (typeof browser !== 'undefined' && browser.storage && browser.storage.sync)
+        ? browser.storage.sync
+        : ((typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) ? chrome.storage.sync : null);
+
+      if (storageSync) {
+        const syncRes = await new Promise(resolve => {
+          try {
+            const p = storageSync.get(['avim_user_dictionary'], r => resolve(r || {}));
+            if (p && typeof p.then === 'function') p.then(resolve).catch(() => resolve({}));
+          } catch {
+            resolve({});
+          }
+        });
+        if (Array.isArray(syncRes.avim_user_dictionary) && syncRes.avim_user_dictionary.length > 0) {
+          this.loadWords(syncRes.avim_user_dictionary);
+          // Migrate to local storage immediately
+          this.saveToStorage();
+          return;
+        }
+      }
+
       if (typeof localStorage !== 'undefined') {
         const saved = localStorage.getItem('avim_user_dictionary');
         if (saved) {

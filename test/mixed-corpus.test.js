@@ -16,6 +16,8 @@ import { AvimEngine } from '../src/engine/avim.js';
 import { IME_METHOD } from '../src/engine/key-codes.js';
 import { isUrlOrEmailOrCode } from '../src/engine/key-codes.js';
 import { reverseVietnameseWord, matchCasing, userDictionary } from '../src/engine/dictionary.js';
+import { checkEmojiShortcut } from '../src/engine/emoji.js';
+import { MacroEngine, DEFAULT_MACROS, SAIGON_XUA_MACROS } from '../src/engine/macro.js';
 
 function simulateTypingSentence(engine, input) {
   let output = '';
@@ -590,6 +592,37 @@ test('Telex & Auto - Immediate Breve w Placement (ddawng -> đăng, ddangw -> đ
   assert.equal(telexEngine.checkAutoRestore('cân').restore, false);
   assert.equal(telexEngine.checkAutoRestore('băng').restore, false);
 });
+
+test('Bug Fixes - Emoji match object, Saigon Xưa trigger collision & macro k default state', () => {
+  // 1. Emoji checkEmojiShortcut returns proper match boolean
+  const validEmoji = checkEmojiShortcut(':tim:');
+  assert.equal(validEmoji.match, true);
+  assert.equal(validEmoji.emoji, '❤️');
+
+  const invalidEmoji = checkEmojiShortcut(':notanemoji:');
+  assert.equal(invalidEmoji.match, false);
+
+  // 2. Saigon Xưa distinct triggers
+  const sEngine = new MacroEngine(SAIGON_XUA_MACROS);
+  const tmRes = sEngine.checkExpansion('tm', ' ');
+  assert.equal(tmRes.match, true);
+  assert.equal(tmRes.expandedText, 'tía má');
+
+  const tmanhRes = sEngine.checkExpansion('tmanh', ' ');
+  assert.equal(tmanhRes.match, true);
+  assert.equal(tmanhRes.expandedText, 'trúng mánh');
+
+  // 3. Macro trigger 'k' is disabled by default to protect standalone letter K
+  const defaultMacroEngine = new MacroEngine(DEFAULT_MACROS);
+  const kRes = defaultMacroEngine.checkExpansion('k', ' ');
+  assert.equal(kRes.match, false);
+
+  // But 'ko' still works as 'không'
+  const koRes = defaultMacroEngine.checkExpansion('ko', ' ');
+  assert.equal(koRes.match, true);
+  assert.equal(koRes.expandedText, 'không');
+});
+
 
 
 
