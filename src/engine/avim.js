@@ -1157,7 +1157,7 @@ export class AvimEngine {
 
             if (this.phonologyRules && !appendLetter) {
               const parsedNew = parseSyllable(newWord);
-              if (parsedNew && !parsedNew.isValid()) {
+              if (parsedNew && !parsedNew.isValid({ inProgress: true })) {
                 return { transformed: false, result: word + 'w' };
               }
             }

@@ -246,9 +246,11 @@ export class ParsedSyllable {
    * 2. If word has letters before nucleus but no valid onset, it's a foreign cluster (e.g. 'fcitx').
    * 3. Coda must be a legitimate Vietnamese consonant coda (c, ch, m, n, ng, nh, p, t, k, l, r).
    * 4. Stop finals (-c, -ch, -p, -t, -k) can only take Tone 0, Tone 1 (sắc) or Tone 5 (nặng).
-   * 5. Short vowels (ă, â) require a coda consonant.
+   * 5. Short vowels (ă, â) require a coda consonant (when not in-progress).
+   * @param {Object} [options]
+   * @param {boolean} [options.inProgress=false] When typing mid-word, short vowels ă/â without coda are valid as incomplete syllables.
    */
-  isValid() {
+  isValid({ inProgress = false } = {}) {
     // 1. Must have a nucleus
     if (!this.nucleus) {
       return false;
@@ -281,10 +283,12 @@ export class ParsedSyllable {
       }
     }
 
-    // 4. Short vowels ă, â must have coda if word is complete
-    const lowerN = this.nucleus.toLowerCase();
-    if ((lowerN === 'ă' || lowerN === 'â') && this.coda.length === 0) {
-      return false;
+    // 4. Short vowels ă, â must have coda if word is complete (unless in-progress typing)
+    if (!inProgress) {
+      const lowerN = this.nucleus.toLowerCase();
+      if ((lowerN === 'ă' || lowerN === 'â') && this.coda.length === 0) {
+        return false;
+      }
     }
 
     return true;

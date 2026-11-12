@@ -548,6 +548,38 @@ test('Inline Ghost Text - Suffix calculation & Suggestion Style Settings', () =>
   assert.equal(calculateGhostSuffix('nghệ', 'công ', 'nextword'), 'nghệ');
 });
 
+test('Telex & Auto - Immediate Breve w Placement (ddawng -> đăng, ddangw -> đăng)', () => {
+  const telexEngine = new AvimEngine({ method: IME_METHOD.TELEX });
+
+  function typeSequence(engine, keys) {
+    let word = '';
+    for (const k of keys) {
+      const step = engine.processKey(word, k);
+      word = step.transformed ? step.result : word + k;
+    }
+    return word;
+  }
+
+  // 1. Immediate Breve (w right after 'a'): ddawng -> đăng
+  assert.equal(typeSequence(telexEngine, 'ddawng'), 'đăng');
+  assert.equal(typeSequence(telexEngine, 'tawn'), 'tăn');
+  assert.equal(typeSequence(telexEngine, 'bawng'), 'băng');
+  assert.equal(typeSequence(telexEngine, 'cawm'), 'căm');
+  assert.equal(typeSequence(telexEngine, 'awng'), 'ăng');
+
+  // 2. Late Breve (w after coda): ddangw -> đăng
+  assert.equal(typeSequence(telexEngine, 'ddangw'), 'đăng');
+  assert.equal(typeSequence(telexEngine, 'tanw'), 'tăn');
+  assert.equal(typeSequence(telexEngine, 'bangw'), 'băng');
+
+  // 3. Auto Mode: works both with Telex w and VNI 8
+  const autoEngine = new AvimEngine({ method: IME_METHOD.AUTO });
+  assert.equal(typeSequence(autoEngine, 'ddawng'), 'đăng');
+  assert.equal(typeSequence(autoEngine, 'ddangw'), 'đăng');
+  assert.equal(typeSequence(autoEngine, 'd9a8ng'), 'đăng');
+  assert.equal(typeSequence(autoEngine, 'd9ang8'), 'đăng');
+});
+
 
 
 

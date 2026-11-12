@@ -632,9 +632,11 @@
      * 2. If word has letters before nucleus but no valid onset, it's a foreign cluster (e.g. 'fcitx').
      * 3. Coda must be a legitimate Vietnamese consonant coda (c, ch, m, n, ng, nh, p, t, k, l, r).
      * 4. Stop finals (-c, -ch, -p, -t, -k) can only take Tone 0, Tone 1 (sắc) or Tone 5 (nặng).
-     * 5. Short vowels (ă, â) require a coda consonant.
+     * 5. Short vowels (ă, â) require a coda consonant (when not in-progress).
+     * @param {Object} [options]
+     * @param {boolean} [options.inProgress=false] When typing mid-word, short vowels ă/â without coda are valid as incomplete syllables.
      */
-    isValid() {
+    isValid({ inProgress = false } = {}) {
       if (!this.nucleus) {
         return false;
       }
@@ -655,9 +657,11 @@
           return false;
         }
       }
-      const lowerN = this.nucleus.toLowerCase();
-      if ((lowerN === "\u0103" || lowerN === "\xE2") && this.coda.length === 0) {
-        return false;
+      if (!inProgress) {
+        const lowerN = this.nucleus.toLowerCase();
+        if ((lowerN === "\u0103" || lowerN === "\xE2") && this.coda.length === 0) {
+          return false;
+        }
       }
       return true;
     }
@@ -3072,7 +3076,7 @@
               const newWord = word.slice(0, i) + newChar + word.slice(i + 1) + appendLetter;
               if (this.phonologyRules && !appendLetter) {
                 const parsedNew = parseSyllable(newWord);
-                if (parsedNew && !parsedNew.isValid()) {
+                if (parsedNew && !parsedNew.isValid({ inProgress: true })) {
                   return { transformed: false, result: word + "w" };
                 }
               }
