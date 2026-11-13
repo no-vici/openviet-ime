@@ -135,9 +135,13 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(userDictionary.has('sas')).toBe(false);
     expect(simulateTyping(telex, 'sas')).toBe('sá');
 
-    // Mô phỏng bộ học thói quen (tương tự như content.js recordWordErase) với ngưỡng 3 lần
+    // Mô phỏng bộ học thói quen (tương tự như content.js recordWordErase) với ngưỡng tùy chỉnh
     const habitTracker = {
       counts: new Map(),
+      threshold: 3,
+      setThreshold(th) {
+        this.threshold = Math.max(2, th);
+      },
       recordErase(raw, transformed) {
         if (!raw || !transformed) return false;
         const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(transformed);
@@ -145,7 +149,7 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
         const key = raw.toLowerCase();
         const cnt = (this.counts.get(key) || 0) + 1;
         this.counts.set(key, cnt);
-        if (cnt >= 3) {
+        if (cnt >= this.threshold) {
           userDictionary.add(key);
           return true;
         }
@@ -157,13 +161,25 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(habitTracker.recordErase('sas', 'sá')).toBe(false);
     expect(userDictionary.has('sas')).toBe(false);
 
-    // Lần 2: User gõ lại 'sas' -> thành 'sá', user xóa cả từ lần 2 (vẫn chưa học để tránh vô tình thêm)
+    // Lần 2: User gõ lại 'sas' -> thành 'sá', user xóa cả từ lần 2 (với threshold = 3, chưa học)
     expect(habitTracker.recordErase('sas', 'sá')).toBe(false);
     expect(userDictionary.has('sas')).toBe(false);
 
-    // Lần 3: User xóa cả từ lần 3 -> chắc chắn là thói quen cố ý muốn giữ thô!
+    // Lần 3: User xóa cả từ lần 3 -> đạt threshold = 3!
     expect(habitTracker.recordErase('sas', 'sá')).toBe(true);
     expect(userDictionary.has('sas')).toBe(true);
+
+    // Kiểm tra ngưỡng tùy chỉnh cao hơn (ví dụ user cấu hình threshold = 5)
+    userDictionary.remove('pop');
+    habitTracker.setThreshold(5);
+    expect(habitTracker.recordErase('pop', 'póp')).toBe(false);
+    expect(habitTracker.recordErase('pop', 'póp')).toBe(false);
+    expect(habitTracker.recordErase('pop', 'póp')).toBe(false);
+    expect(habitTracker.recordErase('pop', 'póp')).toBe(false); // lần 4 vẫn chưa
+    expect(userDictionary.has('pop')).toBe(false);
+    expect(habitTracker.recordErase('pop', 'póp')).toBe(true);  // lần 5 đạt ngưỡng!
+    expect(userDictionary.has('pop')).toBe(true);
+    userDictionary.remove('pop');
 
     // Lần 4: Giờ đây từ 'sas' đã được tự học và thêm vào User Dictionary!
     // Lần gõ sau đó, 'sas' tuyệt đối không bị bỏ dấu thành 'sá' nữa!

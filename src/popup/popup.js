@@ -152,6 +152,11 @@ async function initPopup() {
     }
     if (eraseHabitLearningToggle) {
       eraseHabitLearningToggle.checked = settings.eraseHabitLearning !== false;
+      const eraseSub = document.getElementById('eraseHabitPopupSub');
+      if (eraseSub) {
+        const threshold = settings.eraseHabitThreshold || 3;
+        eraseSub.textContent = `Xóa từ ${threshold} lần tự lưu vào từ điển riêng`;
+      }
     }
     if (ghostTextToggle) {
       ghostTextToggle.checked = settings.suggestionStyle === 'ghost_text';

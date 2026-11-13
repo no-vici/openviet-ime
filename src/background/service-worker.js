@@ -31,6 +31,7 @@ const DEFAULT_SETTINGS = {
   autoHarmonizeCase: true,
   uniqueSyllables: true,
   eraseHabitLearning: true,
+  eraseHabitThreshold: 3,
   debugTypingLog: false,
   blacklistedDomains: []
 };

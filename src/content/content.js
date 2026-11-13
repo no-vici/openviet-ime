@@ -1301,7 +1301,7 @@ class AvimContentScript {
   /**
    * Automatic Habit Learning:
    * When a user completely deletes a word that had received Vietnamese diacritics
-   * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) 3 or more times (increased threshold to prevent accidental whitelisting),
+   * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) N or more times (configured by eraseHabitThreshold, default 3),
    * automatically learns and adds the word to userDictionary so it won't receive accents next time.
    * Can be toggled on/off via settings.eraseHabitLearning (default: true).
    */
@@ -1317,7 +1317,8 @@ class AvimContentScript {
     const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
     this.erasedWordHabits.set(raw, currentCount);
 
-    if (currentCount >= 3) {
+    const threshold = Math.max(2, parseInt(this.settings.eraseHabitThreshold, 10) || 3);
+    if (currentCount >= threshold) {
       if (userDictionary && typeof userDictionary.add === 'function') {
         if (!userDictionary.has(raw)) {
           userDictionary.add(raw);

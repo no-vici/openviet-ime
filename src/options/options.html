@@ -520,9 +520,15 @@
             <input type="checkbox" id="eraseHabitLearningOption">
             <div>
               <strong>Tự học thói quen xóa từ (Smart Erase Habit Learning)</strong>
-              <div style="font-size: 12px; color: var(--text-muted);">Khi xóa trọn vẹn một từ bị bỏ dấu ngoài ý muốn từ 3 lần trở lên, tự động thêm từ đó vào từ điển riêng để không bao giờ bị bỏ dấu lại ở các lần gõ sau. Có thể xóa từ đã học trong tab "Từ Điển Riêng".</div>
+              <div style="font-size: 12px; color: var(--text-muted);">Khi xóa trọn vẹn một từ bị bỏ dấu ngoài ý muốn đạt tới ngưỡng cài đặt bên dưới, tự động thêm từ đó vào từ điển riêng để không bao giờ bị bỏ dấu lại ở các lần gõ sau. Có thể xóa từ đã học trong tab "Từ Điển Riêng".</div>
             </div>
           </label>
+
+          <div id="eraseHabitThresholdGroup" style="margin-left: 28px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+            <label for="eraseHabitThresholdInput" style="font-size: 12px; color: var(--text-muted);">Ngưỡng số lần xóa cả từ để tự học:</label>
+            <input type="number" id="eraseHabitThresholdInput" class="form-control font-mono" min="2" max="10" value="3" style="width: 70px; padding: 4px 8px; text-align: center;">
+            <span style="font-size: 12px; color: var(--text-muted);">lần (mặc định: 3, tối thiểu: 2)</span>
+          </div>
 
           <label class="checkbox-row">
             <input type="checkbox" id="ctrlToggleOption">

@@ -556,6 +556,7 @@ function initPreferences() {
   const autoHarmonizeCaseOption = document.getElementById('autoHarmonizeCaseOption');
   const uniqueSyllablesOption = document.getElementById('uniqueSyllablesOption');
   const eraseHabitLearningOption = document.getElementById('eraseHabitLearningOption');
+  const eraseHabitThresholdInput = document.getElementById('eraseHabitThresholdInput');
   const debugTypingLogOption = document.getElementById('debugTypingLogOption');
   const typingLogControls = document.getElementById('typingLogControls');
   const typingLogCountBadge = document.getElementById('typingLogCountBadge');
@@ -596,6 +597,9 @@ function initPreferences() {
     if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = settings.autoHarmonizeCase !== false;
     if (uniqueSyllablesOption) uniqueSyllablesOption.checked = settings.uniqueSyllables !== false;
     if (eraseHabitLearningOption) eraseHabitLearningOption.checked = settings.eraseHabitLearning !== false;
+    if (eraseHabitThresholdInput) eraseHabitThresholdInput.value = String(settings.eraseHabitThreshold || 3);
+    const thresholdGroup = document.getElementById('eraseHabitThresholdGroup');
+    if (thresholdGroup) thresholdGroup.style.display = (settings.eraseHabitLearning !== false) ? 'flex' : 'none';
     if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
     if (debugTypingLogOption) debugTypingLogOption.checked = Boolean(settings.debugTypingLog);
     updateTypingLogUI();
@@ -724,6 +728,19 @@ function initPreferences() {
   if (eraseHabitLearningOption) {
     eraseHabitLearningOption.addEventListener('change', async () => {
       settings.eraseHabitLearning = eraseHabitLearningOption.checked;
+      const thresholdGroup = document.getElementById('eraseHabitThresholdGroup');
+      if (thresholdGroup) thresholdGroup.style.display = settings.eraseHabitLearning ? 'flex' : 'none';
+      await saveState();
+    });
+  }
+
+  if (eraseHabitThresholdInput) {
+    eraseHabitThresholdInput.addEventListener('change', async () => {
+      let val = parseInt(eraseHabitThresholdInput.value, 10);
+      if (isNaN(val) || val < 2) val = 2;
+      if (val > 10) val = 10;
+      eraseHabitThresholdInput.value = String(val);
+      settings.eraseHabitThreshold = val;
       await saveState();
     });
   }

@@ -437,7 +437,9 @@
     uniqueSyllables: true,
     // Auto-complete unique Vietnamese syllables (khong -> không)
     eraseHabitLearning: true,
-    // Auto-learn words to user dictionary after erasing accented words >= 3 times
+    // Auto-learn words to user dictionary after erasing accented words >= threshold times
+    eraseHabitThreshold: 3,
+    // Number of whole-word erasures before learning (configurable: 2 to 10, default: 3)
     debugTypingLog: false,
     blacklistedDomains: []
   };
@@ -4232,6 +4234,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const autoHarmonizeCaseOption = document.getElementById("autoHarmonizeCaseOption");
     const uniqueSyllablesOption = document.getElementById("uniqueSyllablesOption");
     const eraseHabitLearningOption = document.getElementById("eraseHabitLearningOption");
+    const eraseHabitThresholdInput = document.getElementById("eraseHabitThresholdInput");
     const debugTypingLogOption = document.getElementById("debugTypingLogOption");
     const typingLogControls = document.getElementById("typingLogControls");
     const typingLogCountBadge = document.getElementById("typingLogCountBadge");
@@ -4267,6 +4270,9 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = settings.autoHarmonizeCase !== false;
       if (uniqueSyllablesOption) uniqueSyllablesOption.checked = settings.uniqueSyllables !== false;
       if (eraseHabitLearningOption) eraseHabitLearningOption.checked = settings.eraseHabitLearning !== false;
+      if (eraseHabitThresholdInput) eraseHabitThresholdInput.value = String(settings.eraseHabitThreshold || 3);
+      const thresholdGroup = document.getElementById("eraseHabitThresholdGroup");
+      if (thresholdGroup) thresholdGroup.style.display = settings.eraseHabitLearning !== false ? "flex" : "none";
       if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
       if (debugTypingLogOption) debugTypingLogOption.checked = Boolean(settings.debugTypingLog);
       updateTypingLogUI();
@@ -4373,6 +4379,18 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     if (eraseHabitLearningOption) {
       eraseHabitLearningOption.addEventListener("change", async () => {
         settings.eraseHabitLearning = eraseHabitLearningOption.checked;
+        const thresholdGroup = document.getElementById("eraseHabitThresholdGroup");
+        if (thresholdGroup) thresholdGroup.style.display = settings.eraseHabitLearning ? "flex" : "none";
+        await saveState();
+      });
+    }
+    if (eraseHabitThresholdInput) {
+      eraseHabitThresholdInput.addEventListener("change", async () => {
+        let val = parseInt(eraseHabitThresholdInput.value, 10);
+        if (isNaN(val) || val < 2) val = 2;
+        if (val > 10) val = 10;
+        eraseHabitThresholdInput.value = String(val);
+        settings.eraseHabitThreshold = val;
         await saveState();
       });
     }
