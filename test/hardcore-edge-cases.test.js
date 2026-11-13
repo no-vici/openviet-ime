@@ -30,6 +30,15 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     // Từ tiếng Anh nằm trong danh mục trap phải được chấp nhận khôi phục khi nhấn Space
     expect(shouldAutoRestoreEnglish('text', 'têt')).toBe(true);
     expect(shouldAutoRestoreEnglish('user', 'úer')).toBe(true);
+    // Khôi phục hoàn hảo các từ hình thái -ing / -ed / -er / -s của lập trình viên (casing, using, parsing, testing)
+    expect(shouldAutoRestoreEnglish('casing', 'cáing')).toBe(true);
+    expect(shouldAutoRestoreEnglish('Casing', 'Cáing')).toBe(true);
+    expect(shouldAutoRestoreEnglish('using', 'úing')).toBe(true);
+    expect(shouldAutoRestoreEnglish('parsing', 'páing')).toBe(true);
+    expect(shouldAutoRestoreEnglish('testing', 'téting')).toBe(true);
+    expect(shouldAutoRestoreEnglish('tested', 'tếtd')).toBe(true);
+    expect(shouldAutoRestoreEnglish('listed', 'líted')).toBe(true);
+    expect(shouldAutoRestoreEnglish('', 'cáing')).toBe(true); // Fallback khi raw rỗng
     // Từ tiếng Việt hợp lệ (ví dụ: 'cá', 'toán', 'tét') không được phép khôi phục bừa bãi
     expect(shouldAutoRestoreEnglish('cas', 'cá')).toBe(false);
     expect(shouldAutoRestoreEnglish('tes', 'tét')).toBe(false);

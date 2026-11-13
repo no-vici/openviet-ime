@@ -20,6 +20,7 @@ import {
   reverseVietnameseWord,
   matchCasing,
   shouldAutoRestoreEnglish,
+  isLikelyEnglishWord,
   hasPhonologyViolation,
   isCheckedToneViolation
 } from './dictionary.js';
@@ -268,7 +269,7 @@ export class AvimEngine {
     if (shouldAutoRestoreEnglish(raw, currentWord)) {
       const rawLower = (raw || '').toLowerCase();
       let restored = '';
-      if (raw && !/\d/.test(raw) && (COMMON_ENGLISH_WORDS.has(rawLower) || userDictionary.has(rawLower))) {
+      if (raw && !/\d/.test(raw) && isLikelyEnglishWord(rawLower)) {
         restored = raw;
       } else {
         restored = reverseVietnameseWord(currentWord) || raw || currentWord;
@@ -286,11 +287,11 @@ export class AvimEngine {
         reversed.length >= 3 &&
         !/\d/.test(reversed) &&
         reversed.toLowerCase() !== currentWord.toLowerCase() &&
-        (COMMON_ENGLISH_WORDS.has(reversed.toLowerCase()) || userDictionary.has(reversed.toLowerCase()))
+        isLikelyEnglishWord(reversed.toLowerCase())
       ) {
         reversed = matchCasing(currentWord, reversed);
         this.resetWordSession();
-        return { restore: true, result: reversed };
+        return { restore: true, result: restored };
       }
     }
 

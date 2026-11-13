@@ -96,6 +96,63 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'shower', 'slower', 'flower', 'low', 'flow', 'show', 'slow', 'blow', 'grow', 'draw', 'raw',
   'law', 'saw', 'few', 'view', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
   'suggest', 'axis', 'regex', 'music', 'amazon', 'cause', 'profile', 'upstream', 'settings',
+  // Common dev actions & keywords frequently trapped in Telex
+  'casing', 'parse', 'parsing', 'parser', 'scale', 'scaling', 'scaled', 'scaler',
+  'close', 'closing', 'closed', 'closer', 'raise', 'raising', 'raised',
+  'lose', 'losing', 'lost', 'loser', 'browse', 'browsing', 'browsed',
+  'increase', 'decrease', 'pause', 'phrase', 'please', 'refuse', 'reuse', 'chase',
+  'base', 'basic', 'route', 'routing', 'serve', 'serving', 'served',
+  'match', 'matching', 'matched', 'switch', 'switching', 'switched',
+  'search', 'searching', 'searched', 'track', 'tracking', 'tracked',
+  'stack', 'stacking', 'stacked', 'block', 'blocking', 'blocked',
+  'lock', 'locking', 'locked', 'start', 'starting', 'started',
+  'stop', 'stopping', 'stopped', 'bypass', 'bypassing', 'bypassed',
+  'format', 'formatting', 'formatted', 'map', 'mapping', 'mapped',
+  'mask', 'masking', 'masked', 'ask', 'asking', 'asked',
+  'cache', 'caching', 'cached', 'crash', 'crashing', 'crashed',
+  'flash', 'flashing', 'flashed', 'hash', 'hashing', 'hashed',
+  'sort', 'sorting', 'sorted', 'send', 'sending', 'sent',
+  'read', 'reading', 'edit', 'editing', 'edited',
+  'delete', 'deleting', 'deleted', 'create', 'creating', 'created',
+  'select', 'selecting', 'selected', 'insert', 'inserting', 'inserted',
+  'bind', 'binding', 'bound', 'mount', 'mounting', 'mounted',
+  'attach', 'attaching', 'attached', 'detach', 'detaching', 'detached',
+  'encode', 'encoding', 'encoded', 'decode', 'decoding', 'decoded',
+  'encrypt', 'decrypt', 'compress', 'decompress', 'listen', 'listening',
+  'connect', 'connecting', 'connected', 'disconnect', 'emit', 'emitting',
+  'dispatch', 'resolve', 'resolving', 'resolved', 'reject', 'rejecting',
+  'throw', 'handle', 'handling', 'handled', 'mutate', 'mutating',
+  'validate', 'validating', 'validated', 'sanitize', 'compile', 'compiling',
+  'invoke', 'invoking', 'invoked', 'trigger', 'triggering', 'triggered',
+  'cleanup', 'flush', 'flushing', 'flushed', 'drain', 'poll', 'polling',
+  'stream', 'streaming', 'streamed', 'buffer', 'buffering', 'buffered',
+  'queue', 'queuing', 'queued', 'shift', 'shifting', 'shifted',
+  'slice', 'slicing', 'sliced', 'splice', 'splicing', 'spliced',
+  'split', 'splitting', 'copy', 'copying', 'copied', 'paste', 'pasting', 'pasted',
+  'undo', 'redo', 'print', 'printing', 'printed', 'stage', 'staging', 'staged',
+  'publish', 'publishing', 'published', 'draft', 'drafting', 'drafted',
+  'archive', 'archiving', 'archived', 'recover', 'recovering', 'recovered',
+  'repair', 'rebuilding', 'rebuilt', 'restart', 'restarting', 'restarted',
+  'reload', 'reloading', 'reloaded', 'refresh', 'refreshing', 'refreshed',
+  'revert', 'reverting', 'reverted', 'clear', 'clearing', 'cleared',
+  'clean', 'cleaning', 'cleaned', 'wipe', 'wiping', 'wiped',
+  'erase', 'erasing', 'erased', 'trim', 'trimming', 'trimmed',
+  'pad', 'padding', 'padded', 'wrap', 'wrapping', 'wrapped',
+  'escape', 'escaping', 'escaped', 'assign', 'assigning', 'assigned',
+  'define', 'defining', 'defined', 'declare', 'declaring', 'declared',
+  'compute', 'computing', 'computed', 'count', 'counting', 'counted',
+  'locate', 'locating', 'located', 'inspect', 'inspecting', 'inspected',
+  'audit', 'auditing', 'audited', 'check', 'checking', 'checked',
+  'assert', 'asserting', 'asserted', 'verify', 'verifying', 'verified',
+  'mock', 'mocking', 'mocked', 'stub', 'benchmark', 'measure',
+  'trace', 'tracing', 'traced', 'warn', 'warning', 'warned',
+  'notify', 'alert', 'alerting', 'alerted', 'toast', 'prompt',
+  'confirm', 'confirming', 'confirmed', 'toggle', 'toggling', 'toggled',
+  'collapse', 'collapsing', 'collapsed', 'scroll', 'scrolling', 'scrolled',
+  'zoom', 'zooming', 'zoomed', 'drag', 'dragging', 'dragged',
+  'hover', 'hovering', 'press', 'pressing', 'pressed',
+  'tap', 'tapping', 'tapped', 'forward', 'forwarding', 'forwarded',
+  'redirect', 'redirecting', 'redirected',
 
   // General high frequency English words
   'the', 'be', 'to', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'not', 'on', 'he',
@@ -525,6 +582,62 @@ export const ENGLISH_TELEX_TRAPS = new Set([
 ]);
 
 /**
+ * Helper to check if a word is a known English word, user dictionary word,
+ * or regular English inflection (-ing, -ed, -er, -or, -s, -es, -ly).
+ */
+export function isLikelyEnglishWord(w) {
+  if (!w || typeof w !== 'string') return false;
+  const word = w.toLowerCase().trim();
+  if (word.length < 3) return false;
+  if (COMMON_ENGLISH_WORDS.has(word) || userDictionary.has(word)) return true;
+
+  // Suffix -ing (casing, using, parsing, testing, hosting, listing, posting, wasting)
+  if (word.endsWith('ing') && word.length >= 4) {
+    const stem = word.slice(0, -3);
+    if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + 'e')) return true;
+    if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+      if (COMMON_ENGLISH_WORDS.has(stem.slice(0, -1))) return true;
+    }
+  }
+
+  // Suffix -ed (used, parsed, tested, hosted, listed, posted, wasted)
+  if (word.endsWith('ed') && word.length >= 4) {
+    const stem = word.slice(0, -2);
+    if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + 'e')) return true;
+    if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+      if (COMMON_ENGLISH_WORDS.has(stem.slice(0, -1))) return true;
+    }
+  }
+
+  // Suffix -er / -or (parser, tester, hoster, closer, causer)
+  if ((word.endsWith('er') || word.endsWith('or')) && word.length >= 4) {
+    const stem = word.slice(0, -2);
+    if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + 'e')) return true;
+    if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+      if (COMMON_ENGLISH_WORDS.has(stem.slice(0, -1))) return true;
+    }
+  }
+
+  // Suffix -s / -es (cases, tests, hosts, lists, posts, causes)
+  if (word.endsWith('s') && word.length >= 3) {
+    const stem = word.slice(0, -1);
+    if (COMMON_ENGLISH_WORDS.has(stem)) return true;
+    if (word.endsWith('es') && word.length >= 4) {
+      const stemEs = word.slice(0, -2);
+      if (COMMON_ENGLISH_WORDS.has(stemEs) || COMMON_ENGLISH_WORDS.has(stemEs + 'e')) return true;
+    }
+  }
+
+  // Suffix -ly (safely, purely)
+  if (word.endsWith('ly') && word.length >= 4) {
+    const stem = word.slice(0, -2);
+    if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + 'e')) return true;
+  }
+
+  return false;
+}
+
+/**
  * Determine if a word should be automatically restored to English
  * (e.g. When the user types 'text', 'user', 'expect', 'push', 'window', 'luxury'
  * and the IME produced 'têt', 'úẻ', 'púh', etc.).
@@ -549,7 +662,7 @@ export function shouldAutoRestoreEnglish(rawWord, currentWord) {
 
   // If currentWord is already a valid pure ASCII English word without diacritics,
   // do NOT attempt auto-restore (prevents cancellation keystrokes in raw from corrupting words like test -> tesst, fast -> fasst)
-  if (/^[a-zA-Z]+$/.test(curClean) && (COMMON_ENGLISH_WORDS.has(curClean) || userDictionary.has(curClean))) {
+  if (/^[a-zA-Z]+$/.test(curClean) && isLikelyEnglishWord(curClean)) {
     return false;
   }
 
@@ -580,18 +693,18 @@ export function shouldAutoRestoreEnglish(rawWord, currentWord) {
     return false;
   }
 
-  // Rule 4: Transformed word is NOT a valid Vietnamese word (e.g. têt, tẽt, úẻ, ủe, púh, windơ, wỏk, êpct, lủuy)
-  // If rawWord is a known English word or user dictionary word:
-  if (rawClean && (COMMON_ENGLISH_WORDS.has(rawClean) || userDictionary.has(rawClean))) {
+  // Rule 4: Transformed word is NOT a valid Vietnamese word (e.g. têt, tẽt, úẻ, ủe, púh, windơ, wỏk, êpct, lủuy, cáing)
+  // If rawWord is a known English word or inflected morphology:
+  if (rawClean && isLikelyEnglishWord(rawClean)) {
     return true;
   }
 
-  // Or if reversed version is a known English word or user dictionary word (min length 3, no digits):
+  // Or if reversed version is a known English word or inflected morphology (min length 3, no digits):
   const reversed = reverseVietnameseWord(currentWord).toLowerCase();
   if (
     reversed &&
     reversed.length >= 3 &&
-    (COMMON_ENGLISH_WORDS.has(reversed) || userDictionary.has(reversed)) &&
+    isLikelyEnglishWord(reversed) &&
     !/\d/.test(reversed)
   ) {
     return true;

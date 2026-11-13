@@ -1423,6 +1423,350 @@
     "profile",
     "upstream",
     "settings",
+    // Common dev actions & keywords frequently trapped in Telex
+    "casing",
+    "parse",
+    "parsing",
+    "parser",
+    "scale",
+    "scaling",
+    "scaled",
+    "scaler",
+    "close",
+    "closing",
+    "closed",
+    "closer",
+    "raise",
+    "raising",
+    "raised",
+    "lose",
+    "losing",
+    "lost",
+    "loser",
+    "browse",
+    "browsing",
+    "browsed",
+    "increase",
+    "decrease",
+    "pause",
+    "phrase",
+    "please",
+    "refuse",
+    "reuse",
+    "chase",
+    "base",
+    "basic",
+    "route",
+    "routing",
+    "serve",
+    "serving",
+    "served",
+    "match",
+    "matching",
+    "matched",
+    "switch",
+    "switching",
+    "switched",
+    "search",
+    "searching",
+    "searched",
+    "track",
+    "tracking",
+    "tracked",
+    "stack",
+    "stacking",
+    "stacked",
+    "block",
+    "blocking",
+    "blocked",
+    "lock",
+    "locking",
+    "locked",
+    "start",
+    "starting",
+    "started",
+    "stop",
+    "stopping",
+    "stopped",
+    "bypass",
+    "bypassing",
+    "bypassed",
+    "format",
+    "formatting",
+    "formatted",
+    "map",
+    "mapping",
+    "mapped",
+    "mask",
+    "masking",
+    "masked",
+    "ask",
+    "asking",
+    "asked",
+    "cache",
+    "caching",
+    "cached",
+    "crash",
+    "crashing",
+    "crashed",
+    "flash",
+    "flashing",
+    "flashed",
+    "hash",
+    "hashing",
+    "hashed",
+    "sort",
+    "sorting",
+    "sorted",
+    "send",
+    "sending",
+    "sent",
+    "read",
+    "reading",
+    "edit",
+    "editing",
+    "edited",
+    "delete",
+    "deleting",
+    "deleted",
+    "create",
+    "creating",
+    "created",
+    "select",
+    "selecting",
+    "selected",
+    "insert",
+    "inserting",
+    "inserted",
+    "bind",
+    "binding",
+    "bound",
+    "mount",
+    "mounting",
+    "mounted",
+    "attach",
+    "attaching",
+    "attached",
+    "detach",
+    "detaching",
+    "detached",
+    "encode",
+    "encoding",
+    "encoded",
+    "decode",
+    "decoding",
+    "decoded",
+    "encrypt",
+    "decrypt",
+    "compress",
+    "decompress",
+    "listen",
+    "listening",
+    "connect",
+    "connecting",
+    "connected",
+    "disconnect",
+    "emit",
+    "emitting",
+    "dispatch",
+    "resolve",
+    "resolving",
+    "resolved",
+    "reject",
+    "rejecting",
+    "throw",
+    "handle",
+    "handling",
+    "handled",
+    "mutate",
+    "mutating",
+    "validate",
+    "validating",
+    "validated",
+    "sanitize",
+    "compile",
+    "compiling",
+    "invoke",
+    "invoking",
+    "invoked",
+    "trigger",
+    "triggering",
+    "triggered",
+    "cleanup",
+    "flush",
+    "flushing",
+    "flushed",
+    "drain",
+    "poll",
+    "polling",
+    "stream",
+    "streaming",
+    "streamed",
+    "buffer",
+    "buffering",
+    "buffered",
+    "queue",
+    "queuing",
+    "queued",
+    "shift",
+    "shifting",
+    "shifted",
+    "slice",
+    "slicing",
+    "sliced",
+    "splice",
+    "splicing",
+    "spliced",
+    "split",
+    "splitting",
+    "copy",
+    "copying",
+    "copied",
+    "paste",
+    "pasting",
+    "pasted",
+    "undo",
+    "redo",
+    "print",
+    "printing",
+    "printed",
+    "stage",
+    "staging",
+    "staged",
+    "publish",
+    "publishing",
+    "published",
+    "draft",
+    "drafting",
+    "drafted",
+    "archive",
+    "archiving",
+    "archived",
+    "recover",
+    "recovering",
+    "recovered",
+    "repair",
+    "rebuilding",
+    "rebuilt",
+    "restart",
+    "restarting",
+    "restarted",
+    "reload",
+    "reloading",
+    "reloaded",
+    "refresh",
+    "refreshing",
+    "refreshed",
+    "revert",
+    "reverting",
+    "reverted",
+    "clear",
+    "clearing",
+    "cleared",
+    "clean",
+    "cleaning",
+    "cleaned",
+    "wipe",
+    "wiping",
+    "wiped",
+    "erase",
+    "erasing",
+    "erased",
+    "trim",
+    "trimming",
+    "trimmed",
+    "pad",
+    "padding",
+    "padded",
+    "wrap",
+    "wrapping",
+    "wrapped",
+    "escape",
+    "escaping",
+    "escaped",
+    "assign",
+    "assigning",
+    "assigned",
+    "define",
+    "defining",
+    "defined",
+    "declare",
+    "declaring",
+    "declared",
+    "compute",
+    "computing",
+    "computed",
+    "count",
+    "counting",
+    "counted",
+    "locate",
+    "locating",
+    "located",
+    "inspect",
+    "inspecting",
+    "inspected",
+    "audit",
+    "auditing",
+    "audited",
+    "check",
+    "checking",
+    "checked",
+    "assert",
+    "asserting",
+    "asserted",
+    "verify",
+    "verifying",
+    "verified",
+    "mock",
+    "mocking",
+    "mocked",
+    "stub",
+    "benchmark",
+    "measure",
+    "trace",
+    "tracing",
+    "traced",
+    "warn",
+    "warning",
+    "warned",
+    "notify",
+    "alert",
+    "alerting",
+    "alerted",
+    "toast",
+    "prompt",
+    "confirm",
+    "confirming",
+    "confirmed",
+    "toggle",
+    "toggling",
+    "toggled",
+    "collapse",
+    "collapsing",
+    "collapsed",
+    "scroll",
+    "scrolling",
+    "scrolled",
+    "zoom",
+    "zooming",
+    "zoomed",
+    "drag",
+    "dragging",
+    "dragged",
+    "hover",
+    "hovering",
+    "press",
+    "pressing",
+    "pressed",
+    "tap",
+    "tapping",
+    "tapped",
+    "forward",
+    "forwarding",
+    "forwarded",
+    "redirect",
+    "redirecting",
+    "redirected",
     // General high frequency English words
     "the",
     "be",
@@ -2027,6 +2371,46 @@
     "few",
     "view"
   ]);
+  function isLikelyEnglishWord(w) {
+    if (!w || typeof w !== "string") return false;
+    const word = w.toLowerCase().trim();
+    if (word.length < 3) return false;
+    if (COMMON_ENGLISH_WORDS.has(word) || userDictionary.has(word)) return true;
+    if (word.endsWith("ing") && word.length >= 4) {
+      const stem = word.slice(0, -3);
+      if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + "e")) return true;
+      if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+        if (COMMON_ENGLISH_WORDS.has(stem.slice(0, -1))) return true;
+      }
+    }
+    if (word.endsWith("ed") && word.length >= 4) {
+      const stem = word.slice(0, -2);
+      if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + "e")) return true;
+      if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+        if (COMMON_ENGLISH_WORDS.has(stem.slice(0, -1))) return true;
+      }
+    }
+    if ((word.endsWith("er") || word.endsWith("or")) && word.length >= 4) {
+      const stem = word.slice(0, -2);
+      if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + "e")) return true;
+      if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+        if (COMMON_ENGLISH_WORDS.has(stem.slice(0, -1))) return true;
+      }
+    }
+    if (word.endsWith("s") && word.length >= 3) {
+      const stem = word.slice(0, -1);
+      if (COMMON_ENGLISH_WORDS.has(stem)) return true;
+      if (word.endsWith("es") && word.length >= 4) {
+        const stemEs = word.slice(0, -2);
+        if (COMMON_ENGLISH_WORDS.has(stemEs) || COMMON_ENGLISH_WORDS.has(stemEs + "e")) return true;
+      }
+    }
+    if (word.endsWith("ly") && word.length >= 4) {
+      const stem = word.slice(0, -2);
+      if (COMMON_ENGLISH_WORDS.has(stem) || COMMON_ENGLISH_WORDS.has(stem + "e")) return true;
+    }
+    return false;
+  }
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
     if (!rawWord && !currentWord) return false;
     const curClean = (currentWord || "").trim().toLowerCase();
@@ -2040,7 +2424,7 @@
     if (rawClean === curClean && /^[a-z0-9]+$/i.test(curClean)) {
       return false;
     }
-    if (/^[a-zA-Z]+$/.test(curClean) && (COMMON_ENGLISH_WORDS.has(curClean) || userDictionary.has(curClean))) {
+    if (/^[a-zA-Z]+$/.test(curClean) && isLikelyEnglishWord(curClean)) {
       return false;
     }
     if (/\d/.test(rawClean)) {
@@ -2056,11 +2440,11 @@
       }
       return false;
     }
-    if (rawClean && (COMMON_ENGLISH_WORDS.has(rawClean) || userDictionary.has(rawClean))) {
+    if (rawClean && isLikelyEnglishWord(rawClean)) {
       return true;
     }
     const reversed = reverseVietnameseWord(currentWord).toLowerCase();
-    if (reversed && reversed.length >= 3 && (COMMON_ENGLISH_WORDS.has(reversed) || userDictionary.has(reversed)) && !/\d/.test(reversed)) {
+    if (reversed && reversed.length >= 3 && isLikelyEnglishWord(reversed) && !/\d/.test(reversed)) {
       return true;
     }
     return false;
@@ -2474,22 +2858,22 @@
       }
       if (shouldAutoRestoreEnglish(raw, currentWord)) {
         const rawLower = (raw || "").toLowerCase();
-        let restored = "";
-        if (raw && !/\d/.test(raw) && (COMMON_ENGLISH_WORDS.has(rawLower) || userDictionary.has(rawLower))) {
-          restored = raw;
+        let restored2 = "";
+        if (raw && !/\d/.test(raw) && isLikelyEnglishWord(rawLower)) {
+          restored2 = raw;
         } else {
-          restored = reverseVietnameseWord(currentWord) || raw || currentWord;
+          restored2 = reverseVietnameseWord(currentWord) || raw || currentWord;
         }
-        restored = matchCasing(currentWord, restored);
+        restored2 = matchCasing(currentWord, restored2);
         this.resetWordSession();
-        return { restore: true, result: restored };
+        return { restore: true, result: restored2 };
       }
       if (currentWord.length >= 2 && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
         let reversed = reverseVietnameseWord(currentWord);
-        if (reversed && reversed.length >= 3 && !/\d/.test(reversed) && reversed.toLowerCase() !== currentWord.toLowerCase() && (COMMON_ENGLISH_WORDS.has(reversed.toLowerCase()) || userDictionary.has(reversed.toLowerCase()))) {
+        if (reversed && reversed.length >= 3 && !/\d/.test(reversed) && reversed.toLowerCase() !== currentWord.toLowerCase() && isLikelyEnglishWord(reversed.toLowerCase())) {
           reversed = matchCasing(currentWord, reversed);
           this.resetWordSession();
-          return { restore: true, result: reversed };
+          return { restore: true, result: restored };
         }
       }
       return { restore: false, result: currentWord };
