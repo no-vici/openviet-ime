@@ -40,6 +40,13 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
   - **Chuẩn cũ (VNCH / UniKey cổ điển)**: `hòa, hóa, thủy, khỏe, thỏa` (dấu trên âm đệm).
 - [x] **Bộ Test Suite Hồi quy Thực chiến (vietc-regression.test.js)**: Kiểm thử bao quát các ca hoán đổi biến âm, tổ hợp nguyên âm và bảo vệ từ ngữ kỹ thuật.
 
+### Giai đoạn 5: Chuẩn Hóa Casing & Tối Ưu Hóa Hiệu Năng v1.1.3 (Performance & Casing Engine)
+- [x] **Chuẩn hóa chữ hoa/thường theo chữ đầu (`harmonize_syllable_case`)**: Chữa lỗi kẹt Shift/CapsLock (`ĐƯợc` $\rightarrow$ `Được`, `đƯỢc` $\rightarrow$ `được`), giữ nguyên `ALL CAPS` và bảo vệ biến code `camelCase`/`PascalCase`.
+- [x] **Tự động điền dấu âm tiết độc nhất (`auto_complete_unique_syllable`)**: `khong` $\rightarrow$ `không`, `truong` $\rightarrow$ `trương`, `nganh` $\rightarrow$ `ngành`, hỗ trợ đầy đủ mọi phím dấu phát sinh (`khongs`, `khongf`, `nganhj`).
+- [x] **Tối ưu hóa bộ nhớ Quota & Pre-computed Cache**: Chuyển lưu trữ từ điển người dùng và cấu hình domain sang `storage.local`, cache sẵn bản stripped của từ điển giúp tìm kiếm gợi ý phản hồi tức thì dưới 1ms.
+- [x] **Đồng bộ Per-Domain Memory & Nút Bật/Tắt Nhanh**: Hiển thị tên miền hiện tại kèm nút bật/tắt riêng biệt ngay trên Popup mà không cần mở Options.
+- [x] **Đồng nhất thuật ngữ Chánh Tả**: Toàn bộ UI, trang Options và tài liệu được chuẩn hóa thống nhất theo thuật ngữ "chánh tả".
+
 ---
 
 ## 2. Lộ Trình Phát Triển Tương Lai (Future Roadmap)

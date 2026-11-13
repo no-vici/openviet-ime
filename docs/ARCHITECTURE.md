@@ -36,6 +36,7 @@ Dự án được phân chia thành 3 tầng độc lập, theo nguyên lý **Se
 │                                                                        │
 │  [Syllable Parser] ──(Ngữ âm 5 thành phần)──> [AVIM Engine]            │
 │  [Macro Engine]    ──(Gõ tắt & Hoàn tác)    ──> [Auto-Complete Engine] │
+│  [Casing Engine]   ──(Harmonize & Unique)   ──> [Config & Dictionary]  │
 └──────────────────────────────────────────┬─────────────────────────────┘
                                            │
                                            ▼ (Giao tiếp bảo mật)
@@ -122,8 +123,16 @@ Cho phép người dùng gõ tắt nhanh:
 ### Module 5: Dự Đoán Từ Tiếp Theo & Học Thói Quen On-Device (`src/engine/autocomplete.js`)
 Xem tài liệu chuyên sâu: [PREDICTION_ENGINE.md](PREDICTION_ENGINE.md).
 - **Mô hình ngữ cảnh 4 tầng**: Trigram Inference $\rightarrow$ User-Learned Bigrams $\rightarrow$ Curated Base Bigrams $\rightarrow$ Compound Phrases Index.
+- **Pre-computed Lookup Cache**: Tối ưu hóa hiệu năng vòng lặp gợi ý bằng cách tiền tính toán (pre-stripped) toàn bộ 6.700 âm tiết tiếng Việt trong lần khởi tạo đầu tiên, giảm độ trễ phản hồi mỗi phím bấm xuống dưới 1ms.
 - **Domain-Isolation Weight Lock**: Khóa hệ số suy hao thời gian ($\lambda = 0.0001$) và cộng điểm neo sàn (`+5.0`) cho các lệnh lập trình và DevOps (`git`, `docker`, `npm`, `kubectl`, `python`, `supabase`,...) để không bao giờ bị các cuộc hội thoại thường ngày lấn át.
 - **Bảo vệ Chat Apps**: Tự động vô hiệu hóa can thiệp phím `Enter` khi hiển thị gợi ý từ kế tiếp, giúp việc gửi tin nhắn trong Telegram Web, Slack, Messenger diễn ra tức thì, không bị cản trở.
+
+---
+
+### Module 6: Chuẩn Hóa Casing & Điền Dấu Tự Động (`src/engine/casing.js`)
+Module chuyên xử lý các hiện tượng chữ hoa/chữ thường và tự động hóa âm tiết theo phong cách Rust/C IME:
+- **`harmonizeSyllableCase`**: Xử lý triệt để bẫy kẹt Shift / CapsLock (`ĐƯợc` $\rightarrow$ `Được`, `đƯỢc` $\rightarrow$ `được`), giữ nguyên `ALL CAPS` và bảo vệ tuyệt đối biến `camelCase` / `PascalCase` (`useState`, `loWeRcAsE`).
+- **`UNIQUE_SYLLABLE_MAP`**: Tự động điền dấu thanh và dấu phụ cho các từ duy nhất không thể nhầm lẫn (`khong` $\rightarrow$ `không`, `truong` $\rightarrow$ `trương`, `nganh` $\rightarrow$ `ngành`) đồng thời bảo lưu khả năng biến đổi thanh điệu linh hoạt (`khongs` $\rightarrow$ `khống`, `khongf` $\rightarrow$ `khồng`, `nganhj` $\rightarrow$ `ngạnh`).
 
 ---
 

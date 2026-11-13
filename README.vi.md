@@ -35,6 +35,8 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
    - [Chuẩn Bỏ Dấu Hiện Đại vs Cổ Điển (`hoà`/`hòa`)](#chuẩn-bỏ-dấu-hiện-đại-vs-cổ-điển-hoàhòa)
    - [Bỏ Dấu Ở Cuối Từ (Late Vowel Shaping)](#bỏ-dấu-ở-cuối-từ-late-vowel-shaping)
    - [Hoán Đổi Dấu Phụ Bảo Lưu Thanh Điệu (VietC / Bamboo)](#hoán-đổi-dấu-phụ-bảo-lưu-thanh-điệu-vietc--bamboo)
+   - [Chuẩn Hóa Viết Hoa/Thường Theo Chữ Cái Đầu (Harmonize Syllable Case)](#chuẩn-hóa-viết-hoathường-theo-chữ-cái-đầu-harmonize-syllable-case)
+   - [Tự Động Điền Dấu Cho Các Âm Tiết Đặc Thù (Unique Syllables Auto-Completion)](#tự-động-điền-dấu-cho-các-âm-tiết-đặc-thù-unique-syllables-auto-completion)
    - [Quy Tắc Ngữ Âm & Bảo Vệ Lệnh Kỹ Thuật Tự Nhiên](#quy-tắc-ngữ-âm--bảo-vệ-lệnh-kỹ-thuật-tự-nhiên)
    - [Cứu Chữ & Cứu Dấu Thông Minh (Đột Phá UX Kiểu Ngó Sen / vnchKey)](#cứu-chữ--cứu-dấu-thông-minh-đột-phá-ux-kiểu-ngó-sen--vnchkey)
 3. [Gợi Ý Từ Thông Minh & Dự Đoán Từ Kế Tiếp Kiểu Gboard](#gợi-ý-từ-thông-minh--dự-đoán-từ-kế-tiếp-kiểu-gboard)
@@ -260,6 +262,29 @@ Học hỏi từ tinh hoa kỹ thuật của VietC và Bamboo, OpenViet IME hỗ
   - Phím `6` (mũ) trên `ă` $\rightarrow$ `â` (ví dụ: `tắ` + `6` $\rightarrow$ `tấ`).
   - Phím `7` (móc) trên `ô` $\rightarrow$ `ơ` (ví dụ: `bốn` + `7` $\rightarrow$ `bớn`, `giồ` + `7` $\rightarrow$ `giờ`).
   - Phím `6` (mũ) trên `ơ` $\rightarrow$ `ô` (ví dụ: `bớn` + `6` $\rightarrow$ `bốn`, `giờ` + `6` $\rightarrow$ `giồ`).
+
+---
+
+### Chuẩn Hóa Viết Hoa/Thường Theo Chữ Cái Đầu (Harmonize Syllable Case)
+
+Lấy cảm hứng từ các kiến trúc bộ gõ hệ thống hiện đại viết bằng Rust/C (`casing.rs`), OpenViet IME tích hợp module chuẩn hóa casing độc lập (`src/engine/casing.js`):
+- **Khắc phục lỗi kẹt phím Shift / CapsLock**: Khi chữ cái đầu viết Hoa và các ký tự phía sau bị gõ nhầm với Shift/CapsLock (`ĐƯợc`, `ĐƯỢc`), toàn bộ phần sau được tự động đưa về chữ thường $\rightarrow$ `Được`.
+- **Viết thường đồng nhất**: Chữ cái đầu viết Thường nhưng có âm phía sau bị gõ hoa (`đƯỢc`), toàn bộ từ được tự động đưa về chữ thường $\rightarrow$ `được`.
+- **Bảo lưu chữ hoa toàn bộ (ALL CAPS)**: Các từ hoặc câu viết hoa toàn bộ (`ĐƯỢC`, `VIỆT NAM`) được giữ nguyên tuyệt đối.
+- **An toàn cho lập trình viên**: Tuyệt đối không can thiệp làm hỏng các biến trong code (`useState`, `loWeRcAsE`, `mIxEd`, `UserController`).
+
+---
+
+### Tự Động Điền Dấu Cho Các Âm Tiết Đặc Thù (Unique Syllables Auto-Completion)
+
+Đối với các âm tiết tiếng Việt chỉ có duy nhất một dạng chính tả hợp lệ, OpenViet IME tự động áp dụng dấu chuẩn ngay khi gõ xong chuỗi ký tự cơ sở:
+- `khong` $\rightarrow$ tự động thành **`không`** (bảo lưu đúng case: `Khong` $\rightarrow$ `Không`, `KHONG` $\rightarrow$ `KHÔNG`).
+- `truong` $\rightarrow$ tự động thành **`trương`**.
+- `nganh` $\rightarrow$ tự động thành **`ngành`** (`Nganh` $\rightarrow$ `Ngành`, `NGANH` $\rightarrow$ `NGÀNH`).
+- **Linh hoạt bỏ dấu thanh**: Người dùng hoàn toàn có thể gõ thêm dấu thanh tùy ý bất cứ lúc nào:
+  - `khongs` / `khong1` $\rightarrow$ `khống`, `khongf` / `khong2` $\rightarrow$ `khồng`, `khongr` / `khong3` $\rightarrow$ `khổng`, `khongj` / `khong5` $\rightarrow$ `khộng`.
+  - `truongf` / `truong2` $\rightarrow$ `trường`, `truongs` / `truong1` $\rightarrow$ `trướng`, `truongr` / `truong3` $\rightarrow$ `trưởng`, `truongj` / `truong5` $\rightarrow$ `trượng`.
+  - `nganhj` / `nganh5` $\rightarrow$ `ngạnh`.
 
 ---
 
