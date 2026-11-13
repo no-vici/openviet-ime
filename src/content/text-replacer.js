@@ -1,11 +1,32 @@
 /**
  * Text Replacer and Caret / Selection Manager
- * Intercepts and replaces text in native inputs and contenteditable editors with synthetic InputEvents.
+ * Intercepts and replaces text in native inputs and contenteditable editors
+ * with synthetic InputEvents and a ClipboardEvent('paste') adapter for Microsoft Teams Web (RoosterJS).
  *
  * @license Apache-2.0
  */
 
 export class TextReplacer {
+  /**
+   * Detect if the current page/editor is Microsoft Teams Web (RoosterJS / CKEditor)
+   * which requires ClipboardEvent('paste') to safely update its internal Content Model.
+   */
+  isTeamsEditor(root) {
+    if (typeof window !== 'undefined' && window.location) {
+      const host = window.location.hostname.toLowerCase();
+      if (host === 'teams.microsoft.com' || host.endsWith('.teams.microsoft.com') ||
+          host === 'teams.live.com' || host.endsWith('.teams.live.com')) {
+        return true;
+      }
+    }
+    if (root && typeof root.closest === 'function') {
+      if (root.closest('[data-tid="ckeditor"], [data-tid="message-pane-input"], .rooster-editor')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Replace text in a native HTMLInputElement or HTMLTextAreaElement
    * @param {HTMLInputElement|HTMLTextAreaElement} el
@@ -40,7 +61,45 @@ export class TextReplacer {
   }
 
   /**
-   * Replace text in a ContentEditable container (handles regular editors and ProseMirror/TipTap)
+   * Adapter for Microsoft Teams Web (RoosterJS):
+   * Selects the target range and dispatches a synthetic ClipboardEvent('paste')
+   * containing plain text so RoosterJS's PastePlugin updates its internal Content Model cleanly.
+   */
+  replaceViaPasteAdapter(root, replaceRange, nfcNewText) {
+    try {
+      const sel = window.getSelection();
+      if (!sel) return false;
+
+      if (replaceRange) {
+        sel.removeAllRanges();
+        sel.addRange(replaceRange);
+      }
+
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData('text/plain', nfcNewText);
+
+      const pasteEvent = new ClipboardEvent('paste', {
+        clipboardData: dataTransfer,
+        bubbles: true,
+        cancelable: true
+      });
+
+      // Dispatch paste event to the active editor element
+      const targetEl = document.activeElement || root;
+      targetEl.dispatchEvent(pasteEvent);
+
+      // If Teams handled and prevented default on the paste event, Content Model is updated!
+      if (pasteEvent.defaultPrevented) {
+        return true;
+      }
+    } catch {
+      // Fallback if DataTransfer/ClipboardEvent constructor is restricted
+    }
+    return false;
+  }
+
+  /**
+   * Replace text in a ContentEditable container (handles regular editors, ProseMirror, Lexical, and Teams RoosterJS)
    * @param {HTMLElement} root ContentEditable root
    * @param {string} oldText String to replace
    * @param {string} newText Replacement string
@@ -52,10 +111,16 @@ export class TextReplacer {
     // Strict Unicode NFC normalization for output
     const nfcNewText = (newText || '').normalize('NFC');
     const nfcOldText = (oldText || '').normalize('NFC');
+    const isTeams = this.isTeamsEditor(root);
 
-    // For modern rich-text editors (like TipTap / ProseMirror on Telegram Web A or Sider.ai / StackEdit),
-    // when inserting a single character (empty oldText), try document.execCommand first
+    // 1. Insertion with empty oldText (e.g., Auto-Capitalize or Next-Word insertion)
     if (!nfcOldText) {
+      if (isTeams) {
+        const currentRange = sel.getRangeAt(0);
+        if (this.replaceViaPasteAdapter(root, currentRange, nfcNewText)) {
+          return;
+        }
+      }
       try {
         if (document.execCommand('insertText', false, nfcNewText)) {
           const isLexical = root.hasAttribute?.('data-lexical-editor') || root.closest?.('[data-lexical-editor]');
@@ -71,7 +136,7 @@ export class TextReplacer {
     let node = range.startContainer;
     let offset = range.startOffset;
 
-    // If node is an ELEMENT_NODE (e.g. <p> container in TipTap / ProseMirror), locate the text node
+    // If node is an ELEMENT_NODE (e.g. <p> container in TipTap / ProseMirror / RoosterJS), locate the text node
     if (node.nodeType === Node.ELEMENT_NODE && node.childNodes.length > 0) {
       if (offset > 0 && node.childNodes[offset - 1]) {
         const prev = node.childNodes[offset - 1];
@@ -98,27 +163,26 @@ export class TextReplacer {
         const replaceStart = offset - nfcOldText.length;
         const newContent = text.slice(0, replaceStart) + nfcNewText + text.slice(offset);
 
-        // 1. Try atomic replacement via selection Range + execCommand('insertText')
-        // For rich editors like Telegram Web A (TipTap/ProseMirror), Slate, Notion,
-        // selecting the exact range and executing insertText is handled as a single undoable
-        // transactional step without triggering MutationObserver desync or duplicate text.
+        const replaceRange = document.createRange();
+        replaceRange.setStart(node, replaceStart);
+        replaceRange.setEnd(node, offset);
+
+        // 2. Microsoft Teams Web (RoosterJS) Adapter
+        if (isTeams) {
+          if (this.replaceViaPasteAdapter(root, replaceRange, nfcNewText)) {
+            return;
+          }
+        }
+
+        // 3. Standard Rich Editors (TipTap/ProseMirror, Lexical, Slate)
         try {
-          const replaceRange = document.createRange();
-          replaceRange.setStart(node, replaceStart);
-          replaceRange.setEnd(node, offset);
           sel.removeAllRanges();
           sel.addRange(replaceRange);
 
           // Dispatch beforeinput with insertReplacementText if supported
           this.dispatchBeforeInput(root, nfcNewText, replaceRange);
 
-          // For Lexical (WhatsApp Web, Facebook Messenger) and modern rich-text editors,
-          // execCommand('insertText') atomically replaces replaceRange and synchronizes internal EditorState.
-          // In browsers (Chrome / Firefox), execCommand returns true upon successful replacement.
           if (document.execCommand('insertText', false, nfcNewText)) {
-            // Check if root is Lexical (data-lexical-editor). Lexical reconciles on beforeinput/execCommand
-            // and dispatches its own internal events; dispatching an extra synthetic InputEvent on Lexical
-            // can cause WhatsApp Web's Lexical reconciler to register a double-insert / duplicate token!
             const isLexical = root.hasAttribute?.('data-lexical-editor') || root.closest?.('[data-lexical-editor]');
             if (!isLexical) {
               this.dispatchSyntheticInput(root, nfcNewText);
@@ -127,7 +191,7 @@ export class TextReplacer {
           }
         } catch {}
 
-        // 2. Direct DOM manipulation fallback if execCommand fails
+        // 4. Direct DOM manipulation fallback if execCommand fails
         node.textContent = newContent;
 
         // Reposition caret INSIDE the text node

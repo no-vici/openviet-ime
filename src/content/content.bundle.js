@@ -4479,6 +4479,24 @@
   // src/content/text-replacer.js
   var TextReplacer = class {
     /**
+     * Detect if the current page/editor is Microsoft Teams Web (RoosterJS / CKEditor)
+     * which requires ClipboardEvent('paste') to safely update its internal Content Model.
+     */
+    isTeamsEditor(root) {
+      if (typeof window !== "undefined" && window.location) {
+        const host = window.location.hostname.toLowerCase();
+        if (host === "teams.microsoft.com" || host.endsWith(".teams.microsoft.com") || host === "teams.live.com" || host.endsWith(".teams.live.com")) {
+          return true;
+        }
+      }
+      if (root && typeof root.closest === "function") {
+        if (root.closest('[data-tid="ckeditor"], [data-tid="message-pane-input"], .rooster-editor')) {
+          return true;
+        }
+      }
+      return false;
+    }
+    /**
      * Replace text in a native HTMLInputElement or HTMLTextAreaElement
      * @param {HTMLInputElement|HTMLTextAreaElement} el
      * @param {number} startIndex Start index of text to replace
@@ -4503,7 +4521,36 @@
       this.dispatchSyntheticInput(el, nfcReplacement);
     }
     /**
-     * Replace text in a ContentEditable container (handles regular editors and ProseMirror/TipTap)
+     * Adapter for Microsoft Teams Web (RoosterJS):
+     * Selects the target range and dispatches a synthetic ClipboardEvent('paste')
+     * containing plain text so RoosterJS's PastePlugin updates its internal Content Model cleanly.
+     */
+    replaceViaPasteAdapter(root, replaceRange, nfcNewText) {
+      try {
+        const sel = window.getSelection();
+        if (!sel) return false;
+        if (replaceRange) {
+          sel.removeAllRanges();
+          sel.addRange(replaceRange);
+        }
+        const dataTransfer = new DataTransfer();
+        dataTransfer.setData("text/plain", nfcNewText);
+        const pasteEvent = new ClipboardEvent("paste", {
+          clipboardData: dataTransfer,
+          bubbles: true,
+          cancelable: true
+        });
+        const targetEl = document.activeElement || root;
+        targetEl.dispatchEvent(pasteEvent);
+        if (pasteEvent.defaultPrevented) {
+          return true;
+        }
+      } catch {
+      }
+      return false;
+    }
+    /**
+     * Replace text in a ContentEditable container (handles regular editors, ProseMirror, Lexical, and Teams RoosterJS)
      * @param {HTMLElement} root ContentEditable root
      * @param {string} oldText String to replace
      * @param {string} newText Replacement string
@@ -4513,7 +4560,14 @@
       if (!sel || !sel.rangeCount) return;
       const nfcNewText = (newText || "").normalize("NFC");
       const nfcOldText = (oldText || "").normalize("NFC");
+      const isTeams = this.isTeamsEditor(root);
       if (!nfcOldText) {
+        if (isTeams) {
+          const currentRange = sel.getRangeAt(0);
+          if (this.replaceViaPasteAdapter(root, currentRange, nfcNewText)) {
+            return;
+          }
+        }
         try {
           if (document.execCommand("insertText", false, nfcNewText)) {
             const isLexical = root.hasAttribute?.("data-lexical-editor") || root.closest?.("[data-lexical-editor]");
@@ -4550,10 +4604,15 @@
         if (textBeforeCursor.endsWith(nfcOldText)) {
           const replaceStart = offset - nfcOldText.length;
           const newContent = text.slice(0, replaceStart) + nfcNewText + text.slice(offset);
+          const replaceRange = document.createRange();
+          replaceRange.setStart(node, replaceStart);
+          replaceRange.setEnd(node, offset);
+          if (isTeams) {
+            if (this.replaceViaPasteAdapter(root, replaceRange, nfcNewText)) {
+              return;
+            }
+          }
           try {
-            const replaceRange = document.createRange();
-            replaceRange.setStart(node, replaceStart);
-            replaceRange.setEnd(node, offset);
             sel.removeAllRanges();
             sel.addRange(replaceRange);
             this.dispatchBeforeInput(root, nfcNewText, replaceRange);
@@ -6993,11 +7052,15 @@
       this.bindEvents();
       this.listenMessages();
       this.loadSettings();
-      if (typeof document !== "undefined") {
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", () => this.initSuggestionHost(), { once: true });
-        } else {
-          this.initSuggestionHost();
+      if (typeof document !== "undefined" && typeof window !== "undefined" && window.location) {
+        const host = (window.location.hostname || "").toLowerCase();
+        const isTeams = host === "teams.microsoft.com" || host.endsWith(".teams.microsoft.com") || host === "teams.live.com" || host.endsWith(".teams.live.com");
+        if (!isTeams) {
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", () => this.initSuggestionHost(), { once: true });
+          } else {
+            this.initSuggestionHost();
+          }
         }
       }
     }
@@ -7660,6 +7723,9 @@
         return;
       } else {
         this.lastCtrlTime = 0;
+      }
+      if (this.settings.method === IME_METHOD.OFF) {
+        return;
       }
       if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && this.isSuggestionsVisible() && this.settings.suggestionStyle !== "ghost_text") {
         const count = this.activeSuggestions.length;
@@ -8542,7 +8608,7 @@
           }
         }
       }
-      if (this.settings.autoCapitalize !== false && key.length === 1 && key >= "a" && key <= "z") {
+      if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= "a" && key <= "z") {
         if (this.shouldAutoCapitalize(target)) {
           const upperChar = key.toUpperCase();
           event.preventDefault();
@@ -8755,7 +8821,8 @@
  */
 /**
  * Text Replacer and Caret / Selection Manager
- * Intercepts and replaces text in native inputs and contenteditable editors with synthetic InputEvents.
+ * Intercepts and replaces text in native inputs and contenteditable editors
+ * with synthetic InputEvents and a ClipboardEvent('paste') adapter for Microsoft Teams Web (RoosterJS).
  *
  * @license Apache-2.0
  */

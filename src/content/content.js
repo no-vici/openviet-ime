@@ -76,12 +76,18 @@ class AvimContentScript {
     this.listenMessages();
     this.loadSettings();
 
-    // Eagerly mount shadow host so that first keystroke does not mutate document.body in ProseMirror/TipTap
-    if (typeof document !== 'undefined') {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => this.initSuggestionHost(), { once: true });
-      } else {
-        this.initSuggestionHost();
+    // Only mount suggestion host eagerly if not on Teams / heavy rich editor domains
+    // and when document body is ready. For special domains or lazy mode, it is mounted on-demand.
+    if (typeof document !== 'undefined' && typeof window !== 'undefined' && window.location) {
+      const host = (window.location.hostname || '').toLowerCase();
+      const isTeams = host === 'teams.microsoft.com' || host.endsWith('.teams.microsoft.com') ||
+                      host === 'teams.live.com' || host.endsWith('.teams.live.com');
+      if (!isTeams) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => this.initSuggestionHost(), { once: true });
+        } else {
+          this.initSuggestionHost();
+        }
       }
     }
   }
@@ -849,6 +855,11 @@ class AvimContentScript {
       return;
     } else {
       this.lastCtrlTime = 0;
+    }
+
+    // Fast exit if IME method is OFF: release 100% of keyboard events to the browser / web app
+    if (this.settings.method === IME_METHOD.OFF) {
+      return;
     }
 
     // ArrowUp / ArrowDown key: Cycle suggestions in Ribbon mode
@@ -1915,7 +1926,8 @@ class AvimContentScript {
     }
 
     // A3. Auto-Capitalization at beginning of sentence (. ! ? followed by space or line start)
-    if (this.settings.autoCapitalize !== false && key.length === 1 && key >= 'a' && key <= 'z') {
+    // Only active when IME is enabled (method !== IME_METHOD.OFF)
+    if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= 'a' && key <= 'z') {
       if (this.shouldAutoCapitalize(target)) {
         const upperChar = key.toUpperCase();
         event.preventDefault();
