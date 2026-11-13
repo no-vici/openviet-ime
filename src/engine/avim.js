@@ -396,15 +396,15 @@ export class AvimEngine {
     // Phonology Rules Check: Foreign onset protection (GoNhanh / vnchKey)
     // Words starting with English/foreign consonant clusters (pl-, fl-, cl-, gl-, bl-, sl-, pr-, dr-, cr-, br-, gr-, fr-, sp-, st-, sk-, sm-, sn-, sw-, tw-, str-, etc.)
     // such as 'play', 'playwright', 'flow', 'slow', 'status', 'start', 'clean', 'spring', 'browser'
-    // are 100% foreign and must never receive Vietnamese diacritics, UNLESS they can form recognized Vietnamese/ethnic words (e.g. 'pleiku', 'krông', 'prông', 'glong', 'grai', 'gram').
+    // are 100% foreign and must never receive Vietnamese diacritics, UNLESS they can form recognized Vietnamese/ethnic words (e.g. 'pleiku', 'krông', 'prông', 'glong', 'grai', 'gram', 'đrắk', 'm\'đrắk').
     if (this.phonologyRules && hasForeignOnset(word)) {
       const vnSet = getVietnameseWordSet();
       const cWord = canon(word);
       const isKnown = vnSet.has(cWord);
-      // Allow in-progress typing if word could form a known ethnic/foreign-onset Vietnamese word (e.g. prông, glong, grai, pleiku, gram)
+      // Allow in-progress typing if word could form a known ethnic/foreign-onset Vietnamese word (e.g. prông, glong, grai, pleiku, gram, krông, đrắk)
       const stripAcc = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase();
       const sWord = stripAcc(cWord);
-      const isPotentialPrefix = !isKnown && ['prông', 'glong', 'grai', 'pleiku', 'gram', 'krông'].some(w => stripAcc(w).startsWith(sWord));
+      const isPotentialPrefix = !isKnown && ['prông', 'glong', 'grai', 'pleiku', 'gram', 'krông', 'đrắk', 'đrăk', 'đrak', 'm\'đrắk'].some(w => stripAcc(w).startsWith(sWord));
       if (!isKnown && !isPotentialPrefix) {
         return { transformed: false, result: word + key };
       }
@@ -765,6 +765,7 @@ export class AvimEngine {
     const lowerLast = lastChar.toLowerCase();
 
     // Telex 'd' + 'd' -> 'đ' / 'd' + 'd' + 'd' -> 'dd'
+    // Also supports delayed 'd' at end of syllable containing a 'd' (vnchKey/GoNhanh feature: drak + d -> đrak, duoc + d -> đuoc)
     if (method === IME_METHOD.TELEX && lowerKey === 'd') {
       if (lowerLast === 'd') {
         const isUpper = lastChar === 'D';
@@ -776,6 +777,28 @@ export class AvimEngine {
         const isUpper = lastChar === 'Đ';
         const replacement = isUpper ? 'DD' : 'dd';
         return { transformed: true, result: word.slice(0, -1) + replacement };
+      }
+
+      // Delayed 'd' modifier when word already has a vowel and an initial 'd'/'đ'
+      const hasVowel = Array.from(word).some(ch => Boolean(CHAR_TO_BASE_AND_TONE[ch]));
+      if (hasVowel) {
+        const dIndex = word.toLowerCase().indexOf('d');
+        const dbarIndex = word.toLowerCase().indexOf('đ');
+        if (dbarIndex !== -1) {
+          const char = word[dbarIndex];
+          const rep = char === 'Đ' ? 'D' : 'd';
+          return {
+            transformed: true,
+            result: word.slice(0, dbarIndex) + rep + word.slice(dbarIndex + 1) + key
+          };
+        } else if (dIndex !== -1) {
+          const char = word[dIndex];
+          const rep = char === 'D' ? 'Đ' : 'đ';
+          return {
+            transformed: true,
+            result: word.slice(0, dIndex) + rep + word.slice(dIndex + 1)
+          };
+        }
       }
     }
 

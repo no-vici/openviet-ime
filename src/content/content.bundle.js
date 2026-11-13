@@ -204,6 +204,10 @@
     "\u0111r\xE1k",
     "\u0111r\u1EAFk",
     "\u0111r\u0103k",
+    "dr\u1EAFk",
+    "dr\u0103k",
+    "drak",
+    "dr\xE1k",
     "l\u1EAFk",
     "l\u0103k",
     "lak",
@@ -684,6 +688,10 @@
             "\u0111r\xE1k",
             "\u0111r\u1EAFk",
             "\u0111r\u0103k",
+            "dr\u1EAFk",
+            "dr\u0103k",
+            "drak",
+            "dr\xE1k",
             "l\u1EAFk",
             "l\u0103k",
             "lak",
@@ -3071,7 +3079,7 @@
         const isKnown = vnSet.has(cWord);
         const stripAcc = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[đĐ]/g, "d").toLowerCase();
         const sWord = stripAcc(cWord);
-        const isPotentialPrefix = !isKnown && ["pr\xF4ng", "glong", "grai", "pleiku", "gram", "kr\xF4ng"].some((w) => stripAcc(w).startsWith(sWord));
+        const isPotentialPrefix = !isKnown && ["pr\xF4ng", "glong", "grai", "pleiku", "gram", "kr\xF4ng", "\u0111r\u1EAFk", "\u0111r\u0103k", "\u0111rak", "m'\u0111r\u1EAFk"].some((w) => stripAcc(w).startsWith(sWord));
         if (!isKnown && !isPotentialPrefix) {
           return { transformed: false, result: word + key };
         }
@@ -3355,6 +3363,26 @@
           const isUpper = lastChar === "\u0110";
           const replacement = isUpper ? "DD" : "dd";
           return { transformed: true, result: word.slice(0, -1) + replacement };
+        }
+        const hasVowel = Array.from(word).some((ch) => Boolean(CHAR_TO_BASE_AND_TONE[ch]));
+        if (hasVowel) {
+          const dIndex = word.toLowerCase().indexOf("d");
+          const dbarIndex = word.toLowerCase().indexOf("\u0111");
+          if (dbarIndex !== -1) {
+            const char = word[dbarIndex];
+            const rep = char === "\u0110" ? "D" : "d";
+            return {
+              transformed: true,
+              result: word.slice(0, dbarIndex) + rep + word.slice(dbarIndex + 1) + key
+            };
+          } else if (dIndex !== -1) {
+            const char = word[dIndex];
+            const rep = char === "D" ? "\u0110" : "\u0111";
+            return {
+              transformed: true,
+              result: word.slice(0, dIndex) + rep + word.slice(dIndex + 1)
+            };
+          }
         }
       }
       if (method === IME_METHOD.VNI && key === "9") {

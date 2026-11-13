@@ -27,6 +27,7 @@ export const ALL_VIETNAMESE_SINGLE_VOWELS = [
 export const RARE_AND_PLACE_SYLLABLES = [
   // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn (bao gồm cả dạng thanh ngang, có dấu và dạng trung gian khi gõ phím ở cuối từ)
   'đắk', 'đăk', 'đrak', 'đrák', 'đrắk', 'đrăk',
+  'drắk', 'drăk', 'drak', 'drák',
   'lắk', 'lăk', 'lak', 'lák', 'nông',
   'krông', 'pắk', 'păk', 'pak', 'pák', 'búk', 'buk', 'păh', 'pah', 'páh', 'prông', 'ana',
   'ea', "h'leo", 'hleo', 'kar', 'súp',

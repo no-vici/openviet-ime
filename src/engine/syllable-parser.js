@@ -283,6 +283,7 @@ export class ParsedSyllable {
         const fullSyllable = this.reconstruct().toLowerCase();
         const VALID_ETHNIC_BASES = new Set([
           'đắk', 'đăk', 'đrak', 'đrák', 'đrắk', 'đrăk',
+          'drắk', 'drăk', 'drak', 'drák',
           'lắk', 'lăk', 'lak', 'lák',
           'pắk', 'păk', 'pak', 'pák',
           'buk', 'búk', 'păh', 'pah', 'páh',
