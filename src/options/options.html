@@ -683,6 +683,17 @@
           </div>
         </div>
 
+        <div class="table-toolbar" style="margin-bottom: 12px;">
+          <div style="display: flex; gap: 8px; flex: 1;">
+            <input type="text" id="habitSearch" class="form-control search-input font-mono" placeholder="Tìm kiếm thói quen...">
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="newHabitFromInput" class="form-control font-mono" placeholder="Từ đầu (vd: họp)..." style="width: 140px;">
+            <input type="text" id="newHabitToInput" class="form-control font-mono" placeholder="Từ tiếp theo (vd: team)..." style="width: 160px;">
+            <button id="addHabitBtn" class="btn btn-primary">+ Thêm Cặp Từ</button>
+          </div>
+        </div>
+
         <div class="table-container" style="max-height: 400px; overflow-y: auto;">
           <table>
             <thead>
@@ -691,7 +702,8 @@
                 <th>Từ bắt đầu</th>
                 <th>Từ kế tiếp (dự đoán)</th>
                 <th style="width: 120px; text-align: center;">Số lần gõ</th>
-                <th style="width: 120px; text-align: right;">Phân loại</th>
+                <th style="width: 110px; text-align: center;">Phân loại</th>
+                <th style="width: 130px; text-align: right;">Thao tác</th>
               </tr>
             </thead>
             <tbody id="habitsTableBody">
@@ -843,6 +855,29 @@
       <div class="modal-footer">
         <button id="importHabitsCancelBtn" class="btn">Đóng</button>
         <button id="importHabitsConfirmBtn" class="btn btn-primary">Nạp Thói Quen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Habit Modal -->
+  <div id="editHabitModal" class="modal-backdrop">
+    <div class="modal">
+      <h3 class="modal-title">Chỉnh Sửa Cặp Từ Thói Quen (AI / Gboard)</h3>
+      <div class="form-group">
+        <label class="form-label">Từ bắt đầu (W1):</label>
+        <input type="text" id="editHabitFromInput" class="form-control font-mono">
+      </div>
+      <div class="form-group" style="margin-top: 10px;">
+        <label class="form-label">Từ tiếp theo được gợi ý (W2):</label>
+        <input type="text" id="editHabitToInput" class="form-control font-mono">
+      </div>
+      <div class="form-group" style="margin-top: 10px;">
+        <label class="form-label">Số lần gõ ghi nhận (Độ ưu tiên):</label>
+        <input type="number" id="editHabitCountInput" class="form-control font-mono" min="1" max="9999" value="1">
+      </div>
+      <div class="modal-footer">
+        <button id="editHabitCancelBtn" class="btn">Hủy</button>
+        <button id="editHabitSaveBtn" class="btn btn-primary">Lưu Thay Đổi</button>
       </div>
     </div>
   </div>

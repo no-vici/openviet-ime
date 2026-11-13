@@ -3056,6 +3056,64 @@
       this.saveToStorage();
     }
     /**
+     * Remove a specific bigram pair from learned habits
+     * @param {string} from Starting word
+     * @param {string} to Next predicted word
+     */
+    removeBigram(from, to) {
+      const f = (from || "").trim().toLowerCase();
+      const t = (to || "").trim().toLowerCase();
+      if (!f || !t || !this.userBigrams[f]) return false;
+      if (this.userBigrams[f][t]) {
+        delete this.userBigrams[f][t];
+        if (Object.keys(this.userBigrams[f]).length === 0) {
+          delete this.userBigrams[f];
+        }
+        this.flushSaveToStorage();
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Update or edit an existing learned bigram pair
+     * @param {string} oldFrom Previous starting word
+     * @param {string} oldTo Previous target word
+     * @param {string} newFrom New starting word
+     * @param {string} newTo New target word
+     * @param {number} newCount Optional new count
+     */
+    updateBigram(oldFrom, oldTo, newFrom, newTo, newCount) {
+      const of = (oldFrom || "").trim().toLowerCase();
+      const ot = (oldTo || "").trim().toLowerCase();
+      const nf = (newFrom || "").trim().toLowerCase();
+      const nt = (newTo || "").trim().toLowerCase();
+      if (!of || !ot || !nf || !nt) return false;
+      let existingCount = 1;
+      let existingLastUsed = Date.now();
+      if (this.userBigrams[of] && this.userBigrams[of][ot]) {
+        const cur = this.userBigrams[of][ot];
+        existingCount = typeof cur === "number" ? cur : cur?.count || 1;
+        existingLastUsed = cur?.lastUsed || Date.now();
+        delete this.userBigrams[of][ot];
+        if (Object.keys(this.userBigrams[of]).length === 0) {
+          delete this.userBigrams[of];
+        }
+      }
+      const finalCount = typeof newCount === "number" && newCount > 0 ? newCount : existingCount;
+      if (!this.userBigrams[nf]) {
+        this.userBigrams[nf] = {};
+      }
+      this.userBigrams[nf][nt] = {
+        count: finalCount,
+        lastUsed: existingLastUsed
+      };
+      if (!this.userUnigrams[nt]) {
+        this.userUnigrams[nt] = { count: finalCount, lastUsed: existingLastUsed };
+      }
+      this.flushSaveToStorage();
+      return true;
+    }
+    /**
      * Reset all learned habits
      */
     clear() {
@@ -3372,6 +3430,18 @@
      */
     getLearnedStats() {
       return this.learnedModel.getStats();
+    }
+    /**
+     * Remove a specific bigram pair from learned habits
+     */
+    removeLearnedHabit(from, to) {
+      return this.learnedModel.removeBigram(from, to);
+    }
+    /**
+     * Update or edit an existing learned bigram pair
+     */
+    updateLearnedHabit(oldFrom, oldTo, newFrom, newTo, newCount) {
+      return this.learnedModel.updateBigram(oldFrom, oldTo, newFrom, newTo, newCount);
     }
     /**
      * Clear learned habits
@@ -4489,6 +4559,16 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const statTotalTransitions = document.getElementById("statTotalTransitions");
     const statTotalWords = document.getElementById("statTotalWords");
     const habitsTableBody = document.getElementById("habitsTableBody");
+    const habitSearch = document.getElementById("habitSearch");
+    const newHabitFromInput = document.getElementById("newHabitFromInput");
+    const newHabitToInput = document.getElementById("newHabitToInput");
+    const addHabitBtn = document.getElementById("addHabitBtn");
+    const editHabitModal = document.getElementById("editHabitModal");
+    const editHabitFromInput = document.getElementById("editHabitFromInput");
+    const editHabitToInput = document.getElementById("editHabitToInput");
+    const editHabitCountInput = document.getElementById("editHabitCountInput");
+    const editHabitCancelBtn = document.getElementById("editHabitCancelBtn");
+    const editHabitSaveBtn = document.getElementById("editHabitSaveBtn");
     const seedHabitsBtn = document.getElementById("seedHabitsBtn");
     const clearHabitsBtn = document.getElementById("clearHabitsBtn");
     const exportHabitsCsvBtn = document.getElementById("exportHabitsCsvBtn");
@@ -4500,6 +4580,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const importHabitsMergeOption = document.getElementById("importHabitsMergeOption");
     const importHabitsCancelBtn = document.getElementById("importHabitsCancelBtn");
     const importHabitsConfirmBtn = document.getElementById("importHabitsConfirmBtn");
+    let editingHabitItem = null;
     renderHabitsTableAndStats = async () => {
       try {
         await autoCompleteEngine.loadFromStorage();
@@ -4511,33 +4592,39 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (statTotalWords) statTotalWords.textContent = String(stats.totalWordsLearned);
       if (!habitsTableBody) return;
       habitsTableBody.textContent = "";
-      if (!stats.topPairs || stats.topPairs.length === 0) {
+      const query = (habitSearch?.value || "").toLowerCase().trim();
+      let displayPairs = stats.topPairs || [];
+      if (query) {
+        displayPairs = displayPairs.filter((p) => p.from.toLowerCase().includes(query) || p.to.toLowerCase().includes(query));
+      }
+      if (!displayPairs || displayPairs.length === 0) {
         const emptyTr = document.createElement("tr");
         const emptyTd = document.createElement("td");
-        emptyTd.colSpan = 5;
+        emptyTd.colSpan = 6;
         Object.assign(emptyTd.style, {
           textAlign: "center",
           padding: "24px",
           color: "#94a3b8"
         });
-        emptyTd.textContent = 'Ch\u01B0a c\xF3 th\xF3i quen n\xE0o \u0111\u01B0\u1EE3c h\u1ECDc. H\xE3y g\xF5 v\xE0i t\u1EEB ho\u1EB7c nh\u1EA5n "N\u1EA1p M\u1EABu Th\xF3i Quen Th\u1EED" \u0111\u1EC3 tr\u1EA3i nghi\u1EC7m!';
+        emptyTd.textContent = query ? "Kh\xF4ng t\xECm th\u1EA5y c\u1EB7p t\u1EEB th\xF3i quen n\xE0o kh\u1EDBp v\u1EDBi t\xECm ki\u1EBFm." : 'Ch\u01B0a c\xF3 th\xF3i quen n\xE0o \u0111\u01B0\u1EE3c h\u1ECDc. H\xE3y g\xF5 v\xE0i t\u1EEB ho\u1EB7c nh\u1EA5n "N\u1EA1p M\u1EABu Th\u1EED" \u0111\u1EC3 tr\u1EA3i nghi\u1EC7m!';
         emptyTr.appendChild(emptyTd);
         habitsTableBody.appendChild(emptyTr);
         return;
       }
-      stats.topPairs.forEach((item, index) => {
+      displayPairs.forEach((item, index) => {
         const tr = document.createElement("tr");
         const td1 = document.createElement("td");
         td1.style.color = "#94a3b8";
         td1.textContent = String(index + 1);
         const td2 = document.createElement("td");
         const tagFrom = document.createElement("span");
-        tagFrom.className = "tag-trigger";
+        tagFrom.className = "tag-trigger font-mono";
         tagFrom.textContent = item.from;
         td2.appendChild(tagFrom);
         const td3 = document.createElement("td");
         const strongTo = document.createElement("strong");
         strongTo.style.color = "#38bdf8";
+        strongTo.className = "font-mono";
         strongTo.textContent = item.to;
         td3.appendChild(strongTo);
         const td4 = document.createElement("td");
@@ -4556,7 +4643,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
         countBadge.textContent = `${item.count} l\u1EA7n`;
         td4.appendChild(countBadge);
         const td5 = document.createElement("td");
-        td5.style.textAlign = "right";
+        td5.style.textAlign = "center";
         const badge = document.createElement("span");
         Object.assign(badge.style, {
           display: "inline-block",
@@ -4569,14 +4656,91 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
         });
         badge.textContent = "Th\xF3i quen";
         td5.appendChild(badge);
+        const td6 = document.createElement("td");
+        td6.style.textAlign = "right";
+        const editBtn = document.createElement("button");
+        editBtn.className = "btn";
+        editBtn.style.padding = "3px 8px";
+        editBtn.style.fontSize = "12px";
+        editBtn.style.marginRight = "6px";
+        editBtn.textContent = "S\u1EEDa";
+        editBtn.addEventListener("click", () => {
+          editingHabitItem = { ...item };
+          if (editHabitFromInput) editHabitFromInput.value = item.from;
+          if (editHabitToInput) editHabitToInput.value = item.to;
+          if (editHabitCountInput) editHabitCountInput.value = String(item.count || 1);
+          editHabitModal?.classList.add("open");
+        });
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn btn-danger";
+        delBtn.style.padding = "3px 8px";
+        delBtn.style.fontSize = "12px";
+        delBtn.textContent = "X\xF3a";
+        delBtn.addEventListener("click", () => {
+          if (confirm(`X\xF3a c\u1EB7p t\u1EEB th\xF3i quen "${item.from}" \u2794 "${item.to}"?`)) {
+            autoCompleteEngine.removeLearnedHabit(item.from, item.to);
+            renderHabitsTableAndStats();
+            showToast(`\u0110\xE3 x\xF3a g\u1EE3i \xFD th\xF3i quen "${item.from}" \u2794 "${item.to}"!`);
+          }
+        });
+        td6.appendChild(editBtn);
+        td6.appendChild(delBtn);
         tr.appendChild(td1);
         tr.appendChild(td2);
         tr.appendChild(td3);
         tr.appendChild(td4);
         tr.appendChild(td5);
+        tr.appendChild(td6);
         habitsTableBody.appendChild(tr);
       });
     };
+    habitSearch?.addEventListener("input", renderHabitsTableAndStats);
+    const addNewHabitPair = () => {
+      const from = (newHabitFromInput?.value || "").trim().toLowerCase();
+      const to = (newHabitToInput?.value || "").trim().toLowerCase();
+      if (!from || !to) {
+        alert("Vui l\xF2ng nh\u1EADp c\u1EA3 t\u1EEB b\u1EAFt \u0111\u1EA7u v\xE0 t\u1EEB k\u1EBF ti\u1EBFp.");
+        return;
+      }
+      autoCompleteEngine.recordWordTransition(from, to);
+      autoCompleteEngine.recordWordUsage(to);
+      if (newHabitFromInput) newHabitFromInput.value = "";
+      if (newHabitToInput) newHabitToInput.value = "";
+      renderHabitsTableAndStats();
+      showToast(`\u0110\xE3 th\xEAm c\u1EB7p t\u1EEB th\xF3i quen "${from}" \u2794 "${to}"!`);
+    };
+    addHabitBtn?.addEventListener("click", addNewHabitPair);
+    newHabitToInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addNewHabitPair();
+      }
+    });
+    editHabitCancelBtn?.addEventListener("click", () => {
+      editHabitModal?.classList.remove("open");
+      editingHabitItem = null;
+    });
+    editHabitSaveBtn?.addEventListener("click", () => {
+      if (!editingHabitItem) return;
+      const newFrom = (editHabitFromInput?.value || "").trim().toLowerCase();
+      const newTo = (editHabitToInput?.value || "").trim().toLowerCase();
+      const newCount = parseInt(editHabitCountInput?.value || "1", 10);
+      if (!newFrom || !newTo) {
+        alert("Vui l\xF2ng nh\u1EADp \u0111\u1EA7y \u0111\u1EE7 c\u1EA3 hai t\u1EEB.");
+        return;
+      }
+      autoCompleteEngine.updateLearnedHabit(
+        editingHabitItem.from,
+        editingHabitItem.to,
+        newFrom,
+        newTo,
+        isNaN(newCount) || newCount < 1 ? 1 : newCount
+      );
+      editHabitModal?.classList.remove("open");
+      editingHabitItem = null;
+      renderHabitsTableAndStats();
+      showToast(`\u0110\xE3 c\u1EADp nh\u1EADt th\xF3i quen "${newFrom}" \u2794 "${newTo}"!`);
+    });
     seedHabitsBtn?.addEventListener("click", () => {
       const count = autoCompleteEngine.seedLearnedHabits();
       renderHabitsTableAndStats();

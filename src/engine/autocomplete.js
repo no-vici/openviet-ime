@@ -1113,6 +1113,71 @@ export class GboardLearnedModel {
   }
 
   /**
+   * Remove a specific bigram pair from learned habits
+   * @param {string} from Starting word
+   * @param {string} to Next predicted word
+   */
+  removeBigram(from, to) {
+    const f = (from || '').trim().toLowerCase();
+    const t = (to || '').trim().toLowerCase();
+    if (!f || !t || !this.userBigrams[f]) return false;
+
+    if (this.userBigrams[f][t]) {
+      delete this.userBigrams[f][t];
+      if (Object.keys(this.userBigrams[f]).length === 0) {
+        delete this.userBigrams[f];
+      }
+      this.flushSaveToStorage();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Update or edit an existing learned bigram pair
+   * @param {string} oldFrom Previous starting word
+   * @param {string} oldTo Previous target word
+   * @param {string} newFrom New starting word
+   * @param {string} newTo New target word
+   * @param {number} newCount Optional new count
+   */
+  updateBigram(oldFrom, oldTo, newFrom, newTo, newCount) {
+    const of = (oldFrom || '').trim().toLowerCase();
+    const ot = (oldTo || '').trim().toLowerCase();
+    const nf = (newFrom || '').trim().toLowerCase();
+    const nt = (newTo || '').trim().toLowerCase();
+    if (!of || !ot || !nf || !nt) return false;
+
+    let existingCount = 1;
+    let existingLastUsed = Date.now();
+    if (this.userBigrams[of] && this.userBigrams[of][ot]) {
+      const cur = this.userBigrams[of][ot];
+      existingCount = typeof cur === 'number' ? cur : (cur?.count || 1);
+      existingLastUsed = cur?.lastUsed || Date.now();
+      delete this.userBigrams[of][ot];
+      if (Object.keys(this.userBigrams[of]).length === 0) {
+        delete this.userBigrams[of];
+      }
+    }
+
+    const finalCount = typeof newCount === 'number' && newCount > 0 ? newCount : existingCount;
+    if (!this.userBigrams[nf]) {
+      this.userBigrams[nf] = {};
+    }
+    this.userBigrams[nf][nt] = {
+      count: finalCount,
+      lastUsed: existingLastUsed
+    };
+
+    if (!this.userUnigrams[nt]) {
+      this.userUnigrams[nt] = { count: finalCount, lastUsed: existingLastUsed };
+    }
+
+    this.flushSaveToStorage();
+    return true;
+  }
+
+  /**
    * Reset all learned habits
    */
   clear() {
@@ -1465,6 +1530,20 @@ export class AutoCompleteEngine {
    */
   getLearnedStats() {
     return this.learnedModel.getStats();
+  }
+
+  /**
+   * Remove a specific bigram pair from learned habits
+   */
+  removeLearnedHabit(from, to) {
+    return this.learnedModel.removeBigram(from, to);
+  }
+
+  /**
+   * Update or edit an existing learned bigram pair
+   */
+  updateLearnedHabit(oldFrom, oldTo, newFrom, newTo, newCount) {
+    return this.learnedModel.updateBigram(oldFrom, oldTo, newFrom, newTo, newCount);
   }
 
   /**

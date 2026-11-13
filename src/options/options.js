@@ -965,6 +965,16 @@ function initAiHabitsTab() {
   const statTotalTransitions = document.getElementById('statTotalTransitions');
   const statTotalWords = document.getElementById('statTotalWords');
   const habitsTableBody = document.getElementById('habitsTableBody');
+  const habitSearch = document.getElementById('habitSearch');
+  const newHabitFromInput = document.getElementById('newHabitFromInput');
+  const newHabitToInput = document.getElementById('newHabitToInput');
+  const addHabitBtn = document.getElementById('addHabitBtn');
+  const editHabitModal = document.getElementById('editHabitModal');
+  const editHabitFromInput = document.getElementById('editHabitFromInput');
+  const editHabitToInput = document.getElementById('editHabitToInput');
+  const editHabitCountInput = document.getElementById('editHabitCountInput');
+  const editHabitCancelBtn = document.getElementById('editHabitCancelBtn');
+  const editHabitSaveBtn = document.getElementById('editHabitSaveBtn');
   const seedHabitsBtn = document.getElementById('seedHabitsBtn');
   const clearHabitsBtn = document.getElementById('clearHabitsBtn');
   const exportHabitsCsvBtn = document.getElementById('exportHabitsCsvBtn');
@@ -976,6 +986,8 @@ function initAiHabitsTab() {
   const importHabitsMergeOption = document.getElementById('importHabitsMergeOption');
   const importHabitsCancelBtn = document.getElementById('importHabitsCancelBtn');
   const importHabitsConfirmBtn = document.getElementById('importHabitsConfirmBtn');
+
+  let editingHabitItem = null;
 
   renderHabitsTableAndStats = async () => {
     try {
@@ -989,22 +1001,30 @@ function initAiHabitsTab() {
     if (!habitsTableBody) return;
     habitsTableBody.textContent = '';
 
-    if (!stats.topPairs || stats.topPairs.length === 0) {
+    const query = (habitSearch?.value || '').toLowerCase().trim();
+    let displayPairs = stats.topPairs || [];
+    if (query) {
+      displayPairs = displayPairs.filter(p => p.from.toLowerCase().includes(query) || p.to.toLowerCase().includes(query));
+    }
+
+    if (!displayPairs || displayPairs.length === 0) {
       const emptyTr = document.createElement('tr');
       const emptyTd = document.createElement('td');
-      emptyTd.colSpan = 5;
+      emptyTd.colSpan = 6;
       Object.assign(emptyTd.style, {
         textAlign: 'center',
         padding: '24px',
         color: '#94a3b8'
       });
-      emptyTd.textContent = 'Chưa có thói quen nào được học. Hãy gõ vài từ hoặc nhấn "Nạp Mẫu Thói Quen Thử" để trải nghiệm!';
+      emptyTd.textContent = query
+        ? 'Không tìm thấy cặp từ thói quen nào khớp với tìm kiếm.'
+        : 'Chưa có thói quen nào được học. Hãy gõ vài từ hoặc nhấn "Nạp Mẫu Thử" để trải nghiệm!';
       emptyTr.appendChild(emptyTd);
       habitsTableBody.appendChild(emptyTr);
       return;
     }
 
-    stats.topPairs.forEach((item, index) => {
+    displayPairs.forEach((item, index) => {
       const tr = document.createElement('tr');
 
       // Col 1: STT
@@ -1015,7 +1035,7 @@ function initAiHabitsTab() {
       // Col 2: Từ bắt đầu
       const td2 = document.createElement('td');
       const tagFrom = document.createElement('span');
-      tagFrom.className = 'tag-trigger';
+      tagFrom.className = 'tag-trigger font-mono';
       tagFrom.textContent = item.from;
       td2.appendChild(tagFrom);
 
@@ -1023,6 +1043,7 @@ function initAiHabitsTab() {
       const td3 = document.createElement('td');
       const strongTo = document.createElement('strong');
       strongTo.style.color = '#38bdf8';
+      strongTo.className = 'font-mono';
       strongTo.textContent = item.to;
       td3.appendChild(strongTo);
 
@@ -1045,7 +1066,7 @@ function initAiHabitsTab() {
 
       // Col 5: Phân loại
       const td5 = document.createElement('td');
-      td5.style.textAlign = 'right';
+      td5.style.textAlign = 'center';
       const badge = document.createElement('span');
       Object.assign(badge.style, {
         display: 'inline-block',
@@ -1059,14 +1080,105 @@ function initAiHabitsTab() {
       badge.textContent = 'Thói quen';
       td5.appendChild(badge);
 
+      // Col 6: Actions (Sửa & Xóa)
+      const td6 = document.createElement('td');
+      td6.style.textAlign = 'right';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn';
+      editBtn.style.padding = '3px 8px';
+      editBtn.style.fontSize = '12px';
+      editBtn.style.marginRight = '6px';
+      editBtn.textContent = 'Sửa';
+      editBtn.addEventListener('click', () => {
+        editingHabitItem = { ...item };
+        if (editHabitFromInput) editHabitFromInput.value = item.from;
+        if (editHabitToInput) editHabitToInput.value = item.to;
+        if (editHabitCountInput) editHabitCountInput.value = String(item.count || 1);
+        editHabitModal?.classList.add('open');
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-danger';
+      delBtn.style.padding = '3px 8px';
+      delBtn.style.fontSize = '12px';
+      delBtn.textContent = 'Xóa';
+      delBtn.addEventListener('click', () => {
+        if (confirm(`Xóa cặp từ thói quen "${item.from}" ➔ "${item.to}"?`)) {
+          autoCompleteEngine.removeLearnedHabit(item.from, item.to);
+          renderHabitsTableAndStats();
+          showToast(`Đã xóa gợi ý thói quen "${item.from}" ➔ "${item.to}"!`);
+        }
+      });
+
+      td6.appendChild(editBtn);
+      td6.appendChild(delBtn);
+
       tr.appendChild(td1);
       tr.appendChild(td2);
       tr.appendChild(td3);
       tr.appendChild(td4);
       tr.appendChild(td5);
+      tr.appendChild(td6);
       habitsTableBody.appendChild(tr);
     });
   };
+
+  habitSearch?.addEventListener('input', renderHabitsTableAndStats);
+
+  // Add new habit pair manually
+  const addNewHabitPair = () => {
+    const from = (newHabitFromInput?.value || '').trim().toLowerCase();
+    const to = (newHabitToInput?.value || '').trim().toLowerCase();
+    if (!from || !to) {
+      alert('Vui lòng nhập cả từ bắt đầu và từ kế tiếp.');
+      return;
+    }
+    autoCompleteEngine.recordWordTransition(from, to);
+    autoCompleteEngine.recordWordUsage(to);
+    if (newHabitFromInput) newHabitFromInput.value = '';
+    if (newHabitToInput) newHabitToInput.value = '';
+    renderHabitsTableAndStats();
+    showToast(`Đã thêm cặp từ thói quen "${from}" ➔ "${to}"!`);
+  };
+
+  addHabitBtn?.addEventListener('click', addNewHabitPair);
+  newHabitToInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addNewHabitPair();
+    }
+  });
+
+  // Edit Habit Modal actions
+  editHabitCancelBtn?.addEventListener('click', () => {
+    editHabitModal?.classList.remove('open');
+    editingHabitItem = null;
+  });
+
+  editHabitSaveBtn?.addEventListener('click', () => {
+    if (!editingHabitItem) return;
+    const newFrom = (editHabitFromInput?.value || '').trim().toLowerCase();
+    const newTo = (editHabitToInput?.value || '').trim().toLowerCase();
+    const newCount = parseInt(editHabitCountInput?.value || '1', 10);
+    if (!newFrom || !newTo) {
+      alert('Vui lòng nhập đầy đủ cả hai từ.');
+      return;
+    }
+
+    autoCompleteEngine.updateLearnedHabit(
+      editingHabitItem.from,
+      editingHabitItem.to,
+      newFrom,
+      newTo,
+      isNaN(newCount) || newCount < 1 ? 1 : newCount
+    );
+
+    editHabitModal?.classList.remove('open');
+    editingHabitItem = null;
+    renderHabitsTableAndStats();
+    showToast(`Đã cập nhật thói quen "${newFrom}" ➔ "${newTo}"!`);
+  });
 
   seedHabitsBtn?.addEventListener('click', () => {
     const count = autoCompleteEngine.seedLearnedHabits();
