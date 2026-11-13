@@ -1473,15 +1473,26 @@ export class AvimEngine {
     // 3. Cannot violate stop final checked-tone laws.
     if (this.phonologyRules) {
       const parsedNew = parseSyllable(newWord);
-      if (parsedNew && !parsedNew.isValid()) {
+      if (parsedNew && !parsedNew.isValid({ inProgress: true })) {
         return { transformed: false, result: word + key };
       }
     }
 
     // Spell check validation (against Hunspell dictionary, if enabled)
+    // Note: Incomplete open syllables with short vowels (ă, â) awaiting codas
+    // (e.g. 'đrắ' + 'k' -> 'đrắk', 'tắ' + 'c' -> 'tắc') or double-o loanwords awaiting 'ng'
+    // (e.g. 'xoò' + 'ng' -> 'xoòng', 'boó' + 'ng' -> 'boóng') are valid in-progress keystrokes
+    // and must not be blocked prematurely by Hunspell spellCheck.
     if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
-      // If invalid syllable, pass-through without tone
-      return { transformed: false, result: word + key };
+      const parsedNew = parseSyllable(newWord);
+      const lowerN = parsedNew?.nucleus?.toLowerCase() || '';
+      const isIncompleteSyllable = parsedNew && parsedNew.coda.length === 0 && (
+        lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo'
+      );
+      if (!isIncompleteSyllable) {
+        // If invalid complete syllable, pass-through without tone
+        return { transformed: false, result: word + key };
+      }
     }
 
     return { transformed: true, result: newWord };
@@ -1576,8 +1587,8 @@ export class AvimEngine {
     const v2 = CHAR_TO_BASE_AND_TONE[word[effectiveIndices[1]]]?.base.toLowerCase();
     const cluster = v1 + v2;
 
-    // In 'uê', 'uơ', 'ue', 'ươ': tone ALWAYS falls on 2nd vowel (thuế, huế, quế, xuề, uế, thuở, hươ)
-    if (['uê', 'uơ', 'ue', 'ươ'].includes(cluster)) {
+    // In 'uê', 'uơ', 'ue', 'ươ', 'oo': tone ALWAYS falls on 2nd vowel (thuế, huế, quế, xuề, uế, thuở, hươ, xoò, boó, goò)
+    if (['uê', 'uơ', 'ue', 'ươ', 'oo'].includes(cluster)) {
       return effectiveIndices[1];
     }
 

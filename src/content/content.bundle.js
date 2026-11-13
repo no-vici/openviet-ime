@@ -197,14 +197,17 @@
     "\u0111"
   ];
   var RARE_AND_PLACE_SYLLABLES = [
-    // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn
+    // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn (bao gồm cả dạng thanh ngang và có dấu)
     "\u0111\u1EAFk",
     "\u0111\u0103k",
     "l\u1EAFk",
+    "l\u0103k",
     "n\xF4ng",
     "kr\xF4ng",
     "p\u1EAFk",
+    "p\u0103k",
     "b\xFAk",
+    "buk",
     "p\u0103h",
     "pr\xF4ng",
     "ana",
@@ -214,8 +217,11 @@
     "kar",
     "s\xFAp",
     "m'\u0111r\u1EAFk",
+    "m'\u0111r\u0103k",
     "mdr\u1EAFk",
+    "mdr\u0103k",
     "\u0111r\u1EAFk",
+    "\u0111r\u0103k",
     "mil",
     "glong",
     "\u0111oa",
@@ -587,7 +593,7 @@
         targetIdx = 0;
       } else if (nLen === 2) {
         const lowerN = n.toLowerCase();
-        if (lowerN === "\u01B0\u01A1" || lowerN === "i\xEA" || lowerN === "u\xF4" || lowerN === "y\xEA") {
+        if (lowerN === "\u01B0\u01A1" || lowerN === "i\xEA" || lowerN === "u\xF4" || lowerN === "y\xEA" || lowerN === "oo") {
           targetIdx = 1;
         } else if (lowerN === "\u01B0a" || lowerN === "ia" || lowerN === "ua") {
           targetIdx = hasCoda ? 1 : 0;
@@ -654,12 +660,34 @@
       }
       const lowerCoda = this.coda.toLowerCase();
       const STANDARD_CODAS = /* @__PURE__ */ new Set(["", "c", "ch", "m", "n", "ng", "nh", "p", "t"]);
-      const ETHNIC_CODAS = /* @__PURE__ */ new Set(["k", "l", "r"]);
+      const ETHNIC_CODAS = /* @__PURE__ */ new Set(["k", "l", "r", "h"]);
       if (!STANDARD_CODAS.has(lowerCoda)) {
         if (ETHNIC_CODAS.has(lowerCoda)) {
           const baseSyllable = this.withTone(TONE_MARK.NONE).reconstruct().toLowerCase();
           const fullSyllable = this.reconstruct().toLowerCase();
-          const VALID_ETHNIC_BASES = /* @__PURE__ */ new Set(["\u0111\u1EAFk", "\u0111\u0103k", "l\u1EAFk", "p\u1EAFk", "buk", "b\xFAk", "kar", "mil", "m'\u0111r\u1EAFk", "mdr\u1EAFk", "\u0111r\u1EAFk", "m'gar", "mgar", "r'l\u1EA5p", "rl\u1EA5p"]);
+          const VALID_ETHNIC_BASES = /* @__PURE__ */ new Set([
+            "\u0111\u1EAFk",
+            "\u0111\u0103k",
+            "l\u1EAFk",
+            "l\u0103k",
+            "p\u1EAFk",
+            "p\u0103k",
+            "buk",
+            "b\xFAk",
+            "p\u0103h",
+            "kar",
+            "mil",
+            "m'\u0111r\u1EAFk",
+            "m'\u0111r\u0103k",
+            "mdr\u1EAFk",
+            "mdr\u0103k",
+            "\u0111r\u1EAFk",
+            "\u0111r\u0103k",
+            "m'gar",
+            "mgar",
+            "r'l\u1EA5p",
+            "rl\u1EA5p"
+          ]);
           if (!VALID_ETHNIC_BASES.has(baseSyllable) && !VALID_ETHNIC_BASES.has(fullSyllable)) {
             return false;
           }
@@ -3857,12 +3885,17 @@
       const newWord = baseWord.slice(0, targetVowelIdx) + newChar + baseWord.slice(targetVowelIdx + 1);
       if (this.phonologyRules) {
         const parsedNew = parseSyllable(newWord);
-        if (parsedNew && !parsedNew.isValid()) {
+        if (parsedNew && !parsedNew.isValid({ inProgress: true })) {
           return { transformed: false, result: word + key };
         }
       }
       if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
-        return { transformed: false, result: word + key };
+        const parsedNew = parseSyllable(newWord);
+        const lowerN = parsedNew?.nucleus?.toLowerCase() || "";
+        const isIncompleteSyllable = parsedNew && parsedNew.coda.length === 0 && (lowerN === "\u0103" || lowerN === "\xE2" || lowerN === "oo");
+        if (!isIncompleteSyllable) {
+          return { transformed: false, result: word + key };
+        }
       }
       return { transformed: true, result: newWord };
     }
@@ -3955,7 +3988,7 @@
       const v1 = CHAR_TO_BASE_AND_TONE[word[effectiveIndices[0]]]?.base.toLowerCase();
       const v2 = CHAR_TO_BASE_AND_TONE[word[effectiveIndices[1]]]?.base.toLowerCase();
       const cluster = v1 + v2;
-      if (["u\xEA", "u\u01A1", "ue", "\u01B0\u01A1"].includes(cluster)) {
+      if (["u\xEA", "u\u01A1", "ue", "\u01B0\u01A1", "oo"].includes(cluster)) {
         return effectiveIndices[1];
       }
       if (["\u01B0a", "\u01B0u", "ia", "ya", "ua"].includes(cluster)) {

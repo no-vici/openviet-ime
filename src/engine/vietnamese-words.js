@@ -25,11 +25,11 @@ export const ALL_VIETNAMESE_SINGLE_VOWELS = [
 
 // Special syllables for Central Highlands place names, ethnic names & regional/rare Vietnamese
 export const RARE_AND_PLACE_SYLLABLES = [
-  // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn
-  'đắk', 'đăk', 'lắk', 'nông',
-  'krông', 'pắk', 'búk', 'păh', 'prông', 'ana',
+  // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn (bao gồm cả dạng thanh ngang và có dấu)
+  'đắk', 'đăk', 'lắk', 'lăk', 'nông',
+  'krông', 'pắk', 'păk', 'búk', 'buk', 'păh', 'prông', 'ana',
   'ea', "h'leo", 'hleo', 'kar', 'súp',
-  "m'đrắk", 'mdrắk', 'đrắk', 'mil', 'glong', 'đoa',
+  "m'đrắk", "m'đrăk", 'mdrắk', 'mdrăk', 'đrắk', 'đrăk', 'mil', 'glong', 'đoa',
   'grai', "h'drai", 'hdrai', "m'gar", 'mgar', 'kuin',
   "r'lấp", 'r’lấp', 'rlấp', 'pleiku',
   'chư', 'cư', 'sê', 'bông', 'năng', 'đức', 'cơ',

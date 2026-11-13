@@ -183,9 +183,10 @@ export class ParsedSyllable {
       targetIdx = 0;
     } else if (nLen === 2) {
       const lowerN = n.toLowerCase();
-      // Special pairs: ươ, iê, uô, yê, ưa, ia, ua
-      if (lowerN === 'ươ' || lowerN === 'iê' || lowerN === 'uô' || lowerN === 'yê') {
-        // Diphthongs ending with ơ, ê, ô: tone always goes on the second vowel
+      // Special pairs: ươ, iê, uô, yê, ưa, ia, ua, oo
+      if (lowerN === 'ươ' || lowerN === 'iê' || lowerN === 'uô' || lowerN === 'yê' || lowerN === 'oo') {
+        // Diphthongs ending with ơ, ê, ô, and loanword double-o (xoòng, boóng, xoọng):
+        // tone always goes on the second vowel regardless of classic vs modern style!
         targetIdx = 1;
       } else if (lowerN === 'ưa' || lowerN === 'ia' || lowerN === 'ua') {
         // Open diphthongs: tone goes on 1st vowel unless coda is present
@@ -271,16 +272,20 @@ export class ParsedSyllable {
 
     // 2. Coda must be a recognized Vietnamese coda
     // Standard Vietnamese syllables only end with: c, ch, m, n, ng, nh, p, t
-    // Ethnic Central Highlands or loan words ending in k, l, r (đắk, kar, mil) are checked specifically.
+    // Ethnic Central Highlands or loan words ending in k, l, r, h (đắk, kar, mil, păh) are checked specifically.
     const lowerCoda = this.coda.toLowerCase();
     const STANDARD_CODAS = new Set(['', 'c', 'ch', 'm', 'n', 'ng', 'nh', 'p', 't']);
-    const ETHNIC_CODAS = new Set(['k', 'l', 'r']);
+    const ETHNIC_CODAS = new Set(['k', 'l', 'r', 'h']);
 
     if (!STANDARD_CODAS.has(lowerCoda)) {
       if (ETHNIC_CODAS.has(lowerCoda)) {
         const baseSyllable = this.withTone(TONE_MARK.NONE).reconstruct().toLowerCase();
         const fullSyllable = this.reconstruct().toLowerCase();
-        const VALID_ETHNIC_BASES = new Set(['đắk', 'đăk', 'lắk', 'pắk', 'buk', 'búk', 'kar', 'mil', "m'đrắk", 'mdrắk', 'đrắk', "m'gar", 'mgar', "r'lấp", 'rlấp']);
+        const VALID_ETHNIC_BASES = new Set([
+          'đắk', 'đăk', 'lắk', 'lăk', 'pắk', 'păk', 'buk', 'búk', 'păh',
+          'kar', 'mil', "m'đrắk", "m'đrăk", 'mdrắk', 'mdrăk', 'đrắk', 'đrăk',
+          "m'gar", 'mgar', "r'lấp", 'rlấp'
+        ]);
         if (!VALID_ETHNIC_BASES.has(baseSyllable) && !VALID_ETHNIC_BASES.has(fullSyllable)) {
           return false;
         }

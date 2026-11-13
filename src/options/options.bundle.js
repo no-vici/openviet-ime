@@ -520,14 +520,17 @@
     "\u0111"
   ];
   var RARE_AND_PLACE_SYLLABLES = [
-    // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn
+    // Tây Nguyên & Ethnic Toponyms — âm tiết không có trong từ điển chuẩn (bao gồm cả dạng thanh ngang và có dấu)
     "\u0111\u1EAFk",
     "\u0111\u0103k",
     "l\u1EAFk",
+    "l\u0103k",
     "n\xF4ng",
     "kr\xF4ng",
     "p\u1EAFk",
+    "p\u0103k",
     "b\xFAk",
+    "buk",
     "p\u0103h",
     "pr\xF4ng",
     "ana",
@@ -537,8 +540,11 @@
     "kar",
     "s\xFAp",
     "m'\u0111r\u1EAFk",
+    "m'\u0111r\u0103k",
     "mdr\u1EAFk",
+    "mdr\u0103k",
     "\u0111r\u1EAFk",
+    "\u0111r\u0103k",
     "mil",
     "glong",
     "\u0111oa",
