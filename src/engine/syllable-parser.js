@@ -282,8 +282,13 @@ export class ParsedSyllable {
         const baseSyllable = this.withTone(TONE_MARK.NONE).reconstruct().toLowerCase();
         const fullSyllable = this.reconstruct().toLowerCase();
         const VALID_ETHNIC_BASES = new Set([
-          'đắk', 'đăk', 'lắk', 'lăk', 'pắk', 'păk', 'buk', 'búk', 'păh',
-          'kar', 'mil', "m'đrắk", "m'đrăk", 'mdrắk', 'mdrăk', 'đrắk', 'đrăk',
+          'đắk', 'đăk', 'đrak', 'đrák', 'đrắk', 'đrăk',
+          'lắk', 'lăk', 'lak', 'lák',
+          'pắk', 'păk', 'pak', 'pák',
+          'buk', 'búk', 'păh', 'pah', 'páh',
+          'kar', 'mil',
+          "m'đrắk", "m'đrăk", "m'đrak", "m'đrák",
+          'mdrắk', 'mdrăk', 'mdrak', 'mdrák',
           "m'gar", 'mgar', "r'lấp", 'rlấp'
         ]);
         if (!VALID_ETHNIC_BASES.has(baseSyllable) && !VALID_ETHNIC_BASES.has(fullSyllable)) {
