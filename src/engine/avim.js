@@ -396,10 +396,16 @@ export class AvimEngine {
     // Phonology Rules Check: Foreign onset protection (GoNhanh / vnchKey)
     // Words starting with English/foreign consonant clusters (pl-, fl-, cl-, gl-, bl-, sl-, pr-, dr-, cr-, br-, gr-, fr-, sp-, st-, sk-, sm-, sn-, sw-, tw-, str-, etc.)
     // such as 'play', 'playwright', 'flow', 'slow', 'status', 'start', 'clean', 'spring', 'browser'
-    // are 100% foreign and must never receive Vietnamese diacritics, UNLESS they are recognized Vietnamese toponyms (e.g. 'pleiku', 'krông').
+    // are 100% foreign and must never receive Vietnamese diacritics, UNLESS they can form recognized Vietnamese/ethnic words (e.g. 'pleiku', 'krông', 'prông', 'glong', 'grai', 'gram').
     if (this.phonologyRules && hasForeignOnset(word)) {
       const vnSet = getVietnameseWordSet();
-      if (!vnSet.has(canon(word))) {
+      const cWord = canon(word);
+      const isKnown = vnSet.has(cWord);
+      // Allow in-progress typing if word could form a known ethnic/foreign-onset Vietnamese word (e.g. prông, glong, grai, pleiku, gram)
+      const stripAcc = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase();
+      const sWord = stripAcc(cWord);
+      const isPotentialPrefix = !isKnown && ['prông', 'glong', 'grai', 'pleiku', 'gram', 'krông'].some(w => stripAcc(w).startsWith(sWord));
+      if (!isKnown && !isPotentialPrefix) {
         return { transformed: false, result: word + key };
       }
     }

@@ -3015,7 +3015,12 @@
       }
       if (this.phonologyRules && hasForeignOnset(word)) {
         const vnSet = getVietnameseWordSet();
-        if (!vnSet.has(canon(word))) {
+        const cWord = canon(word);
+        const isKnown = vnSet.has(cWord);
+        const stripAcc = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[đĐ]/g, "d").toLowerCase();
+        const sWord = stripAcc(cWord);
+        const isPotentialPrefix = !isKnown && ["pr\xF4ng", "glong", "grai", "pleiku", "gram", "kr\xF4ng"].some((w) => stripAcc(w).startsWith(sWord));
+        if (!isKnown && !isPotentialPrefix) {
           return { transformed: false, result: word + key };
         }
       }
