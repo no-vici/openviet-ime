@@ -58,7 +58,10 @@ export class TextReplacer {
     if (!nfcOldText) {
       try {
         if (document.execCommand('insertText', false, nfcNewText)) {
-          this.dispatchSyntheticInput(root, nfcNewText);
+          const isLexical = root.hasAttribute?.('data-lexical-editor') || root.closest?.('[data-lexical-editor]');
+          if (!isLexical) {
+            this.dispatchSyntheticInput(root, nfcNewText);
+          }
           return;
         }
       } catch {}
@@ -109,8 +112,17 @@ export class TextReplacer {
           // Dispatch beforeinput with insertReplacementText if supported
           this.dispatchBeforeInput(root, nfcNewText, replaceRange);
 
+          // For Lexical (WhatsApp Web, Facebook Messenger) and modern rich-text editors,
+          // execCommand('insertText') atomically replaces replaceRange and synchronizes internal EditorState.
+          // In browsers (Chrome / Firefox), execCommand returns true upon successful replacement.
           if (document.execCommand('insertText', false, nfcNewText)) {
-            this.dispatchSyntheticInput(root, nfcNewText);
+            // Check if root is Lexical (data-lexical-editor). Lexical reconciles on beforeinput/execCommand
+            // and dispatches its own internal events; dispatching an extra synthetic InputEvent on Lexical
+            // can cause WhatsApp Web's Lexical reconciler to register a double-insert / duplicate token!
+            const isLexical = root.hasAttribute?.('data-lexical-editor') || root.closest?.('[data-lexical-editor]');
+            if (!isLexical) {
+              this.dispatchSyntheticInput(root, nfcNewText);
+            }
             return;
           }
         } catch {}

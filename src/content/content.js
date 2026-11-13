@@ -1301,10 +1301,12 @@ class AvimContentScript {
   /**
    * Automatic Habit Learning:
    * When a user completely deletes a word that had received Vietnamese diacritics
-   * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) 2 or more times,
+   * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) 3 or more times (increased threshold to prevent accidental whitelisting),
    * automatically learns and adds the word to userDictionary so it won't receive accents next time.
+   * Can be toggled on/off via settings.eraseHabitLearning (default: true).
    */
   recordWordErase(rawCandidate, transformedWord) {
+    if (this.settings.eraseHabitLearning === false) return false;
     if (!rawCandidate || !transformedWord) return false;
     const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(transformedWord);
     if (!hasDiacritics) return false;
@@ -1315,11 +1317,11 @@ class AvimContentScript {
     const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
     this.erasedWordHabits.set(raw, currentCount);
 
-    if (currentCount >= 2) {
+    if (currentCount >= 3) {
       if (userDictionary && typeof userDictionary.add === 'function') {
         if (!userDictionary.has(raw)) {
           userDictionary.add(raw);
-          this.showHudToast(`Đã tự học từ điển: "${raw}"`, true);
+          this.showHudToast(`Đã tự học từ điển: "${raw}" (không bỏ dấu)`, true);
           return true;
         }
       }

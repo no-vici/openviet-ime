@@ -698,14 +698,25 @@ export class UserDictionary {
   /**
    * Check if the raw keystroke sequence matches any custom/learned user word prefix.
    * Prevents premature Vietnamese diacritic placement on words the user intentionally customized.
+   * Special rule: If a learned word contains numbers (e.g. VNI tone triggers like 'da5'),
+   * it must only match when rawSeq itself reaches or includes the number key, so typing 'da'
+   * is not blocked from taking standard accents.
    */
   isCustomUserWordPrefix(rawSeq) {
     if (!rawSeq || rawSeq.length < 2) return false;
     const lower = rawSeq.toLowerCase();
     for (const w of this.customWords) {
+      if (/\d/.test(w) && !/\d/.test(lower)) {
+        // e.g. learned 'da5' but user typed 'da' without digit -> don't block
+        continue;
+      }
       if (w.startsWith(lower)) return true;
     }
     return false;
+  }
+
+  getCustomWords() {
+    return Array.from(this.customWords).sort();
   }
 
   add(word) {

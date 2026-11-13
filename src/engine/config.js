@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS = {
   gboardLearningEnabled: true,
   autoHarmonizeCase: true,   // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được)
   uniqueSyllables: true,     // Auto-complete unique Vietnamese syllables (khong -> không)
+  eraseHabitLearning: true,  // Auto-learn words to user dictionary after erasing accented words >= 3 times
   debugTypingLog: false,
   blacklistedDomains: []
 };

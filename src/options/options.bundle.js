@@ -436,6 +436,8 @@
     // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được)
     uniqueSyllables: true,
     // Auto-complete unique Vietnamese syllables (khong -> không)
+    eraseHabitLearning: true,
+    // Auto-learn words to user dictionary after erasing accented words >= 3 times
     debugTypingLog: false,
     blacklistedDomains: []
   };
@@ -1350,14 +1352,23 @@
     /**
      * Check if the raw keystroke sequence matches any custom/learned user word prefix.
      * Prevents premature Vietnamese diacritic placement on words the user intentionally customized.
+     * Special rule: If a learned word contains numbers (e.g. VNI tone triggers like 'da5'),
+     * it must only match when rawSeq itself reaches or includes the number key, so typing 'da'
+     * is not blocked from taking standard accents.
      */
     isCustomUserWordPrefix(rawSeq) {
       if (!rawSeq || rawSeq.length < 2) return false;
       const lower = rawSeq.toLowerCase();
       for (const w of this.customWords) {
+        if (/\d/.test(w) && !/\d/.test(lower)) {
+          continue;
+        }
         if (w.startsWith(lower)) return true;
       }
       return false;
+    }
+    getCustomWords() {
+      return Array.from(this.customWords).sort();
     }
     add(word) {
       const clean = canon(word);
@@ -4036,6 +4047,13 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
         spanWord.className = "tag-trigger font-mono";
         spanWord.textContent = word;
         tdWord.appendChild(spanWord);
+        const isCustom = userDictionary.customWords && userDictionary.customWords.has(word);
+        if (isCustom) {
+          const badgeCustom = document.createElement("span");
+          badgeCustom.style.cssText = "font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 600;";
+          badgeCustom.textContent = "T\u1EF1 h\u1ECDc / \u0110\xE3 th\xEAm";
+          tdWord.appendChild(badgeCustom);
+        }
         tr.appendChild(tdWord);
         const tdActions = document.createElement("td");
         tdActions.style.textAlign = "right";
@@ -4115,6 +4133,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const wordRescueOption = document.getElementById("wordRescueOption");
     const autoHarmonizeCaseOption = document.getElementById("autoHarmonizeCaseOption");
     const uniqueSyllablesOption = document.getElementById("uniqueSyllablesOption");
+    const eraseHabitLearningOption = document.getElementById("eraseHabitLearningOption");
     const debugTypingLogOption = document.getElementById("debugTypingLogOption");
     const typingLogControls = document.getElementById("typingLogControls");
     const typingLogCountBadge = document.getElementById("typingLogCountBadge");
@@ -4149,6 +4168,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
       if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = settings.autoHarmonizeCase !== false;
       if (uniqueSyllablesOption) uniqueSyllablesOption.checked = settings.uniqueSyllables !== false;
+      if (eraseHabitLearningOption) eraseHabitLearningOption.checked = settings.eraseHabitLearning !== false;
       if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
       if (debugTypingLogOption) debugTypingLogOption.checked = Boolean(settings.debugTypingLog);
       updateTypingLogUI();
@@ -4249,6 +4269,12 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     if (uniqueSyllablesOption) {
       uniqueSyllablesOption.addEventListener("change", async () => {
         settings.uniqueSyllables = uniqueSyllablesOption.checked;
+        await saveState();
+      });
+    }
+    if (eraseHabitLearningOption) {
+      eraseHabitLearningOption.addEventListener("change", async () => {
+        settings.eraseHabitLearning = eraseHabitLearningOption.checked;
         await saveState();
       });
     }

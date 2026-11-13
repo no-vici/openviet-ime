@@ -455,7 +455,14 @@ function initDictionaryTab() {
       spanWord.className = 'tag-trigger font-mono';
       spanWord.textContent = word;
       tdWord.appendChild(spanWord);
-      tr.appendChild(tdWord);
+      const isCustom = userDictionary.customWords && userDictionary.customWords.has(word);
+    if (isCustom) {
+      const badgeCustom = document.createElement('span');
+      badgeCustom.style.cssText = 'font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 600;';
+      badgeCustom.textContent = 'Tự học / Đã thêm';
+      tdWord.appendChild(badgeCustom);
+    }
+    tr.appendChild(tdWord);
 
       const tdActions = document.createElement('td');
       tdActions.style.textAlign = 'right';
@@ -548,6 +555,7 @@ function initPreferences() {
   const wordRescueOption = document.getElementById('wordRescueOption');
   const autoHarmonizeCaseOption = document.getElementById('autoHarmonizeCaseOption');
   const uniqueSyllablesOption = document.getElementById('uniqueSyllablesOption');
+  const eraseHabitLearningOption = document.getElementById('eraseHabitLearningOption');
   const debugTypingLogOption = document.getElementById('debugTypingLogOption');
   const typingLogControls = document.getElementById('typingLogControls');
   const typingLogCountBadge = document.getElementById('typingLogCountBadge');
@@ -587,6 +595,7 @@ function initPreferences() {
     if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
     if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = settings.autoHarmonizeCase !== false;
     if (uniqueSyllablesOption) uniqueSyllablesOption.checked = settings.uniqueSyllables !== false;
+    if (eraseHabitLearningOption) eraseHabitLearningOption.checked = settings.eraseHabitLearning !== false;
     if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
     if (debugTypingLogOption) debugTypingLogOption.checked = Boolean(settings.debugTypingLog);
     updateTypingLogUI();
@@ -708,6 +717,13 @@ function initPreferences() {
   if (uniqueSyllablesOption) {
     uniqueSyllablesOption.addEventListener('change', async () => {
       settings.uniqueSyllables = uniqueSyllablesOption.checked;
+      await saveState();
+    });
+  }
+
+  if (eraseHabitLearningOption) {
+    eraseHabitLearningOption.addEventListener('change', async () => {
+      settings.eraseHabitLearning = eraseHabitLearningOption.checked;
       await saveState();
     });
   }

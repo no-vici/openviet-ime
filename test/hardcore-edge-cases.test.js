@@ -135,7 +135,7 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(userDictionary.has('sas')).toBe(false);
     expect(simulateTyping(telex, 'sas')).toBe('sá');
 
-    // Mô phỏng bộ học thói quen (tương tự như content.js recordWordErase)
+    // Mô phỏng bộ học thói quen (tương tự như content.js recordWordErase) với ngưỡng 3 lần
     const habitTracker = {
       counts: new Map(),
       recordErase(raw, transformed) {
@@ -145,7 +145,7 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
         const key = raw.toLowerCase();
         const cnt = (this.counts.get(key) || 0) + 1;
         this.counts.set(key, cnt);
-        if (cnt >= 2) {
+        if (cnt >= 3) {
           userDictionary.add(key);
           return true;
         }
@@ -157,17 +157,34 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(habitTracker.recordErase('sas', 'sá')).toBe(false);
     expect(userDictionary.has('sas')).toBe(false);
 
-    // Lần 2: User gõ lại 'sas' -> thành 'sá', user lại xóa cả từ lần 2!
+    // Lần 2: User gõ lại 'sas' -> thành 'sá', user xóa cả từ lần 2 (vẫn chưa học để tránh vô tình thêm)
+    expect(habitTracker.recordErase('sas', 'sá')).toBe(false);
+    expect(userDictionary.has('sas')).toBe(false);
+
+    // Lần 3: User xóa cả từ lần 3 -> chắc chắn là thói quen cố ý muốn giữ thô!
     expect(habitTracker.recordErase('sas', 'sá')).toBe(true);
     expect(userDictionary.has('sas')).toBe(true);
 
-    // Lần 3: Giờ đây từ 'sas' đã được tự học và thêm vào User Dictionary!
+    // Lần 4: Giờ đây từ 'sas' đã được tự học và thêm vào User Dictionary!
     // Lần gõ sau đó, 'sas' tuyệt đối không bị bỏ dấu thành 'sá' nữa!
     expect(simulateTyping(telex, 'sas')).toBe('sas');
 
     // Các từ tiếng Việt khác vẫn bỏ dấu hoàn toàn bình thường
     expect(simulateTyping(telex, 'bats')).toBe('bát');
     expect(simulateTyping(telex, 'sang')).toBe('sang');
+
+    // Kiểm tra VNI với từ số như da5: không chặn gõ dấu khác như da1, da2
+    const vni = new AvimEngine({ method: 2 });
+    userDictionary.add('da5');
+    expect(userDictionary.isCustomUserWordPrefix('da5')).toBe(true);
+    expect(userDictionary.isCustomUserWordPrefix('da')).toBe(false);
+    expect(simulateTyping(vni, 'da1')).toBe('dá');
+    expect(simulateTyping(vni, 'da2')).toBe('dà');
+    expect(simulateTyping(vni, 'da5')).toBe('da5');
+
+    // Dọn dẹp
+    userDictionary.remove('sas');
+    userDictionary.remove('da5');
   });
 });
 

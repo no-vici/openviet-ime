@@ -30,6 +30,7 @@ const DEFAULT_SETTINGS = {
   gboardLearningEnabled: true,
   autoHarmonizeCase: true,
   uniqueSyllables: true,
+  eraseHabitLearning: true,
   debugTypingLog: false,
   blacklistedDomains: []
 };

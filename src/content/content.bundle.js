@@ -2133,14 +2133,23 @@
     /**
      * Check if the raw keystroke sequence matches any custom/learned user word prefix.
      * Prevents premature Vietnamese diacritic placement on words the user intentionally customized.
+     * Special rule: If a learned word contains numbers (e.g. VNI tone triggers like 'da5'),
+     * it must only match when rawSeq itself reaches or includes the number key, so typing 'da'
+     * is not blocked from taking standard accents.
      */
     isCustomUserWordPrefix(rawSeq) {
       if (!rawSeq || rawSeq.length < 2) return false;
       const lower = rawSeq.toLowerCase();
       for (const w of this.customWords) {
+        if (/\d/.test(w) && !/\d/.test(lower)) {
+          continue;
+        }
         if (w.startsWith(lower)) return true;
       }
       return false;
+    }
+    getCustomWords() {
+      return Array.from(this.customWords).sort();
     }
     add(word) {
       const clean = canon(word);
@@ -4044,6 +4053,8 @@
     // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được)
     uniqueSyllables: true,
     // Auto-complete unique Vietnamese syllables (khong -> không)
+    eraseHabitLearning: true,
+    // Auto-learn words to user dictionary after erasing accented words >= 3 times
     debugTypingLog: false,
     blacklistedDomains: []
   };
@@ -4168,7 +4179,10 @@
       if (!nfcOldText) {
         try {
           if (document.execCommand("insertText", false, nfcNewText)) {
-            this.dispatchSyntheticInput(root, nfcNewText);
+            const isLexical = root.hasAttribute?.("data-lexical-editor") || root.closest?.("[data-lexical-editor]");
+            if (!isLexical) {
+              this.dispatchSyntheticInput(root, nfcNewText);
+            }
             return;
           }
         } catch {
@@ -4207,7 +4221,10 @@
             sel.addRange(replaceRange);
             this.dispatchBeforeInput(root, nfcNewText, replaceRange);
             if (document.execCommand("insertText", false, nfcNewText)) {
-              this.dispatchSyntheticInput(root, nfcNewText);
+              const isLexical = root.hasAttribute?.("data-lexical-editor") || root.closest?.("[data-lexical-editor]");
+              if (!isLexical) {
+                this.dispatchSyntheticInput(root, nfcNewText);
+              }
               return;
             }
           } catch {
@@ -7572,10 +7589,12 @@
     /**
      * Automatic Habit Learning:
      * When a user completely deletes a word that had received Vietnamese diacritics
-     * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) 2 or more times,
+     * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) 3 or more times (increased threshold to prevent accidental whitelisting),
      * automatically learns and adds the word to userDictionary so it won't receive accents next time.
+     * Can be toggled on/off via settings.eraseHabitLearning (default: true).
      */
     recordWordErase(rawCandidate, transformedWord) {
+      if (this.settings.eraseHabitLearning === false) return false;
       if (!rawCandidate || !transformedWord) return false;
       const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(transformedWord);
       if (!hasDiacritics) return false;
@@ -7583,11 +7602,11 @@
       if (raw.length < 2) return false;
       const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
       this.erasedWordHabits.set(raw, currentCount);
-      if (currentCount >= 2) {
+      if (currentCount >= 3) {
         if (userDictionary && typeof userDictionary.add === "function") {
           if (!userDictionary.has(raw)) {
             userDictionary.add(raw);
-            this.showHudToast(`\u0110\xE3 t\u1EF1 h\u1ECDc t\u1EEB \u0111i\u1EC3n: "${raw}"`, true);
+            this.showHudToast(`\u0110\xE3 t\u1EF1 h\u1ECDc t\u1EEB \u0111i\u1EC3n: "${raw}" (kh\xF4ng b\u1ECF d\u1EA5u)`, true);
             return true;
           }
         }
