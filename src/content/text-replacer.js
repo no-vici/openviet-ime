@@ -15,7 +15,8 @@ export class TextReplacer {
     if (typeof window !== 'undefined' && window.location) {
       const host = window.location.hostname.toLowerCase();
       if (host === 'teams.microsoft.com' || host.endsWith('.teams.microsoft.com') ||
-          host === 'teams.live.com' || host.endsWith('.teams.live.com')) {
+          host === 'teams.live.com' || host.endsWith('.teams.live.com') ||
+          host === 'teams.cloud.microsoft' || host.endsWith('.teams.cloud.microsoft')) {
         return true;
       }
     }
