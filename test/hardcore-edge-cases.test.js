@@ -75,12 +75,22 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     const vni = new AvimEngine({ method: IME_METHOD.VNI });
     const auto = new AvimEngine({ method: IME_METHOD.AUTO });
 
-    // 1. khong -> không (bảo lưu đúng case)
+    // 1. khong -> không (bảo lưu đúng case), và có thể bỏ dấu thanh tùy ý (khống, khồng, khổng, khộng, khỗng)
     expect(typeKeys(telex, 'khong')).toBe('không');
     expect(typeKeys(telex, 'Khong')).toBe('Không');
     expect(typeKeys(telex, 'KHONG')).toBe('KHÔNG');
+    expect(typeKeys(telex, 'khongs')).toBe('khống');
+    expect(typeKeys(telex, 'khongf')).toBe('khồng');
+    expect(typeKeys(telex, 'khongr')).toBe('khổng');
+    expect(typeKeys(telex, 'Khongs')).toBe('Khống');
+    expect(typeKeys(telex, 'Khongf')).toBe('Khồng');
     expect(typeKeys(vni, 'khong')).toBe('không');
+    expect(typeKeys(vni, 'khong1')).toBe('khống');
+    expect(typeKeys(vni, 'khong2')).toBe('khồng');
+    expect(typeKeys(vni, 'khong3')).toBe('khổng');
     expect(typeKeys(auto, 'khong')).toBe('không');
+    expect(typeKeys(auto, 'khongs')).toBe('khống');
+    expect(typeKeys(auto, 'khong2')).toBe('khồng');
 
     // 2. truong -> trương, và có thể gõ thêm dấu thanh bất kỳ lúc nào
     expect(typeKeys(telex, 'truong')).toBe('trương');
