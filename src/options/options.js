@@ -546,6 +546,8 @@ function initPreferences() {
   const escRevertOption = document.getElementById('escRevertOption');
   const phonologyRulesOption = document.getElementById('phonologyRulesOption');
   const wordRescueOption = document.getElementById('wordRescueOption');
+  const autoHarmonizeCaseOption = document.getElementById('autoHarmonizeCaseOption');
+  const uniqueSyllablesOption = document.getElementById('uniqueSyllablesOption');
   const debugTypingLogOption = document.getElementById('debugTypingLogOption');
   const typingLogControls = document.getElementById('typingLogControls');
   const typingLogCountBadge = document.getElementById('typingLogCountBadge');
@@ -583,6 +585,8 @@ function initPreferences() {
     if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
     if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
     if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
+    if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = settings.autoHarmonizeCase !== false;
+    if (uniqueSyllablesOption) uniqueSyllablesOption.checked = settings.uniqueSyllables !== false;
     if (ctrlToggleOption) ctrlToggleOption.checked = settings.ctrlToggleEnabled !== false;
     if (debugTypingLogOption) debugTypingLogOption.checked = Boolean(settings.debugTypingLog);
     updateTypingLogUI();
@@ -690,6 +694,20 @@ function initPreferences() {
   if (wordRescueOption) {
     wordRescueOption.addEventListener('change', async () => {
       settings.wordRescue = wordRescueOption.checked;
+      await saveState();
+    });
+  }
+
+  if (autoHarmonizeCaseOption) {
+    autoHarmonizeCaseOption.addEventListener('change', async () => {
+      settings.autoHarmonizeCase = autoHarmonizeCaseOption.checked;
+      await saveState();
+    });
+  }
+
+  if (uniqueSyllablesOption) {
+    uniqueSyllablesOption.addEventListener('change', async () => {
+      settings.uniqueSyllables = uniqueSyllablesOption.checked;
       await saveState();
     });
   }

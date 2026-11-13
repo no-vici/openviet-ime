@@ -27,6 +27,8 @@ export const DEFAULT_SETTINGS = {
   nextWordEnabled: true,
   suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
   gboardLearningEnabled: true,
+  autoHarmonizeCase: true,   // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được)
+  uniqueSyllables: true,     // Auto-complete unique Vietnamese syllables (khong -> không)
   debugTypingLog: false,
   blacklistedDomains: []
 };

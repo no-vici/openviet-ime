@@ -501,6 +501,22 @@
           </label>
 
           <label class="checkbox-row">
+            <input type="checkbox" id="autoHarmonizeCaseOption">
+            <div>
+              <strong>Chuẩn hóa viết hoa/thường theo chữ cái đầu (Harmonize Syllable Case)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động sửa lỗi kẹt Shift/CapsLock: <code>ĐƯợc</code>, <code>ĐƯỢc</code> &rarr; <code>Được</code>; <code>đƯỢc</code> &rarr; <code>được</code>; giữ nguyên khi viết hoa toàn bộ (<code>ĐƯỢC</code>) và bảo vệ tuyệt đối biến code (<code>useState</code>, <code>mIxEd</code>).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="uniqueSyllablesOption">
+            <div>
+              <strong>Tự động điền dấu cho âm tiết đặc thù (Unique Syllables Auto-Complete)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động điền dấu cho các âm tiết chỉ có 1 biến thể hợp lệ: <code>khong</code> &rarr; <code>không</code>; <code>truong</code> &rarr; <code>trương</code> (gõ tiếp dấu tùy ý: <code>truongf</code> &rarr; <code>trường</code>); <code>nganh</code> &rarr; <code>ngành</code> (gõ <code>j/5</code> &rarr; <code>ngạnh</code>).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
             <input type="checkbox" id="ctrlToggleOption">
             <div>
               <strong>Bật/Tắt bằng phím Ctrl kép (Nhấn phím Ctrl 2 lần liên tiếp)</strong>

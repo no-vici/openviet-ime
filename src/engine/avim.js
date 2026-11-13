@@ -9,6 +9,7 @@
 import { IME_METHOD, TONE_STYLE, isCamelOrPascalCase } from './key-codes.js';
 import { getVietnameseWordSet, canon } from './vietnamese-words.js';
 import { parseSyllable, ParsedSyllable, TONE_MARK } from './syllable-parser.js';
+import { harmonizeSyllableCase, UNIQUE_SYLLABLE_MAP, matchUniqueSyllableCase } from './casing.js';
 import {
   hasForeignOnset,
   isForeignWord,
@@ -124,6 +125,8 @@ export class AvimEngine {
     this.autoRestoreEnglish = options.autoRestoreEnglish ?? true;
     this.escRevert = options.escRevert ?? true;
     this.phonologyRules = options.phonologyRules ?? true;
+    this.autoHarmonizeCase = options.autoHarmonizeCase ?? true;
+    this.uniqueSyllables = options.uniqueSyllables ?? true;
 
     // Session state tracking for current word
     this.currentWordRaw = '';
@@ -161,6 +164,14 @@ export class AvimEngine {
 
   setPhonologyRules(enabled) {
     this.phonologyRules = Boolean(enabled);
+  }
+
+  setAutoHarmonizeCase(enabled) {
+    this.autoHarmonizeCase = Boolean(enabled);
+  }
+
+  setUniqueSyllables(enabled) {
+    this.uniqueSyllables = Boolean(enabled);
   }
 
   trackRawKey(key) {
@@ -468,10 +479,21 @@ export class AvimEngine {
       return dynamicResult;
     }
 
+    // 4c. Auto-Complete Unique Vietnamese Syllables (auto_complete_unique_syllable):
+    // Certain sequences (khong -> không, truong -> trương, nganh -> ngành) only have 1 valid accented word.
+    if (this.uniqueSyllables) {
+      const uniqueResult = this.checkUniqueSyllable(word, key);
+      if (uniqueResult.transformed) {
+        this.lastTransformed = uniqueResult.result;
+        return uniqueResult;
+      }
+    }
+
     // 5. Default: append key
     const newWord = word + key;
-    this.lastTransformed = newWord;
-    return { transformed: false, result: newWord };
+    const finalWord = this.autoHarmonizeCase ? harmonizeSyllableCase(newWord) : newWord;
+    this.lastTransformed = finalWord;
+    return { transformed: finalWord !== newWord, result: finalWord };
   }
 
   /**
@@ -520,9 +542,35 @@ export class AvimEngine {
       return { transformed: false, result: candidate };
     }
 
-    const reconstructed = parsed.reconstruct(this.toneStyle);
+    let reconstructed = parsed.reconstruct(this.toneStyle);
+    if (this.autoHarmonizeCase) {
+      reconstructed = harmonizeSyllableCase(reconstructed);
+    }
     if (reconstructed && reconstructed !== candidate) {
       return { transformed: true, result: reconstructed };
+    }
+
+    return { transformed: false, result: candidate };
+  }
+
+  /**
+   * Auto-Complete Unique Vietnamese Syllables (auto_complete_unique_syllable):
+   * When user completes typing an unaccented sequence that can only correspond to 1 legitimate word
+   * (e.g. 'khong' -> 'không', 'truong' -> 'trương', 'nganh' -> 'ngành'), auto-convert it.
+   */
+  checkUniqueSyllable(word, key) {
+    if (!word || !key || key.length !== 1) {
+      return { transformed: false, result: word + key };
+    }
+
+    const candidate = word + key;
+    const lowerCandidate = candidate.toLowerCase();
+
+    // Check if candidate matches a unique Vietnamese syllable
+    const uniqueTarget = UNIQUE_SYLLABLE_MAP[lowerCandidate];
+    if (uniqueTarget) {
+      const converted = matchUniqueSyllableCase(candidate, uniqueTarget);
+      return { transformed: true, result: converted };
     }
 
     return { transformed: false, result: candidate };

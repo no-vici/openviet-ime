@@ -126,6 +126,8 @@ class AvimContentScript {
     this.avimEngine.setAutoRestoreEnglish(this.settings.autoRestoreEnglish !== false);
     this.avimEngine.setEscRevert(this.settings.escRevert !== false);
     this.avimEngine.setPhonologyRules(this.settings.phonologyRules !== false);
+    this.avimEngine.setAutoHarmonizeCase(this.settings.autoHarmonizeCase !== false);
+    this.avimEngine.setUniqueSyllables(this.settings.uniqueSyllables !== false);
 
     this.macroEngine.enabled = this.settings.macroEnabled;
     this.macroEngine.autoUndo = this.settings.autoUndo;

@@ -28,6 +28,8 @@ const DEFAULT_SETTINGS = {
   nextWordEnabled: true,
   suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
   gboardLearningEnabled: true,
+  autoHarmonizeCase: true,
+  uniqueSyllables: true,
   debugTypingLog: false,
   blacklistedDomains: []
 };

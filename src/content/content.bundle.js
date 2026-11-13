@@ -760,6 +760,52 @@
     });
   }
 
+  // src/engine/casing.js
+  function harmonizeSyllableCase(word, options = {}) {
+    if (!word || typeof word !== "string" || word.length <= 1) {
+      return word;
+    }
+    if (options.isCodeContext || isCamelOrPascalCase(word)) {
+      return word;
+    }
+    if (/[\d_$/#-]/.test(word)) {
+      return word;
+    }
+    const isAllUpper = word === word.toUpperCase() && word !== word.toLowerCase();
+    if (isAllUpper) {
+      return word;
+    }
+    const isAllLower = word === word.toLowerCase() && word !== word.toUpperCase();
+    if (isAllLower) {
+      return word;
+    }
+    const firstChar = word.charAt(0);
+    const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
+    if (isFirstUpper) {
+      return firstChar + word.slice(1).toLowerCase();
+    } else {
+      return word.toLowerCase();
+    }
+  }
+  var UNIQUE_SYLLABLE_MAP = {
+    "khong": "kh\xF4ng",
+    "truong": "tr\u01B0\u01A1ng",
+    "nganh": "ng\xE0nh"
+  };
+  function matchUniqueSyllableCase(rawInput, target) {
+    if (!rawInput || !target) return target;
+    const isAllUpper = rawInput === rawInput.toUpperCase() && rawInput !== rawInput.toLowerCase();
+    if (isAllUpper) {
+      return target.toUpperCase();
+    }
+    const firstChar = rawInput.charAt(0);
+    const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
+    if (isFirstUpper) {
+      return target.charAt(0).toUpperCase() + target.slice(1);
+    }
+    return target.toLowerCase();
+  }
+
   // src/engine/dictionary.js
   var FOREIGN_INITIAL_CLUSTERS = /* @__PURE__ */ new Set([
     "pl",
@@ -2303,6 +2349,8 @@
       this.autoRestoreEnglish = options.autoRestoreEnglish ?? true;
       this.escRevert = options.escRevert ?? true;
       this.phonologyRules = options.phonologyRules ?? true;
+      this.autoHarmonizeCase = options.autoHarmonizeCase ?? true;
+      this.uniqueSyllables = options.uniqueSyllables ?? true;
       this.currentWordRaw = "";
       this.lastTransformed = "";
       this.lastToneToggledWord = null;
@@ -2330,6 +2378,12 @@
     }
     setPhonologyRules(enabled) {
       this.phonologyRules = Boolean(enabled);
+    }
+    setAutoHarmonizeCase(enabled) {
+      this.autoHarmonizeCase = Boolean(enabled);
+    }
+    setUniqueSyllables(enabled) {
+      this.uniqueSyllables = Boolean(enabled);
     }
     trackRawKey(key) {
       if (key && key.length === 1) {
@@ -2548,9 +2602,17 @@
         this.lastTransformed = dynamicResult.result;
         return dynamicResult;
       }
+      if (this.uniqueSyllables) {
+        const uniqueResult = this.checkUniqueSyllable(word, key);
+        if (uniqueResult.transformed) {
+          this.lastTransformed = uniqueResult.result;
+          return uniqueResult;
+        }
+      }
       const newWord = word + key;
-      this.lastTransformed = newWord;
-      return { transformed: false, result: newWord };
+      const finalWord = this.autoHarmonizeCase ? harmonizeSyllableCase(newWord) : newWord;
+      this.lastTransformed = finalWord;
+      return { transformed: finalWord !== newWord, result: finalWord };
     }
     /**
      * Dynamic Tone Shifting:
@@ -2590,9 +2652,30 @@
       if (!parsed.isValid()) {
         return { transformed: false, result: candidate };
       }
-      const reconstructed = parsed.reconstruct(this.toneStyle);
+      let reconstructed = parsed.reconstruct(this.toneStyle);
+      if (this.autoHarmonizeCase) {
+        reconstructed = harmonizeSyllableCase(reconstructed);
+      }
       if (reconstructed && reconstructed !== candidate) {
         return { transformed: true, result: reconstructed };
+      }
+      return { transformed: false, result: candidate };
+    }
+    /**
+     * Auto-Complete Unique Vietnamese Syllables (auto_complete_unique_syllable):
+     * When user completes typing an unaccented sequence that can only correspond to 1 legitimate word
+     * (e.g. 'khong' -> 'không', 'truong' -> 'trương', 'nganh' -> 'ngành'), auto-convert it.
+     */
+    checkUniqueSyllable(word, key) {
+      if (!word || !key || key.length !== 1) {
+        return { transformed: false, result: word + key };
+      }
+      const candidate = word + key;
+      const lowerCandidate = candidate.toLowerCase();
+      const uniqueTarget = UNIQUE_SYLLABLE_MAP[lowerCandidate];
+      if (uniqueTarget) {
+        const converted = matchUniqueSyllableCase(candidate, uniqueTarget);
+        return { transformed: true, result: converted };
       }
       return { transformed: false, result: candidate };
     }
@@ -3913,6 +3996,10 @@
     suggestionStyle: "ribbon",
     // 'ribbon' | 'ghost_text'
     gboardLearningEnabled: true,
+    autoHarmonizeCase: true,
+    // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được)
+    uniqueSyllables: true,
+    // Auto-complete unique Vietnamese syllables (khong -> không)
     debugTypingLog: false,
     blacklistedDomains: []
   };
@@ -6457,6 +6544,8 @@
       this.avimEngine.setAutoRestoreEnglish(this.settings.autoRestoreEnglish !== false);
       this.avimEngine.setEscRevert(this.settings.escRevert !== false);
       this.avimEngine.setPhonologyRules(this.settings.phonologyRules !== false);
+      this.avimEngine.setAutoHarmonizeCase(this.settings.autoHarmonizeCase !== false);
+      this.avimEngine.setUniqueSyllables(this.settings.uniqueSyllables !== false);
       this.macroEngine.enabled = this.settings.macroEnabled;
       this.macroEngine.autoUndo = this.settings.autoUndo;
       if (this.settings.macros) {
@@ -8073,6 +8162,12 @@
  * Vietnamese Syllable Parser & Phonological Reconstructor
  * Ported and adapted from the Bamboo / vnchKey 5-component linguistic model:
  * Syllable = Onset + Glide + Nucleus + Coda + Tone
+ *
+ * @license Apache-2.0
+ */
+/**
+ * Syllable Casing Harmonization & Unique Syllable Auto-Completion Engine
+ * Inspired by modern Rust/C IME architectures (casing.rs & engine.rs).
  *
  * @license Apache-2.0
  */

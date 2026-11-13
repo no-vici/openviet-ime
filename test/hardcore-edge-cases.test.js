@@ -1,6 +1,9 @@
 import test, { describe } from 'node:test';
 import assert from 'node:assert';
 import { reverseVietnameseWord, matchCasing, shouldAutoRestoreEnglish } from '../src/engine/dictionary.js';
+import { harmonizeSyllableCase } from '../src/engine/casing.js';
+import { AvimEngine } from '../src/engine/avim.js';
+import { IME_METHOD } from '../src/engine/key-codes.js';
 
 const expect = (actual) => ({
   toBe: (expected) => assert.strictEqual(actual, expected)
@@ -34,6 +37,73 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(shouldAutoRestoreEnglish('tesst', 'test')).toBe(false);
     expect(shouldAutoRestoreEnglish('passs', 'pass')).toBe(false);
     expect(shouldAutoRestoreEnglish('fasst', 'fast')).toBe(false);
+  });
+
+  test('4. Chuẩn hóa viết hoa/thường theo chữ cái đầu (harmonize_syllable_case)', () => {
+    // Chữ cái đầu viết Hoa (Đ): lỡ giữ Shift/CapsLock -> đưa phần sau về thường
+    expect(harmonizeSyllableCase('ĐƯợc')).toBe('Được');
+    expect(harmonizeSyllableCase('ĐƯỢc')).toBe('Được');
+    expect(harmonizeSyllableCase('ĐƯờng')).toBe('Đường');
+
+    // Chữ cái đầu viết Thường (đ): lỡ có âm phía sau bị viết hoa -> đưa toàn bộ về thường
+    expect(harmonizeSyllableCase('đƯỢc')).toBe('được');
+    expect(harmonizeSyllableCase('đƯờng')).toBe('đường');
+
+    // Viết hoa toàn bộ (ALL CAPS): giữ nguyên
+    expect(harmonizeSyllableCase('ĐƯỢC')).toBe('ĐƯỢC');
+    expect(harmonizeSyllableCase('VIỆT NAM')).toBe('VIỆT NAM');
+    expect(harmonizeSyllableCase('THÀNH PHỐ')).toBe('THÀNH PHỐ');
+
+    // An toàn cho lập trình viên: không can thiệp camelCase, PascalCase, mixed
+    expect(harmonizeSyllableCase('useState')).toBe('useState');
+    expect(harmonizeSyllableCase('loWeRcAsE')).toBe('loWeRcAsE');
+    expect(harmonizeSyllableCase('mIxEd')).toBe('mIxEd');
+    expect(harmonizeSyllableCase('UserController')).toBe('UserController');
+  });
+
+  test('5. Tự động điền dấu cho các âm tiết đặc thù (auto_complete_unique_syllable)', () => {
+    function typeKeys(engine, keys) {
+      let res = '';
+      for (const k of keys) {
+        const r = engine.processKey(res, k);
+        res = r.transformed ? r.result : res + k;
+      }
+      return res;
+    }
+
+    const telex = new AvimEngine({ method: IME_METHOD.TELEX });
+    const vni = new AvimEngine({ method: IME_METHOD.VNI });
+    const auto = new AvimEngine({ method: IME_METHOD.AUTO });
+
+    // 1. khong -> không (bảo lưu đúng case)
+    expect(typeKeys(telex, 'khong')).toBe('không');
+    expect(typeKeys(telex, 'Khong')).toBe('Không');
+    expect(typeKeys(telex, 'KHONG')).toBe('KHÔNG');
+    expect(typeKeys(vni, 'khong')).toBe('không');
+    expect(typeKeys(auto, 'khong')).toBe('không');
+
+    // 2. truong -> trương, và có thể gõ thêm dấu thanh bất kỳ lúc nào
+    expect(typeKeys(telex, 'truong')).toBe('trương');
+    expect(typeKeys(telex, 'truongf')).toBe('trường');
+    expect(typeKeys(telex, 'truongs')).toBe('trướng');
+    expect(typeKeys(telex, 'truongr')).toBe('trưởng');
+    expect(typeKeys(telex, 'truongj')).toBe('trượng');
+
+    // Trên VNI: truong2 -> trường, truong1 -> trướng, truong3 -> trưởng, truong5 -> trượng
+    expect(typeKeys(vni, 'truong')).toBe('trương');
+    expect(typeKeys(vni, 'truong2')).toBe('trường');
+    expect(typeKeys(vni, 'truong1')).toBe('trướng');
+    expect(typeKeys(vni, 'truong3')).toBe('trưởng');
+    expect(typeKeys(vni, 'truong5')).toBe('trượng');
+
+    // 3. nganh -> ngành, gõ tiếp j / 5 chuyển sang ngạnh
+    expect(typeKeys(telex, 'nganh')).toBe('ngành');
+    expect(typeKeys(telex, 'Nganh')).toBe('Ngành');
+    expect(typeKeys(telex, 'NGANH')).toBe('NGÀNH');
+    expect(typeKeys(telex, 'nganhj')).toBe('ngạnh');
+    expect(typeKeys(vni, 'nganh5')).toBe('ngạnh');
+    expect(typeKeys(auto, 'nganhj')).toBe('ngạnh');
+    expect(typeKeys(auto, 'nganh5')).toBe('ngạnh');
   });
 });
 
