@@ -2097,14 +2097,21 @@
   var UserDictionary = class {
     constructor(initialWords = DEFAULT_USER_WORDS) {
       this.words = /* @__PURE__ */ new Set();
+      this.customWords = /* @__PURE__ */ new Set();
       this.cachedIndex = null;
       this.loadWords(initialWords);
     }
     loadWords(wordsList) {
       if (Array.isArray(wordsList)) {
+        const defaultSet = new Set(DEFAULT_USER_WORDS.map((w) => canon(w)));
         wordsList.forEach((w) => {
           const clean = canon(w);
-          if (clean) this.words.add(clean);
+          if (clean) {
+            this.words.add(clean);
+            if (!defaultSet.has(clean)) {
+              this.customWords.add(clean);
+            }
+          }
         });
         this.cachedIndex = null;
       }
@@ -2123,10 +2130,23 @@
       if (!word) return false;
       return this.words.has(canon(word));
     }
+    /**
+     * Check if the raw keystroke sequence matches any custom/learned user word prefix.
+     * Prevents premature Vietnamese diacritic placement on words the user intentionally customized.
+     */
+    isCustomUserWordPrefix(rawSeq) {
+      if (!rawSeq || rawSeq.length < 2) return false;
+      const lower = rawSeq.toLowerCase();
+      for (const w of this.customWords) {
+        if (w.startsWith(lower)) return true;
+      }
+      return false;
+    }
     add(word) {
       const clean = canon(word);
       if (!clean) return false;
       this.words.add(clean);
+      this.customWords.add(clean);
       this.cachedIndex = null;
       this.saveToStorage();
       return true;
@@ -2134,6 +2154,7 @@
     remove(word) {
       const clean = canon(word);
       if (!clean) return false;
+      this.customWords.delete(clean);
       const deleted = this.words.delete(clean);
       if (deleted) {
         this.cachedIndex = null;
@@ -2143,6 +2164,7 @@
     }
     clear() {
       this.words.clear();
+      this.customWords.clear();
       this.cachedIndex = null;
       this.saveToStorage();
     }
@@ -2561,6 +2583,23 @@
         const vnSet = getVietnameseWordSet();
         if (!vnSet.has(canon(word))) {
           return { transformed: false, result: word + key };
+        }
+      }
+      let rawCandidate = "";
+      if (this.currentWordRaw) {
+        if (this.currentWordRaw.endsWith(key)) {
+          rawCandidate = this.currentWordRaw;
+        } else {
+          rawCandidate = this.currentWordRaw + key;
+        }
+      } else {
+        rawCandidate = (reverseVietnameseWord(word) || word) + key;
+      }
+      if (userDictionary && typeof userDictionary.isCustomUserWordPrefix === "function") {
+        if (userDictionary.isCustomUserWordPrefix(rawCandidate)) {
+          const newWord2 = word + key;
+          this.lastTransformed = newWord2;
+          return { transformed: false, result: newWord2 };
         }
       }
       if (word && word.endsWith("\\")) {
@@ -6482,6 +6521,7 @@
       this.caretMarker = null;
       this.suggestionInactivityTimeout = null;
       this.suggestionInactivityMs = 2800;
+      this.erasedWordHabits = /* @__PURE__ */ new Map();
       this.avimEngine = new AvimEngine({
         method: this.settings.method,
         toneStyle: this.settings.toneStyle,
@@ -7295,6 +7335,15 @@
       if (key === "Backspace") {
         this.hideSuggestions();
         this._consecutiveBackspaces = (this._consecutiveBackspaces || 0) + 1;
+        if (!this._backspaceSession) {
+          this._backspaceSession = {
+            raw: this.avimEngine.currentWordRaw || "",
+            transformed: this.avimEngine.lastTransformed || "",
+            initialLength: (this.avimEngine.lastTransformed || "").length,
+            count: 0
+          };
+        }
+        this._backspaceSession.count += 1;
         if (this.settings.debugTypingLog && this._consecutiveBackspaces >= 2) {
           if (this.avimEngine.lastTransformed && this.avimEngine.currentWordRaw) {
             this.recordTypingLog("backspace_delete", this.avimEngine.currentWordRaw, this.avimEngine.lastTransformed);
@@ -7306,15 +7355,22 @@
         if (this.avimEngine.currentWordRaw) {
           this.avimEngine.currentWordRaw = this.avimEngine.currentWordRaw.slice(0, -1);
         }
+        if (this._backspaceSession && this._backspaceSession.raw && this._backspaceSession.transformed && this._backspaceSession.initialLength > 0 && this._backspaceSession.count >= this._backspaceSession.initialLength && (!this.avimEngine.currentWordRaw || this.avimEngine.currentWordRaw.length === 0)) {
+          this.recordWordErase(this._backspaceSession.raw, this._backspaceSession.transformed);
+          this._backspaceSession = null;
+        }
         this.adoptWordBeforeBackspace(target, event);
       }
       if (key.length === 1) {
         this._consecutiveBackspaces = 0;
+        this._backspaceSession = null;
         this.handleCharacterInput(target, key, event);
       }
     }
     handleWholeWordErase(target, event) {
       const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      const rawBefore = this.avimEngine.currentWordRaw || "";
+      const transformedBefore = this.avimEngine.lastTransformed || "";
       if (isNative) {
         const pos = target.selectionStart ?? target.value.length;
         const textBefore = target.value.slice(0, pos);
@@ -7325,6 +7381,9 @@
           const deleteLen = match[0].length;
           const startReplace = pos - deleteLen;
           this.textReplacer.replaceInNativeInput(target, startReplace, pos, "");
+          if (rawBefore && transformedBefore) {
+            this.recordWordErase(rawBefore, transformedBefore);
+          }
           this.avimEngine.resetWordSession();
           this.lastWordBeforeDelimiter = "";
           this.secondLastWordBeforeDelimiter = "";
@@ -7353,6 +7412,9 @@
               sel.removeAllRanges();
               sel.addRange(newRange);
               this.textReplacer.dispatchSyntheticInput(target, "");
+              if (rawBefore && transformedBefore) {
+                this.recordWordErase(rawBefore, transformedBefore);
+              }
               this.avimEngine.resetWordSession();
               this.lastWordBeforeDelimiter = "";
               this.secondLastWordBeforeDelimiter = "";
@@ -7477,6 +7539,8 @@
       const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
       const wordInfo = isNative ? this.textReplacer.extractNativeWordBuffer(target) : this.textReplacer.extractContentEditableWordBuffer();
       if (wordInfo && wordInfo.word) {
+        const currentWord = wordInfo.word;
+        const rawBefore = this.avimEngine.currentWordRaw || currentWord;
         const revert = this.avimEngine.revertCurrentWord(wordInfo.word);
         if (revert.reverted) {
           event.preventDefault();
@@ -7496,10 +7560,36 @@
           }
           this.hideSuggestions();
           this.showHudToast(`Ho\xE0n t\xE1c: ${revert.result}`, true);
+          this.recordWordErase(rawBefore, currentWord);
           if (this.settings.debugTypingLog) {
             this.recordTypingLog("escape_revert", this.avimEngine.currentWordRaw || wordInfo.word, wordInfo.word, revert.result);
           }
           return true;
+        }
+      }
+      return false;
+    }
+    /**
+     * Automatic Habit Learning:
+     * When a user completely deletes a word that had received Vietnamese diacritics
+     * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) 2 or more times,
+     * automatically learns and adds the word to userDictionary so it won't receive accents next time.
+     */
+    recordWordErase(rawCandidate, transformedWord) {
+      if (!rawCandidate || !transformedWord) return false;
+      const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(transformedWord);
+      if (!hasDiacritics) return false;
+      const raw = String(rawCandidate).trim().toLowerCase();
+      if (raw.length < 2) return false;
+      const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
+      this.erasedWordHabits.set(raw, currentCount);
+      if (currentCount >= 2) {
+        if (userDictionary && typeof userDictionary.add === "function") {
+          if (!userDictionary.has(raw)) {
+            userDictionary.add(raw);
+            this.showHudToast(`\u0110\xE3 t\u1EF1 h\u1ECDc t\u1EEB \u0111i\u1EC3n: "${raw}"`, true);
+            return true;
+          }
         }
       }
       return false;

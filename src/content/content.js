@@ -48,6 +48,11 @@ class AvimContentScript {
     this.suggestionInactivityTimeout = null;
     this.suggestionInactivityMs = 2800; // Auto-dismiss after 2.8s of inactivity
 
+    // Automatic User Habit Learning:
+    // Tracks words that got unwanted Vietnamese diacritics and were completely erased.
+    // If erased 2 or more times, automatically adds the raw word to userDictionary so it won't receive accents again.
+    this.erasedWordHabits = new Map();
+
     this.avimEngine = new AvimEngine({
       method: this.settings.method,
       toneStyle: this.settings.toneStyle,
@@ -1019,6 +1024,16 @@ class AvimContentScript {
       this.hideSuggestions();
       this._consecutiveBackspaces = (this._consecutiveBackspaces || 0) + 1;
 
+      if (!this._backspaceSession) {
+        this._backspaceSession = {
+          raw: this.avimEngine.currentWordRaw || '',
+          transformed: this.avimEngine.lastTransformed || '',
+          initialLength: (this.avimEngine.lastTransformed || '').length,
+          count: 0
+        };
+      }
+      this._backspaceSession.count += 1;
+
       if (this.settings.debugTypingLog && this._consecutiveBackspaces >= 2) {
         if (this.avimEngine.lastTransformed && this.avimEngine.currentWordRaw) {
           this.recordTypingLog('backspace_delete', this.avimEngine.currentWordRaw, this.avimEngine.lastTransformed);
@@ -1031,18 +1046,36 @@ class AvimContentScript {
       if (this.avimEngine.currentWordRaw) {
         this.avimEngine.currentWordRaw = this.avimEngine.currentWordRaw.slice(0, -1);
       }
+
+      // Check if user completely erased the entire word via consecutive backspaces
+      if (
+        this._backspaceSession &&
+        this._backspaceSession.raw &&
+        this._backspaceSession.transformed &&
+        this._backspaceSession.initialLength > 0 &&
+        this._backspaceSession.count >= this._backspaceSession.initialLength &&
+        (!this.avimEngine.currentWordRaw || this.avimEngine.currentWordRaw.length === 0)
+      ) {
+        this.recordWordErase(this._backspaceSession.raw, this._backspaceSession.transformed);
+        this._backspaceSession = null;
+      }
+
       this.adoptWordBeforeBackspace(target, event);
     }
 
     // 3. Single character typing
     if (key.length === 1) {
       this._consecutiveBackspaces = 0;
+      this._backspaceSession = null;
       this.handleCharacterInput(target, key, event);
     }
   }
 
   handleWholeWordErase(target, event) {
     const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+    const rawBefore = this.avimEngine.currentWordRaw || '';
+    const transformedBefore = this.avimEngine.lastTransformed || '';
+
     if (isNative) {
       const pos = target.selectionStart ?? target.value.length;
       const textBefore = target.value.slice(0, pos);
@@ -1055,6 +1088,9 @@ class AvimContentScript {
         const deleteLen = match[0].length;
         const startReplace = pos - deleteLen;
         this.textReplacer.replaceInNativeInput(target, startReplace, pos, '');
+        if (rawBefore && transformedBefore) {
+          this.recordWordErase(rawBefore, transformedBefore);
+        }
         this.avimEngine.resetWordSession();
         this.lastWordBeforeDelimiter = '';
       this.secondLastWordBeforeDelimiter = '';
@@ -1083,6 +1119,9 @@ class AvimContentScript {
             sel.removeAllRanges();
             sel.addRange(newRange);
             this.textReplacer.dispatchSyntheticInput(target, '');
+            if (rawBefore && transformedBefore) {
+              this.recordWordErase(rawBefore, transformedBefore);
+            }
             this.avimEngine.resetWordSession();
             this.lastWordBeforeDelimiter = '';
       this.secondLastWordBeforeDelimiter = '';
@@ -1228,6 +1267,8 @@ class AvimContentScript {
       : this.textReplacer.extractContentEditableWordBuffer();
 
     if (wordInfo && wordInfo.word) {
+      const currentWord = wordInfo.word;
+      const rawBefore = this.avimEngine.currentWordRaw || currentWord;
       const revert = this.avimEngine.revertCurrentWord(wordInfo.word);
       if (revert.reverted) {
         event.preventDefault();
@@ -1247,10 +1288,40 @@ class AvimContentScript {
         }
         this.hideSuggestions();
         this.showHudToast(`Hoàn tác: ${revert.result}`, true);
+        this.recordWordErase(rawBefore, currentWord);
         if (this.settings.debugTypingLog) {
           this.recordTypingLog('escape_revert', this.avimEngine.currentWordRaw || wordInfo.word, wordInfo.word, revert.result);
         }
         return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Automatic Habit Learning:
+   * When a user completely deletes a word that had received Vietnamese diacritics
+   * (via Backspacing the whole word, Ctrl+Backspace, or ESC revert) 2 or more times,
+   * automatically learns and adds the word to userDictionary so it won't receive accents next time.
+   */
+  recordWordErase(rawCandidate, transformedWord) {
+    if (!rawCandidate || !transformedWord) return false;
+    const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(transformedWord);
+    if (!hasDiacritics) return false;
+
+    const raw = String(rawCandidate).trim().toLowerCase();
+    if (raw.length < 2) return false;
+
+    const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
+    this.erasedWordHabits.set(raw, currentCount);
+
+    if (currentCount >= 2) {
+      if (userDictionary && typeof userDictionary.add === 'function') {
+        if (!userDictionary.has(raw)) {
+          userDictionary.add(raw);
+          this.showHudToast(`Đã tự học từ điển: "${raw}"`, true);
+          return true;
+        }
       }
     }
     return false;

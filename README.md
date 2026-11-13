@@ -345,6 +345,7 @@ Once a word is committed, the prediction ribbon displays the most probable succe
 ### On-Device Personalized Learning (100% Private)
 - As you type consecutive words (e.g. `họp team`, `chuyển khoản`, `gửi email`), the local bigram model automatically increments transition frequencies.
 - High-frequency personal pairs surface at position #1 with a green **Habit** badge.
+- **Smart Erase Habit Learning (Zero-Accent Whitelist)**: If you type an accented word and delete the **entire word** (via consecutive Backspaces, `Ctrl+Backspace`, or `Escape`) **2 or more times** to re-type it, OpenViet IME automatically learns that this raw sequence should remain unaccented. The word is seamlessly registered into your personal `userDictionary` and protected from subsequent diacritic conversion.
 - Stored exclusively in the user's browser `localStorage` / `sync storage` with zero telemetry, network requests, or tracking.
 - **Export & Import Habits (Backup & Portability)**: Export (`Export JSON`, `Export CSV`) and import (`Import...`) learned habits directly in the *"AI / Gboard"* settings tab. Easily sync or transfer your personalized typing habits across computers with seamless incremental merging or overwriting without losing learned collocations.
 

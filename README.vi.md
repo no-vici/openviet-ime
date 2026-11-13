@@ -344,6 +344,7 @@ Khi bạn vừa gõ xong một từ, thanh gợi ý ribbon sẽ đưa ra các t�
 ### Tự Học Thói Quen Người Dùng Cục Bộ (Bảo Mật 100%)
 - Khi bạn gõ các cặp từ liên tiếp (như `họp team`, `chuyển khoản`, `gửi email`), mô hình bigram trên máy bạn sẽ tự động tăng tần suất xuất hiện.
 - Các cặp từ hay dùng nhất sẽ được đưa lên vị trí số 1 kèm huy hiệu xanh **Thói quen**.
+- **Tự động học thói quen khi xóa từ (Ngăn bỏ dấu lặp lại)**: Khi bạn gõ một từ bị bỏ dấu tiếng Việt ngoài ý muốn và thực hiện **xóa toàn bộ từ đó** (qua phím Backspace liên tiếp hết từ, `Ctrl+Backspace`, hoặc `Escape`) từ **2 lần trở lên**, bộ gõ sẽ tự động nhận diện đây là từ bạn không muốn bỏ dấu. Từ này lập tức được nạp vào Từ Điển Riêng (`userDictionary`), hiển thị thông báo HUD nhẹ nhàng và vĩnh viễn không bị bỏ dấu nhầm ở những lần gõ tiếp theo.
 - Toàn bộ dữ liệu được lưu cục bộ trong `localStorage` / `sync storage` của trình duyệt, không có telemetry, không gửi dữ liệu ra mạng internet.
 - **Xuất & Nhập Thói Quen (Backup & Portable)**: Hỗ trợ xuất (`Export JSON`, `Export CSV`) và nhập (`Import`) trực tiếp từ tab *"Gợi Ý & Thói Quen"* trong trang Cài Đặt. Bạn có thể dễ dàng chuyển toàn bộ dữ liệu thói quen gõ từ máy này sang máy khác mà không cần phải gõ lại từ đầu, đồng thời hỗ trợ chế độ Gộp thông minh (Merge) hoặc Ghi đè.
 

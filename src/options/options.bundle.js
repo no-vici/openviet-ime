@@ -1314,14 +1314,21 @@
   var UserDictionary = class {
     constructor(initialWords = DEFAULT_USER_WORDS) {
       this.words = /* @__PURE__ */ new Set();
+      this.customWords = /* @__PURE__ */ new Set();
       this.cachedIndex = null;
       this.loadWords(initialWords);
     }
     loadWords(wordsList) {
       if (Array.isArray(wordsList)) {
+        const defaultSet = new Set(DEFAULT_USER_WORDS.map((w) => canon(w)));
         wordsList.forEach((w) => {
           const clean = canon(w);
-          if (clean) this.words.add(clean);
+          if (clean) {
+            this.words.add(clean);
+            if (!defaultSet.has(clean)) {
+              this.customWords.add(clean);
+            }
+          }
         });
         this.cachedIndex = null;
       }
@@ -1340,10 +1347,23 @@
       if (!word) return false;
       return this.words.has(canon(word));
     }
+    /**
+     * Check if the raw keystroke sequence matches any custom/learned user word prefix.
+     * Prevents premature Vietnamese diacritic placement on words the user intentionally customized.
+     */
+    isCustomUserWordPrefix(rawSeq) {
+      if (!rawSeq || rawSeq.length < 2) return false;
+      const lower = rawSeq.toLowerCase();
+      for (const w of this.customWords) {
+        if (w.startsWith(lower)) return true;
+      }
+      return false;
+    }
     add(word) {
       const clean = canon(word);
       if (!clean) return false;
       this.words.add(clean);
+      this.customWords.add(clean);
       this.cachedIndex = null;
       this.saveToStorage();
       return true;
@@ -1351,6 +1371,7 @@
     remove(word) {
       const clean = canon(word);
       if (!clean) return false;
+      this.customWords.delete(clean);
       const deleted = this.words.delete(clean);
       if (deleted) {
         this.cachedIndex = null;
@@ -1360,6 +1381,7 @@
     }
     clear() {
       this.words.clear();
+      this.customWords.clear();
       this.cachedIndex = null;
       this.saveToStorage();
     }

@@ -408,6 +408,28 @@ export class AvimEngine {
       }
     }
 
+    // Custom / Learned User Words Guard:
+    // If the active keystroke sequence matches any custom or habit-learned user word prefix (e.g. 'sas', 'reset'),
+    // protect it from premature Vietnamese diacritic transformation.
+    let rawCandidate = '';
+    if (this.currentWordRaw) {
+      if (this.currentWordRaw.endsWith(key)) {
+        rawCandidate = this.currentWordRaw;
+      } else {
+        rawCandidate = this.currentWordRaw + key;
+      }
+    } else {
+      rawCandidate = (reverseVietnameseWord(word) || word) + key;
+    }
+
+    if (userDictionary && typeof userDictionary.isCustomUserWordPrefix === 'function') {
+      if (userDictionary.isCustomUserWordPrefix(rawCandidate)) {
+        const newWord = word + key;
+        this.lastTransformed = newWord;
+        return { transformed: false, result: newWord };
+      }
+    }
+
     // 0. AVIM Escape mechanism: if preceding character is '\', remove '\' and pass key literally
     if (word && word.endsWith('\\')) {
       const res = { transformed: true, result: word.slice(0, -1) + key };
