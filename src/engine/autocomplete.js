@@ -934,6 +934,7 @@ export class GboardLearnedModel {
     this.userTrigrams = {}; // "w1 w2" -> { w3: { count: number, lastUsed: number } }
     this.userBigrams = {};  // w1 -> { w2: { count: number, lastUsed: number } }
     this.userUnigrams = {}; // w -> { count: number, lastUsed: number }
+    this.lastUpdatedAt = 0;
     this.loadFromStorage();
   }
 
@@ -964,15 +965,32 @@ export class GboardLearnedModel {
   }
 
   async loadFromStorage() {
-    // 1. Try chrome.storage.local (Shared across all websites and options/popup in extension)
+    const storageLocal = (typeof browser !== 'undefined' && browser.storage && browser.storage.local)
+      ? browser.storage.local
+      : ((typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) ? chrome.storage.local : null);
+
+    // 1. Try extension local storage (Shared across all websites and options/popup in extension)
     try {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const stored = await chrome.storage.local.get([this.storageKey]);
+      if (storageLocal) {
+        const stored = await new Promise(resolve => {
+          try {
+            const p = storageLocal.get([this.storageKey], res => resolve(res || {}));
+            if (p && typeof p.then === 'function') p.then(resolve).catch(() => resolve({}));
+          } catch {
+            resolve({});
+          }
+        });
         if (stored && stored[this.storageKey]) {
           const parsed = stored[this.storageKey];
+          const incomingUpdatedAt = parsed.updatedAt || 0;
+          // Guard against stale asynchronous reads overwriting newer in-memory mutations
+          if (incomingUpdatedAt < this.lastUpdatedAt) {
+            return;
+          }
           this.userTrigrams = parsed.trigrams || {};
           this.userBigrams = parsed.bigrams || {};
           this.userUnigrams = parsed.unigrams || {};
+          this.lastUpdatedAt = incomingUpdatedAt;
           if (typeof parsed.learningEnabled === 'boolean') {
             this.learningEnabled = parsed.learningEnabled;
           }
@@ -980,7 +998,7 @@ export class GboardLearnedModel {
         }
       }
     } catch (e) {
-      console.warn('GboardLearnedModel chrome.storage.local load error:', e);
+      console.warn('GboardLearnedModel extension storage.local load error:', e);
     }
 
     // 2. Fallback to localStorage (for Web Playground / React SPA)
@@ -989,9 +1007,14 @@ export class GboardLearnedModel {
       const saved = localStorage.getItem(this.storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
+        const incomingUpdatedAt = parsed.updatedAt || 0;
+        if (incomingUpdatedAt < this.lastUpdatedAt) {
+          return;
+        }
         this.userTrigrams = parsed.trigrams || {};
         this.userBigrams = parsed.bigrams || {};
         this.userUnigrams = parsed.unigrams || {};
+        this.lastUpdatedAt = incomingUpdatedAt;
         if (typeof parsed.learningEnabled === 'boolean') {
           this.learningEnabled = parsed.learningEnabled;
         }
@@ -1011,35 +1034,48 @@ export class GboardLearnedModel {
     }, 1200);
   }
 
-  flushSaveToStorage() {
+  async flushSaveToStorage() {
     if (this._saveTimer) {
       clearTimeout(this._saveTimer);
       this._saveTimer = null;
     }
+    const now = Date.now();
+    this.lastUpdatedAt = now;
     const payload = {
       learningEnabled: this.learningEnabled,
       trigrams: this.userTrigrams,
       bigrams: this.userBigrams,
       unigrams: this.userUnigrams,
-      updatedAt: Date.now()
+      updatedAt: now
     };
 
-    // 1. Save to chrome.storage.local for Extension (shared across all web domains and options.html)
-    try {
-      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        chrome.storage.local.set({ [this.storageKey]: payload }).catch(() => { });
-      }
-    } catch (e) {
-      // Ignore extension storage error
-    }
-
-    // 2. Save to localStorage for web app / playground
+    // 1. Save to localStorage for web app / playground & instant sync
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(this.storageKey, JSON.stringify(payload));
       }
     } catch (e) {
       console.warn('GboardLearnedModel localStorage save error:', e);
+    }
+
+    // 2. Save to extension storage.local (cross-browser Chrome & Firefox)
+    try {
+      const storageLocal = (typeof browser !== 'undefined' && browser.storage && browser.storage.local)
+        ? browser.storage.local
+        : ((typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) ? chrome.storage.local : null);
+
+      if (storageLocal) {
+        await new Promise(resolve => {
+          try {
+            const p = storageLocal.set({ [this.storageKey]: payload }, () => resolve());
+            if (p && typeof p.then === 'function') p.then(resolve).catch(resolve);
+          } catch {
+            resolve();
+          }
+        });
+      }
+    } catch (e) {
+      // Ignore extension storage error
     }
   }
 

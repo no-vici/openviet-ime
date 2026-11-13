@@ -5751,6 +5751,7 @@
       this.userTrigrams = {};
       this.userBigrams = {};
       this.userUnigrams = {};
+      this.lastUpdatedAt = 0;
       this.loadFromStorage();
     }
     /**
@@ -5776,14 +5777,27 @@
       return isDevDomain ? score + 5 : score;
     }
     async loadFromStorage() {
+      const storageLocal = typeof browser !== "undefined" && browser.storage && browser.storage.local ? browser.storage.local : typeof chrome !== "undefined" && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
       try {
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-          const stored = await chrome.storage.local.get([this.storageKey]);
+        if (storageLocal) {
+          const stored = await new Promise((resolve) => {
+            try {
+              const p = storageLocal.get([this.storageKey], (res) => resolve(res || {}));
+              if (p && typeof p.then === "function") p.then(resolve).catch(() => resolve({}));
+            } catch {
+              resolve({});
+            }
+          });
           if (stored && stored[this.storageKey]) {
             const parsed = stored[this.storageKey];
+            const incomingUpdatedAt = parsed.updatedAt || 0;
+            if (incomingUpdatedAt < this.lastUpdatedAt) {
+              return;
+            }
             this.userTrigrams = parsed.trigrams || {};
             this.userBigrams = parsed.bigrams || {};
             this.userUnigrams = parsed.unigrams || {};
+            this.lastUpdatedAt = incomingUpdatedAt;
             if (typeof parsed.learningEnabled === "boolean") {
               this.learningEnabled = parsed.learningEnabled;
             }
@@ -5791,16 +5805,21 @@
           }
         }
       } catch (e) {
-        console.warn("GboardLearnedModel chrome.storage.local load error:", e);
+        console.warn("GboardLearnedModel extension storage.local load error:", e);
       }
       try {
         if (typeof localStorage === "undefined") return;
         const saved = localStorage.getItem(this.storageKey);
         if (saved) {
           const parsed = JSON.parse(saved);
+          const incomingUpdatedAt = parsed.updatedAt || 0;
+          if (incomingUpdatedAt < this.lastUpdatedAt) {
+            return;
+          }
           this.userTrigrams = parsed.trigrams || {};
           this.userBigrams = parsed.bigrams || {};
           this.userUnigrams = parsed.unigrams || {};
+          this.lastUpdatedAt = incomingUpdatedAt;
           if (typeof parsed.learningEnabled === "boolean") {
             this.learningEnabled = parsed.learningEnabled;
           }
@@ -5818,31 +5837,40 @@
         this.flushSaveToStorage();
       }, 1200);
     }
-    flushSaveToStorage() {
+    async flushSaveToStorage() {
       if (this._saveTimer) {
         clearTimeout(this._saveTimer);
         this._saveTimer = null;
       }
+      const now = Date.now();
+      this.lastUpdatedAt = now;
       const payload = {
         learningEnabled: this.learningEnabled,
         trigrams: this.userTrigrams,
         bigrams: this.userBigrams,
         unigrams: this.userUnigrams,
-        updatedAt: Date.now()
+        updatedAt: now
       };
-      try {
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-          chrome.storage.local.set({ [this.storageKey]: payload }).catch(() => {
-          });
-        }
-      } catch (e) {
-      }
       try {
         if (typeof localStorage !== "undefined") {
           localStorage.setItem(this.storageKey, JSON.stringify(payload));
         }
       } catch (e) {
         console.warn("GboardLearnedModel localStorage save error:", e);
+      }
+      try {
+        const storageLocal = typeof browser !== "undefined" && browser.storage && browser.storage.local ? browser.storage.local : typeof chrome !== "undefined" && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
+        if (storageLocal) {
+          await new Promise((resolve) => {
+            try {
+              const p = storageLocal.set({ [this.storageKey]: payload }, () => resolve());
+              if (p && typeof p.then === "function") p.then(resolve).catch(resolve);
+            } catch {
+              resolve();
+            }
+          });
+        }
+      } catch (e) {
       }
     }
     /**

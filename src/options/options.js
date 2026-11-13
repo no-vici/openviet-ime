@@ -1103,10 +1103,13 @@ function initAiHabitsTab() {
       delBtn.style.padding = '3px 8px';
       delBtn.style.fontSize = '12px';
       delBtn.textContent = 'Xóa';
-      delBtn.addEventListener('click', () => {
+      delBtn.addEventListener('click', async () => {
         if (confirm(`Xóa cặp từ thói quen "${item.from}" ➔ "${item.to}"?`)) {
           autoCompleteEngine.removeLearnedHabit(item.from, item.to);
-          renderHabitsTableAndStats();
+          if (autoCompleteEngine.learnedModel && typeof autoCompleteEngine.learnedModel.flushSaveToStorage === 'function') {
+            await autoCompleteEngine.learnedModel.flushSaveToStorage();
+          }
+          await renderHabitsTableAndStats();
           showToast(`Đã xóa gợi ý thói quen "${item.from}" ➔ "${item.to}"!`);
         }
       });
@@ -1127,7 +1130,7 @@ function initAiHabitsTab() {
   habitSearch?.addEventListener('input', renderHabitsTableAndStats);
 
   // Add new habit pair manually
-  const addNewHabitPair = () => {
+  const addNewHabitPair = async () => {
     const from = (newHabitFromInput?.value || '').trim().toLowerCase();
     const to = (newHabitToInput?.value || '').trim().toLowerCase();
     if (!from || !to) {
@@ -1136,9 +1139,13 @@ function initAiHabitsTab() {
     }
     autoCompleteEngine.recordWordTransition(from, to);
     autoCompleteEngine.recordWordUsage(to);
+    // Flush immediately to extension storage so rapid successive entries are never overwritten
+    if (autoCompleteEngine.learnedModel && typeof autoCompleteEngine.learnedModel.flushSaveToStorage === 'function') {
+      await autoCompleteEngine.learnedModel.flushSaveToStorage();
+    }
     if (newHabitFromInput) newHabitFromInput.value = '';
     if (newHabitToInput) newHabitToInput.value = '';
-    renderHabitsTableAndStats();
+    await renderHabitsTableAndStats();
     showToast(`Đã thêm cặp từ thói quen "${from}" ➔ "${to}"!`);
   };
 
@@ -1156,7 +1163,7 @@ function initAiHabitsTab() {
     editingHabitItem = null;
   });
 
-  editHabitSaveBtn?.addEventListener('click', () => {
+  editHabitSaveBtn?.addEventListener('click', async () => {
     if (!editingHabitItem) return;
     const newFrom = (editHabitFromInput?.value || '').trim().toLowerCase();
     const newTo = (editHabitToInput?.value || '').trim().toLowerCase();
@@ -1173,10 +1180,13 @@ function initAiHabitsTab() {
       newTo,
       isNaN(newCount) || newCount < 1 ? 1 : newCount
     );
+    if (autoCompleteEngine.learnedModel && typeof autoCompleteEngine.learnedModel.flushSaveToStorage === 'function') {
+      await autoCompleteEngine.learnedModel.flushSaveToStorage();
+    }
 
     editHabitModal?.classList.remove('open');
     editingHabitItem = null;
-    renderHabitsTableAndStats();
+    await renderHabitsTableAndStats();
     showToast(`Đã cập nhật thói quen "${newFrom}" ➔ "${newTo}"!`);
   });
 

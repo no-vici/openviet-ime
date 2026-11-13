@@ -2898,6 +2898,7 @@
       this.userTrigrams = {};
       this.userBigrams = {};
       this.userUnigrams = {};
+      this.lastUpdatedAt = 0;
       this.loadFromStorage();
     }
     /**
@@ -2923,14 +2924,27 @@
       return isDevDomain ? score + 5 : score;
     }
     async loadFromStorage() {
+      const storageLocal = typeof browser !== "undefined" && browser.storage && browser.storage.local ? browser.storage.local : typeof chrome !== "undefined" && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
       try {
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-          const stored = await chrome.storage.local.get([this.storageKey]);
+        if (storageLocal) {
+          const stored = await new Promise((resolve) => {
+            try {
+              const p = storageLocal.get([this.storageKey], (res) => resolve(res || {}));
+              if (p && typeof p.then === "function") p.then(resolve).catch(() => resolve({}));
+            } catch {
+              resolve({});
+            }
+          });
           if (stored && stored[this.storageKey]) {
             const parsed = stored[this.storageKey];
+            const incomingUpdatedAt = parsed.updatedAt || 0;
+            if (incomingUpdatedAt < this.lastUpdatedAt) {
+              return;
+            }
             this.userTrigrams = parsed.trigrams || {};
             this.userBigrams = parsed.bigrams || {};
             this.userUnigrams = parsed.unigrams || {};
+            this.lastUpdatedAt = incomingUpdatedAt;
             if (typeof parsed.learningEnabled === "boolean") {
               this.learningEnabled = parsed.learningEnabled;
             }
@@ -2938,16 +2952,21 @@
           }
         }
       } catch (e) {
-        console.warn("GboardLearnedModel chrome.storage.local load error:", e);
+        console.warn("GboardLearnedModel extension storage.local load error:", e);
       }
       try {
         if (typeof localStorage === "undefined") return;
         const saved = localStorage.getItem(this.storageKey);
         if (saved) {
           const parsed = JSON.parse(saved);
+          const incomingUpdatedAt = parsed.updatedAt || 0;
+          if (incomingUpdatedAt < this.lastUpdatedAt) {
+            return;
+          }
           this.userTrigrams = parsed.trigrams || {};
           this.userBigrams = parsed.bigrams || {};
           this.userUnigrams = parsed.unigrams || {};
+          this.lastUpdatedAt = incomingUpdatedAt;
           if (typeof parsed.learningEnabled === "boolean") {
             this.learningEnabled = parsed.learningEnabled;
           }
@@ -2965,31 +2984,40 @@
         this.flushSaveToStorage();
       }, 1200);
     }
-    flushSaveToStorage() {
+    async flushSaveToStorage() {
       if (this._saveTimer) {
         clearTimeout(this._saveTimer);
         this._saveTimer = null;
       }
+      const now = Date.now();
+      this.lastUpdatedAt = now;
       const payload = {
         learningEnabled: this.learningEnabled,
         trigrams: this.userTrigrams,
         bigrams: this.userBigrams,
         unigrams: this.userUnigrams,
-        updatedAt: Date.now()
+        updatedAt: now
       };
-      try {
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-          chrome.storage.local.set({ [this.storageKey]: payload }).catch(() => {
-          });
-        }
-      } catch (e) {
-      }
       try {
         if (typeof localStorage !== "undefined") {
           localStorage.setItem(this.storageKey, JSON.stringify(payload));
         }
       } catch (e) {
         console.warn("GboardLearnedModel localStorage save error:", e);
+      }
+      try {
+        const storageLocal = typeof browser !== "undefined" && browser.storage && browser.storage.local ? browser.storage.local : typeof chrome !== "undefined" && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
+        if (storageLocal) {
+          await new Promise((resolve) => {
+            try {
+              const p = storageLocal.set({ [this.storageKey]: payload }, () => resolve());
+              if (p && typeof p.then === "function") p.then(resolve).catch(resolve);
+            } catch {
+              resolve();
+            }
+          });
+        }
+      } catch (e) {
       }
     }
     /**
@@ -4676,10 +4704,13 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
         delBtn.style.padding = "3px 8px";
         delBtn.style.fontSize = "12px";
         delBtn.textContent = "X\xF3a";
-        delBtn.addEventListener("click", () => {
+        delBtn.addEventListener("click", async () => {
           if (confirm(`X\xF3a c\u1EB7p t\u1EEB th\xF3i quen "${item.from}" \u2794 "${item.to}"?`)) {
             autoCompleteEngine.removeLearnedHabit(item.from, item.to);
-            renderHabitsTableAndStats();
+            if (autoCompleteEngine.learnedModel && typeof autoCompleteEngine.learnedModel.flushSaveToStorage === "function") {
+              await autoCompleteEngine.learnedModel.flushSaveToStorage();
+            }
+            await renderHabitsTableAndStats();
             showToast(`\u0110\xE3 x\xF3a g\u1EE3i \xFD th\xF3i quen "${item.from}" \u2794 "${item.to}"!`);
           }
         });
@@ -4695,7 +4726,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       });
     };
     habitSearch?.addEventListener("input", renderHabitsTableAndStats);
-    const addNewHabitPair = () => {
+    const addNewHabitPair = async () => {
       const from = (newHabitFromInput?.value || "").trim().toLowerCase();
       const to = (newHabitToInput?.value || "").trim().toLowerCase();
       if (!from || !to) {
@@ -4704,9 +4735,12 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       }
       autoCompleteEngine.recordWordTransition(from, to);
       autoCompleteEngine.recordWordUsage(to);
+      if (autoCompleteEngine.learnedModel && typeof autoCompleteEngine.learnedModel.flushSaveToStorage === "function") {
+        await autoCompleteEngine.learnedModel.flushSaveToStorage();
+      }
       if (newHabitFromInput) newHabitFromInput.value = "";
       if (newHabitToInput) newHabitToInput.value = "";
-      renderHabitsTableAndStats();
+      await renderHabitsTableAndStats();
       showToast(`\u0110\xE3 th\xEAm c\u1EB7p t\u1EEB th\xF3i quen "${from}" \u2794 "${to}"!`);
     };
     addHabitBtn?.addEventListener("click", addNewHabitPair);
@@ -4720,7 +4754,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       editHabitModal?.classList.remove("open");
       editingHabitItem = null;
     });
-    editHabitSaveBtn?.addEventListener("click", () => {
+    editHabitSaveBtn?.addEventListener("click", async () => {
       if (!editingHabitItem) return;
       const newFrom = (editHabitFromInput?.value || "").trim().toLowerCase();
       const newTo = (editHabitToInput?.value || "").trim().toLowerCase();
@@ -4736,9 +4770,12 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
         newTo,
         isNaN(newCount) || newCount < 1 ? 1 : newCount
       );
+      if (autoCompleteEngine.learnedModel && typeof autoCompleteEngine.learnedModel.flushSaveToStorage === "function") {
+        await autoCompleteEngine.learnedModel.flushSaveToStorage();
+      }
       editHabitModal?.classList.remove("open");
       editingHabitItem = null;
-      renderHabitsTableAndStats();
+      await renderHabitsTableAndStats();
       showToast(`\u0110\xE3 c\u1EADp nh\u1EADt th\xF3i quen "${newFrom}" \u2794 "${newTo}"!`);
     });
     seedHabitsBtn?.addEventListener("click", () => {
