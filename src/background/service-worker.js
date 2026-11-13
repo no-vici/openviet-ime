@@ -28,8 +28,7 @@ const DEFAULT_SETTINGS = {
   nextWordEnabled: true,
   suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
   gboardLearningEnabled: true,
-  autoHarmonizeCase: true,
-  uniqueSyllables: true,
+  autoHarmonizeCase: false,
   eraseHabitLearning: true,
   eraseHabitThreshold: 3,
   debugTypingLog: false,

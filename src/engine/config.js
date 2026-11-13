@@ -27,8 +27,7 @@ export const DEFAULT_SETTINGS = {
   nextWordEnabled: true,
   suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
   gboardLearningEnabled: true,
-  autoHarmonizeCase: true,   // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được)
-  uniqueSyllables: true,     // Auto-complete unique Vietnamese syllables (khong -> không)
+  autoHarmonizeCase: false,  // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được) (Default: false)
   eraseHabitLearning: true,  // Auto-learn words to user dictionary after erasing accented words >= threshold times
   eraseHabitThreshold: 3,    // Number of whole-word erasures before learning (configurable: 2 to 10, default: 3)
   debugTypingLog: false,

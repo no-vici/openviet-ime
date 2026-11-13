@@ -39,7 +39,7 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(shouldAutoRestoreEnglish('fasst', 'fast')).toBe(false);
   });
 
-  test('4. Chuẩn hóa viết hoa/thường theo chữ cái đầu (harmonize_syllable_case)', () => {
+  test('4. Chuẩn hóa viết hoa/thường theo chữ cái đầu (harmonize_syllable_case) - Tùy chọn (Default: OFF)', () => {
     // Chữ cái đầu viết Hoa (Đ): lỡ giữ Shift/CapsLock -> đưa phần sau về thường
     expect(harmonizeSyllableCase('ĐƯợc')).toBe('Được');
     expect(harmonizeSyllableCase('ĐƯỢc')).toBe('Được');
@@ -59,9 +59,17 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(harmonizeSyllableCase('loWeRcAsE')).toBe('loWeRcAsE');
     expect(harmonizeSyllableCase('mIxEd')).toBe('mIxEd');
     expect(harmonizeSyllableCase('UserController')).toBe('UserController');
+
+    // Mặc định AvimEngine autoHarmonizeCase là false (không tự động can thiệp trừ khi user bật)
+    const engineDefault = new AvimEngine({ method: IME_METHOD.TELEX });
+    expect(engineDefault.autoHarmonizeCase).toBe(false);
+
+    // Khi người dùng bật tính năng này
+    const engineHarmonize = new AvimEngine({ method: IME_METHOD.TELEX, autoHarmonizeCase: true });
+    expect(engineHarmonize.autoHarmonizeCase).toBe(true);
   });
 
-  test('5. Tự động điền dấu cho các âm tiết đặc thù (auto_complete_unique_syllable)', () => {
+  test('5. Triết lý Unix: Giữ Core IME thuần khiết, không tự động đoán từ (khong, truong, nganh)', () => {
     function typeKeys(engine, keys) {
       let res = '';
       for (const k of keys) {
@@ -75,45 +83,21 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     const vni = new AvimEngine({ method: IME_METHOD.VNI });
     const auto = new AvimEngine({ method: IME_METHOD.AUTO });
 
-    // 1. khong -> không (bảo lưu đúng case), và có thể bỏ dấu thanh tùy ý (khống, khồng, khổng, khộng, khỗng)
-    expect(typeKeys(telex, 'khong')).toBe('không');
-    expect(typeKeys(telex, 'Khong')).toBe('Không');
-    expect(typeKeys(telex, 'KHONG')).toBe('KHÔNG');
-    expect(typeKeys(telex, 'khongs')).toBe('khống');
-    expect(typeKeys(telex, 'khongf')).toBe('khồng');
-    expect(typeKeys(telex, 'khongr')).toBe('khổng');
-    expect(typeKeys(telex, 'Khongs')).toBe('Khống');
-    expect(typeKeys(telex, 'Khongf')).toBe('Khồng');
-    expect(typeKeys(vni, 'khong')).toBe('không');
-    expect(typeKeys(vni, 'khong1')).toBe('khống');
-    expect(typeKeys(vni, 'khong2')).toBe('khồng');
-    expect(typeKeys(vni, 'khong3')).toBe('khổng');
-    expect(typeKeys(auto, 'khong')).toBe('không');
-    expect(typeKeys(auto, 'khongs')).toBe('khống');
-    expect(typeKeys(auto, 'khong2')).toBe('khồng');
+    // Khi gõ chuỗi thô 'khong', 'truong', 'nganh' không bấm phím dấu, core IME giữ nguyên chuỗi không tự ý điền dấu
+    expect(typeKeys(telex, 'khong')).toBe('khong');
+    expect(typeKeys(telex, 'truong')).toBe('truong');
+    expect(typeKeys(telex, 'nganh')).toBe('nganh');
+    expect(typeKeys(vni, 'khong')).toBe('khong');
+    expect(typeKeys(auto, 'khong')).toBe('khong');
 
-    // 2. truong -> trương, và có thể gõ thêm dấu thanh bất kỳ lúc nào
-    expect(typeKeys(telex, 'truong')).toBe('trương');
-    expect(typeKeys(telex, 'truongf')).toBe('trường');
-    expect(typeKeys(telex, 'truongs')).toBe('trướng');
-    expect(typeKeys(telex, 'truongr')).toBe('trưởng');
-    expect(typeKeys(telex, 'truongj')).toBe('trượng');
-
-    // Trên VNI: truong2 -> trường, truong1 -> trướng, truong3 -> trưởng, truong5 -> trượng
-    expect(typeKeys(vni, 'truong')).toBe('trương');
-    expect(typeKeys(vni, 'truong2')).toBe('trường');
-    expect(typeKeys(vni, 'truong1')).toBe('trướng');
-    expect(typeKeys(vni, 'truong3')).toBe('trưởng');
-    expect(typeKeys(vni, 'truong5')).toBe('trượng');
-
-    // 3. nganh -> ngành, gõ tiếp j / 5 chuyển sang ngạnh
-    expect(typeKeys(telex, 'nganh')).toBe('ngành');
-    expect(typeKeys(telex, 'Nganh')).toBe('Ngành');
-    expect(typeKeys(telex, 'NGANH')).toBe('NGÀNH');
-    expect(typeKeys(telex, 'nganhj')).toBe('ngạnh');
-    expect(typeKeys(vni, 'nganh5')).toBe('ngạnh');
-    expect(typeKeys(auto, 'nganhj')).toBe('ngạnh');
-    expect(typeKeys(auto, 'nganh5')).toBe('ngạnh');
+    // Người dùng vẫn hoàn toàn tự do bỏ dấu thanh / dấu mũ bằng phím theo đúng quy tắc bộ gõ
+    expect(typeKeys(telex, 'khoong')).toBe('không');
+    expect(typeKeys(telex, 'khoongs')).toBe('khống');
+    expect(typeKeys(telex, 'khoongf')).toBe('khồng');
+    expect(typeKeys(telex, 'truwowngf')).toBe('trường');
+    expect(typeKeys(vni, 'kho6ng')).toBe('không');
+    expect(typeKeys(vni, 'kho6ng1')).toBe('khống');
+    expect(typeKeys(vni, 'tru7o7ng2')).toBe('trường');
   });
 
   test('6. Tự học thói quen user khi xóa từ bị bỏ dấu 2 lần (Habit Learning)', () => {

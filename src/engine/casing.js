@@ -64,36 +64,3 @@ export function harmonizeSyllableCase(word, options = {}) {
   }
 }
 
-/**
- * 2. Unique Vietnamese Syllables Mapping (auto_complete_unique_syllable):
- * In Vietnamese phonology, certain unaccented keystroke sequences can ONLY correspond
- * to one single legitimate accented word:
- * - 'khong'  -> 'không'
- * - 'truong' -> 'trương' (allows immediate tone placement: truongf/truong2 -> trường, etc.)
- * - 'nganh'  -> 'ngành'  (allows tone adjustment: nganhj/nganh5 -> ngạnh)
- */
-export const UNIQUE_SYLLABLE_MAP = {
-  'khong': 'không',
-  'truong': 'trương',
-  'nganh': 'ngành'
-};
-
-/**
- * Apply case matching to unique syllable conversion
- * @param {string} rawInput e.g. 'Khong', 'KHONG', 'khong'
- * @param {string} target e.g. 'không'
- * @returns {string} e.g. 'Không', 'KHÔNG', 'không'
- */
-export function matchUniqueSyllableCase(rawInput, target) {
-  if (!rawInput || !target) return target;
-  const isAllUpper = rawInput === rawInput.toUpperCase() && rawInput !== rawInput.toLowerCase();
-  if (isAllUpper) {
-    return target.toUpperCase();
-  }
-  const firstChar = rawInput.charAt(0);
-  const isFirstUpper = firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
-  if (isFirstUpper) {
-    return target.charAt(0).toUpperCase() + target.slice(1);
-  }
-  return target.toLowerCase();
-}

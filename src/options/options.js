@@ -554,7 +554,6 @@ function initPreferences() {
   const phonologyRulesOption = document.getElementById('phonologyRulesOption');
   const wordRescueOption = document.getElementById('wordRescueOption');
   const autoHarmonizeCaseOption = document.getElementById('autoHarmonizeCaseOption');
-  const uniqueSyllablesOption = document.getElementById('uniqueSyllablesOption');
   const eraseHabitLearningOption = document.getElementById('eraseHabitLearningOption');
   const eraseHabitThresholdInput = document.getElementById('eraseHabitThresholdInput');
   const debugTypingLogOption = document.getElementById('debugTypingLogOption');
@@ -594,8 +593,7 @@ function initPreferences() {
     if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
     if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
     if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
-    if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = settings.autoHarmonizeCase !== false;
-    if (uniqueSyllablesOption) uniqueSyllablesOption.checked = settings.uniqueSyllables !== false;
+    if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = Boolean(settings.autoHarmonizeCase);
     if (eraseHabitLearningOption) eraseHabitLearningOption.checked = settings.eraseHabitLearning !== false;
     if (eraseHabitThresholdInput) eraseHabitThresholdInput.value = String(settings.eraseHabitThreshold || 3);
     const thresholdGroup = document.getElementById('eraseHabitThresholdGroup');
@@ -714,13 +712,6 @@ function initPreferences() {
   if (autoHarmonizeCaseOption) {
     autoHarmonizeCaseOption.addEventListener('change', async () => {
       settings.autoHarmonizeCase = autoHarmonizeCaseOption.checked;
-      await saveState();
-    });
-  }
-
-  if (uniqueSyllablesOption) {
-    uniqueSyllablesOption.addEventListener('change', async () => {
-      settings.uniqueSyllables = uniqueSyllablesOption.checked;
       await saveState();
     });
   }

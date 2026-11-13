@@ -432,10 +432,8 @@
     suggestionStyle: "ribbon",
     // 'ribbon' | 'ghost_text'
     gboardLearningEnabled: true,
-    autoHarmonizeCase: true,
-    // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được)
-    uniqueSyllables: true,
-    // Auto-complete unique Vietnamese syllables (khong -> không)
+    autoHarmonizeCase: false,
+    // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được) (Default: false)
     eraseHabitLearning: true,
     // Auto-learn words to user dictionary after erasing accented words >= threshold times
     eraseHabitThreshold: 3,
@@ -4232,7 +4230,6 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const phonologyRulesOption = document.getElementById("phonologyRulesOption");
     const wordRescueOption = document.getElementById("wordRescueOption");
     const autoHarmonizeCaseOption = document.getElementById("autoHarmonizeCaseOption");
-    const uniqueSyllablesOption = document.getElementById("uniqueSyllablesOption");
     const eraseHabitLearningOption = document.getElementById("eraseHabitLearningOption");
     const eraseHabitThresholdInput = document.getElementById("eraseHabitThresholdInput");
     const debugTypingLogOption = document.getElementById("debugTypingLogOption");
@@ -4267,8 +4264,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
       if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
       if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
-      if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = settings.autoHarmonizeCase !== false;
-      if (uniqueSyllablesOption) uniqueSyllablesOption.checked = settings.uniqueSyllables !== false;
+      if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = Boolean(settings.autoHarmonizeCase);
       if (eraseHabitLearningOption) eraseHabitLearningOption.checked = settings.eraseHabitLearning !== false;
       if (eraseHabitThresholdInput) eraseHabitThresholdInput.value = String(settings.eraseHabitThreshold || 3);
       const thresholdGroup = document.getElementById("eraseHabitThresholdGroup");
@@ -4367,12 +4363,6 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     if (autoHarmonizeCaseOption) {
       autoHarmonizeCaseOption.addEventListener("change", async () => {
         settings.autoHarmonizeCase = autoHarmonizeCaseOption.checked;
-        await saveState();
-      });
-    }
-    if (uniqueSyllablesOption) {
-      uniqueSyllablesOption.addEventListener("change", async () => {
-        settings.uniqueSyllables = uniqueSyllablesOption.checked;
         await saveState();
       });
     }
