@@ -129,10 +129,10 @@ Xem tài liệu chuyên sâu: [PREDICTION_ENGINE.md](PREDICTION_ENGINE.md).
 
 ---
 
-### Module 6: Chuẩn Hóa Casing & Điền Dấu Tự Động (`src/engine/casing.js`)
-Module chuyên xử lý các hiện tượng chữ hoa/chữ thường và tự động hóa âm tiết theo phong cách Rust/C IME:
-- **`harmonizeSyllableCase`**: Xử lý triệt để bẫy kẹt Shift / CapsLock (`ĐƯợc` $\rightarrow$ `Được`, `đƯỢc` $\rightarrow$ `được`), giữ nguyên `ALL CAPS` và bảo vệ tuyệt đối biến `camelCase` / `PascalCase` (`useState`, `loWeRcAsE`).
-- **`UNIQUE_SYLLABLE_MAP`**: Tự động điền dấu thanh và dấu phụ cho các từ duy nhất không thể nhầm lẫn (`khong` $\rightarrow$ `không`, `truong` $\rightarrow$ `trương`, `nganh` $\rightarrow$ `ngành`) đồng thời bảo lưu khả năng biến đổi thanh điệu linh hoạt (`khongs` $\rightarrow$ `khống`, `khongf` $\rightarrow$ `khồng`, `nganhj` $\rightarrow$ `ngạnh`).
+### Module 6: Chuẩn Hóa Casing & Học Thói Quen Nhập Liệu (`src/engine/casing.js` & `content.js`)
+- **`harmonizeSyllableCase`**: Xử lý triệt để bẫy kẹt Shift / CapsLock (`ĐƯợc` $\rightarrow$ `Được`, `đƯỢc` $\rightarrow$ `được`), giữ nguyên `ALL CAPS` và bảo vệ tuyệt đối biến `camelCase` / `PascalCase` (`useState`, `loWeRcAsE`). Tính năng được thiết kế dạng **Opt-in (mặc định Tắt)** để tôn trọng sự thuần khiết và thói quen gõ tự do của lập trình viên.
+- **Triết lý Core IME thuần khiết (Unix Philosophy)**: Core Engine tập trung chuyển đổi phím chuẩn xác theo bảng mã, tuyệt đối không tự ý suy đoán điền dấu vào các từ không dấu (`khong`, `truong`, `nganh`), nhường quyền gõ tắt linh hoạt lại cho Macro Engine.
+- **Smart Erase Habit Learning**: Cơ chế phát hiện xóa trọn vẹn từ có dấu nhiều lần liên tiếp khi gõ chữ tiếng Anh hoặc tiếng lóng ngoài từ điển (với ngưỡng tùy chỉnh từ 2 đến 10, mặc định là 3). Tự động đưa từ vào từ điển cá nhân hóa của người dùng và cho phép quản lý xóa bỏ bất cứ lúc nào.
 
 ---
 

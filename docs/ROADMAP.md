@@ -40,9 +40,12 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
   - **Chuẩn cũ (VNCH / UniKey cổ điển)**: `hòa, hóa, thủy, khỏe, thỏa` (dấu trên âm đệm).
 - [x] **Bộ Test Suite Hồi quy Thực chiến (vietc-regression.test.js)**: Kiểm thử bao quát các ca hoán đổi biến âm, tổ hợp nguyên âm và bảo vệ từ ngữ kỹ thuật.
 
-### Giai đoạn 5: Chuẩn Hóa Casing & Tối Ưu Hóa Hiệu Năng v1.1.3 (Performance & Casing Engine)
-- [x] **Chuẩn hóa chữ hoa/thường theo chữ đầu (`harmonize_syllable_case`)**: Chữa lỗi kẹt Shift/CapsLock (`ĐƯợc` $\rightarrow$ `Được`, `đƯỢc` $\rightarrow$ `được`), giữ nguyên `ALL CAPS` và bảo vệ biến code `camelCase`/`PascalCase`.
-- [x] **Tự động điền dấu âm tiết độc nhất (`auto_complete_unique_syllable`)**: `khong` $\rightarrow$ `không`, `truong` $\rightarrow$ `trương`, `nganh` $\rightarrow$ `ngành`, hỗ trợ đầy đủ mọi phím dấu phát sinh (`khongs`, `khongf`, `nganhj`).
+### Giai đoạn 5: Chuẩn Hóa Casing, Triết Lý Unix & Tối Ưu Hóa Hiệu Năng v1.1.3
+- [x] **Chuẩn hóa chữ hoa/thường theo chữ đầu (`harmonize_syllable_case`)**: Chữa lỗi kẹt Shift/CapsLock (`ĐƯợc` $\rightarrow$ `Được`, `đƯỢc` $\rightarrow$ `được`), giữ nguyên `ALL CAPS` và bảo vệ biến code `camelCase`/`PascalCase`. Được đặt mặc định là **Tắt (Opt-in)** trong Cài đặt để tôn trọng tuyệt đối trải nghiệm của lập trình viên và nguyên tắc không can thiệp áp đặt.
+- [x] **Triết lý Unix cho Core IME (Gỡ bỏ phỏng đoán từ tự động)**: Gỡ bỏ cơ chế tự động đoán và thêm dấu cho các từ không dấu (`khong`, `truong`, `nganh`) khỏi Core Engine. Core IME luôn giữ chuỗi nguyên thủy trừ khi có phím dấu rõ ràng; người dùng có toàn quyền thiết lập gõ tắt qua hệ thống Macro.
+- [x] **Tự học thói quen xóa từ (Smart Erase Habit Learning)**: Khi người dùng xóa nguyên vẹn một từ bị bỏ dấu ngoài ý muốn từ ngưỡng quy định trở lên (mặc định 3 lần, có thể chỉnh 2-10 lần trong Cài đặt), từ này sẽ tự động được thêm vào từ điển riêng để không bao giờ bị bỏ dấu lại. Người dùng có thể bật/tắt và tự do quản lý/xóa trong tab "Từ Điển Riêng".
+- [x] **Quản lý Thói quen Gợi ý AI / Gboard**: Hỗ trợ tìm kiếm, thêm mới, sửa và xóa các cặp gợi ý từ đã học trực tiếp trong trang Options với cơ chế đồng bộ lưu tức thì chống mất dữ liệu.
+- [x] **Khắc phục lỗi nhân đôi ký tự Lexical Editor (WhatsApp Web)**: Tối ưu hóa xử lý vùng chọn và con trỏ trên các editor nền tảng Lexical (`data-lexical-editor`).
 - [x] **Tối ưu hóa bộ nhớ Quota & Pre-computed Cache**: Chuyển lưu trữ từ điển người dùng và cấu hình domain sang `storage.local`, cache sẵn bản stripped của từ điển giúp tìm kiếm gợi ý phản hồi tức thì dưới 1ms.
 - [x] **Đồng bộ Per-Domain Memory & Nút Bật/Tắt Nhanh**: Hiển thị tên miền hiện tại kèm nút bật/tắt riêng biệt ngay trên Popup mà không cần mở Options.
 - [x] **Đồng nhất thuật ngữ Chánh Tả**: Toàn bộ UI, trang Options và tài liệu được chuẩn hóa thống nhất theo thuật ngữ "chánh tả".

@@ -35,7 +35,7 @@ A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-
    - [Late Vowel Shaping & Toggle Mechanics](#late-vowel-shaping--toggle-mechanics)
    - [Shape Modifier Swapping (VietC / Bamboo)](#shape-modifier-swapping-vietc--bamboo)
    - [Harmonize Syllable Case & CapsLock Trap Protection](#harmonize-syllable-case--capslock-trap-protection)
-   - [Unique Syllables Auto-Completion](#unique-syllables-auto-completion)
+   - [Smart Erase Habit Learning & Pure Core IME Philosophy](#smart-erase-habit-learning--pure-core-ime-philosophy)
    - [Phonology Validation & Natural Command Protection](#phonology-validation--natural-command-protection)
    - [Word & Accent Rescue (Ngó Sen / vnchKey Innovation)](#word--accent-rescue-ngó-sen--vnchkey-innovation)
 3. [Smart Auto-Complete & Gboard-Style Prediction](#smart-auto-complete--gboard-style-prediction)
@@ -266,26 +266,23 @@ Inspired by VietC and Bamboo, OpenViet IME supports **seamless vowel shape modif
 
 ---
 
-### Harmonize Syllable Case & CapsLock Trap Protection
+### Harmonize Syllable Case & CapsLock Trap Protection (Optional)
 
 Inspired by modern Rust/C IME architectures (`casing.rs`), OpenViet IME provides intelligent syllable casing harmonization:
 - **Stuck Shift / CapsLock Trap**: If the initial letter is capitalized and subsequent letters were accidentally typed with Shift/CapsLock (`ĐƯợc`, `ĐƯỢc`), the syllable is harmonized to TitleCase $\rightarrow$ `Được`.
 - **Accidental Mid-word Caps in Lowercase Words**: If the word begins with a lowercase letter and subsequent characters were capitalized (`đƯỢc`), the entire word is harmonized $\rightarrow$ `được`.
 - **ALL CAPS Preservation**: Complete uppercase phrases (`ĐƯỢC`, `VIỆT NAM`) remain untouched.
 - **Developer Guard**: Programming identifiers in `camelCase`, `PascalCase`, or mixed casing (`useState`, `loWeRcAsE`, `mIxEd`, `UserController`) are protected without interference.
+- **Default OFF (Opt-in)**: To respect developers and non-interfering typing principles, this feature is disabled by default and can be toggled on anytime in Options.
 
 ---
 
-### Unique Syllables Auto-Completion
+### Smart Erase Habit Learning & Pure Core IME Philosophy
 
-For syllables with only one unambiguous valid orthographic form, OpenViet IME automatically applies standard diacritics upon typing the base sequence:
-- `khong` $\rightarrow$ automatically becomes **`không`** (preserving casing: `Khong` $\rightarrow$ `Không`, `KHONG` $\rightarrow$ `KHÔNG`).
-- `truong` $\rightarrow$ automatically becomes **`trương`**.
-- `nganh` $\rightarrow$ automatically becomes **`ngành`** (`Nganh` $\rightarrow$ `Ngành`, `NGANH` $\rightarrow$ `NGÀNH`).
-- **Full Tone Flexibility**: Users can seamlessly type additional tone keys at any time:
-  - `khongs` / `khong1` $\rightarrow$ `khống`, `khongf` / `khong2` $\rightarrow$ `khồng`, `khongr` / `khong3` $\rightarrow$ `khổng`, `khongj` / `khong5` $\rightarrow$ `khộng`.
-  - `truongf` / `truong2` $\rightarrow$ `trường`, `truongs` / `truong1` $\rightarrow$ `trướng`, `truongr` / `truong3` $\rightarrow$ `trưởng`, `truongj` / `truong5` $\rightarrow$ `trượng`.
-  - `nganhj` / `nganh5` $\rightarrow$ `ngạnh`.
+To keep the typing engine predictable, fast, lightweight, and aligned with Unix philosophy ("Do one thing and do it well"):
+- **Pure Core IME (No Unsolicited Syllable Guessing)**: The core engine does not automatically guess or force accents on unaccented strings (`khong`, `truong`, `nganh`). It remains clean and predictable, leaving typing shorthands fully configurable via the Macro expansion engine.
+- **Smart Erase Habit Learning**: When typing foreign words or non-standard technical strings that trigger unintended accents (e.g. `sas` $\rightarrow$ `sá`, `da5`), if the user erases the entire accented word and re-types it consecutively (threshold configurable from 2 to 10 times, default: 3), OpenViet IME automatically learns the pattern and whitelists it in the user's custom dictionary.
+- **User Control & Transparency**: Users can toggle erase habit learning on/off, adjust the learning threshold, and inspect, edit, or delete any learned word directly in the "User Dictionary" tab of the Options page.
 
 ---
 
