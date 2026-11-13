@@ -96,6 +96,9 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'shower', 'slower', 'flower', 'low', 'flow', 'show', 'slow', 'blow', 'grow', 'draw', 'raw',
   'law', 'saw', 'few', 'view', 'tick', 'backtick', 'reset', 'restore', 'refactor', 'list', 'host',
   'suggest', 'axis', 'regex', 'music', 'amazon', 'cause', 'profile', 'upstream', 'settings',
+  // Common -st and frequent short English words
+  'cast', 'best', 'last', 'past', 'rest', 'most', 'must', 'just', 'dust', 'rust',
+  'disk', 'desk', 'risk', 'task', 'mask', 'cost', 'lost', 'fast', 'post', 'host',
   // Common dev actions & keywords frequently trapped in Telex
   'casing', 'parse', 'parsing', 'parser', 'scale', 'scaling', 'scaled', 'scaler',
   'close', 'closing', 'closed', 'closer', 'raise', 'raising', 'raised',
@@ -578,7 +581,7 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'except', 'excess', 'exchange', 'expand', 'expense', 'perfect', 'docs', 'modern', 'variable', 'backtick',
   'restore', 'refactor', 'query', 'mixed', 'lowercase', 'uppercase', 'lower', 'upper', 'power',
   'tower', 'flower', 'shower', 'slower', 'flow', 'show', 'slow', 'blow', 'grow', 'draw', 'raw',
-  'law', 'saw', 'few', 'view'
+  'law', 'saw', 'few', 'view', 'virus', 'chaos', 'status', 'focus', 'radius'
 ]);
 
 /**
@@ -638,6 +641,46 @@ export function isLikelyEnglishWord(w) {
 }
 
 /**
+ * Detect non-Vietnamese phonotactic patterns (letter clusters impossible in Vietnamese single syllables).
+ * Used during auto-restore on Space without needing massive static English dictionary dumps.
+ * Integrated with two-layer protection for all Vietnamese syllables, loan words, and Central Highlands place names.
+ */
+export function hasEnglishPhonotactics(rawWord) {
+  if (!rawWord || rawWord.length < 3) return false;
+  const w = canon(rawWord);
+
+  // Layer 1: Protect known Vietnamese words, loan words (boong, xoong) and ethnic names (pleiku, kar, mil, mgar)
+  const vnSet = getVietnameseWordSet();
+  if (vnSet.has(w)) {
+    return false;
+  }
+
+  // Layer 2: Ignore ethnic Central Highlands names with single apostrophe (M'Đrắk, Ea H'leo, R'lấp, H'Drai)
+  if (/^[a-z]['’][a-zàáảãạăắằẳẵặâấầẩẫậđ]/i.test(w)) {
+    return false;
+  }
+
+  // 1. Internal consonant clusters impossible in Vietnamese syllables
+  if (/(rv|lv|nv|st|sp|sc|sk|ct|pt|ft|lt|nt|nd|rd|ld|rk|lk|mp|nk|nch|tch)/.test(w)) {
+    return true;
+  }
+
+  // 2. Ends with non-Vietnamese consonant codas:
+  // b, d, f, j, k, l, q, r, s, v, w, x, z
+  // (In Vietnamese standard orthography, codas can only be c, ch, m, n, ng, nh, p, t)
+  if (/[bdfjklqrsvwxz]$/.test(w)) {
+    return true;
+  }
+
+  // 3. English vowel digraphs: oo, ee, ea, ou, ow, ew
+  if (/(oo|ee|ea|ou|ow|ew)/.test(w) && w.length >= 4) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Determine if a word should be automatically restored to English
  * (e.g. When the user types 'text', 'user', 'expect', 'push', 'window', 'luxury'
  * and the IME produced 'têt', 'úẻ', 'púh', etc.).
@@ -655,14 +698,14 @@ export function shouldAutoRestoreEnglish(rawWord, currentWord) {
     }
   }
 
-  // If words are identical and strictly ASCII, no restore needed
-  if (rawClean === curClean && /^[a-z0-9]+$/i.test(curClean)) {
+  // If words are identical, no restore needed
+  if (rawClean === curClean) {
     return false;
   }
 
   // If currentWord is already a valid pure ASCII English word without diacritics,
-  // do NOT attempt auto-restore (prevents cancellation keystrokes in raw from corrupting words like test -> tesst, fast -> fasst)
-  if (/^[a-zA-Z]+$/.test(curClean) && isLikelyEnglishWord(curClean)) {
+  // do NOT attempt auto-restore (prevents cancellation keystrokes in raw from corrupting words like test -> tesst, fast -> fasst, cast -> casst)
+  if (/^[a-zA-Z]+$/.test(curClean) && isLikelyEnglishWord(curClean) && !ENGLISH_TELEX_TRAPS.has(rawClean)) {
     return false;
   }
 
@@ -707,6 +750,15 @@ export function shouldAutoRestoreEnglish(rawWord, currentWord) {
     isLikelyEnglishWord(reversed) &&
     !/\d/.test(reversed)
   ) {
+    return true;
+  }
+
+  // Rule 5: Non-Vietnamese phonotactic structure auto-restore
+  // (e.g. server, curve, status, component, build, project, feature, software, world, girl)
+  if (rawClean && hasEnglishPhonotactics(rawClean)) {
+    return true;
+  }
+  if (reversed && reversed.length >= 3 && hasEnglishPhonotactics(reversed) && !/\d/.test(reversed)) {
     return true;
   }
 

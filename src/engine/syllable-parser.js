@@ -270,10 +270,23 @@ export class ParsedSyllable {
     }
 
     // 2. Coda must be a recognized Vietnamese coda
+    // Standard Vietnamese syllables only end with: c, ch, m, n, ng, nh, p, t
+    // Ethnic Central Highlands or loan words ending in k, l, r (đắk, kar, mil) are checked specifically.
     const lowerCoda = this.coda.toLowerCase();
-    const VALID_CODAS = new Set(['', 'c', 'ch', 'm', 'n', 'ng', 'nh', 'p', 't', 'k', 'l', 'r']);
-    if (!VALID_CODAS.has(lowerCoda)) {
-      return false;
+    const STANDARD_CODAS = new Set(['', 'c', 'ch', 'm', 'n', 'ng', 'nh', 'p', 't']);
+    const ETHNIC_CODAS = new Set(['k', 'l', 'r']);
+
+    if (!STANDARD_CODAS.has(lowerCoda)) {
+      if (ETHNIC_CODAS.has(lowerCoda)) {
+        const baseSyllable = this.withTone(TONE_MARK.NONE).reconstruct().toLowerCase();
+        const fullSyllable = this.reconstruct().toLowerCase();
+        const VALID_ETHNIC_BASES = new Set(['đắk', 'đăk', 'lắk', 'pắk', 'buk', 'búk', 'kar', 'mil', "m'đrắk", 'mdrắk', 'đrắk', "m'gar", 'mgar', "r'lấp", 'rlấp']);
+        if (!VALID_ETHNIC_BASES.has(baseSyllable) && !VALID_ETHNIC_BASES.has(fullSyllable)) {
+          return false;
+        }
+      } else {
+        return false;
+      }
     }
 
     // 3. Stop finals rule

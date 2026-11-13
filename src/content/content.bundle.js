@@ -653,9 +653,19 @@
         return false;
       }
       const lowerCoda = this.coda.toLowerCase();
-      const VALID_CODAS = /* @__PURE__ */ new Set(["", "c", "ch", "m", "n", "ng", "nh", "p", "t", "k", "l", "r"]);
-      if (!VALID_CODAS.has(lowerCoda)) {
-        return false;
+      const STANDARD_CODAS = /* @__PURE__ */ new Set(["", "c", "ch", "m", "n", "ng", "nh", "p", "t"]);
+      const ETHNIC_CODAS = /* @__PURE__ */ new Set(["k", "l", "r"]);
+      if (!STANDARD_CODAS.has(lowerCoda)) {
+        if (ETHNIC_CODAS.has(lowerCoda)) {
+          const baseSyllable = this.withTone(TONE_MARK.NONE).reconstruct().toLowerCase();
+          const fullSyllable = this.reconstruct().toLowerCase();
+          const VALID_ETHNIC_BASES = /* @__PURE__ */ new Set(["\u0111\u1EAFk", "\u0111\u0103k", "l\u1EAFk", "p\u1EAFk", "buk", "b\xFAk", "kar", "mil", "m'\u0111r\u1EAFk", "mdr\u1EAFk", "\u0111r\u1EAFk", "m'gar", "mgar", "r'l\u1EA5p", "rl\u1EA5p"]);
+          if (!VALID_ETHNIC_BASES.has(baseSyllable) && !VALID_ETHNIC_BASES.has(fullSyllable)) {
+            return false;
+          }
+        } else {
+          return false;
+        }
       }
       if (["c", "ch", "p", "t", "k"].includes(lowerCoda)) {
         if (this.tone !== TONE_MARK.NONE && this.tone !== TONE_MARK.ACUTE && this.tone !== TONE_MARK.DOT_BELOW) {
@@ -1423,6 +1433,27 @@
     "profile",
     "upstream",
     "settings",
+    // Common -st and frequent short English words
+    "cast",
+    "best",
+    "last",
+    "past",
+    "rest",
+    "most",
+    "must",
+    "just",
+    "dust",
+    "rust",
+    "disk",
+    "desk",
+    "risk",
+    "task",
+    "mask",
+    "cost",
+    "lost",
+    "fast",
+    "post",
+    "host",
     // Common dev actions & keywords frequently trapped in Telex
     "casing",
     "parse",
@@ -2369,7 +2400,12 @@
     "law",
     "saw",
     "few",
-    "view"
+    "view",
+    "virus",
+    "chaos",
+    "status",
+    "focus",
+    "radius"
   ]);
   function isLikelyEnglishWord(w) {
     if (!w || typeof w !== "string") return false;
@@ -2411,6 +2447,27 @@
     }
     return false;
   }
+  function hasEnglishPhonotactics(rawWord) {
+    if (!rawWord || rawWord.length < 3) return false;
+    const w = canon(rawWord);
+    const vnSet = getVietnameseWordSet();
+    if (vnSet.has(w)) {
+      return false;
+    }
+    if (/^[a-z]['’][a-zàáảãạăắằẳẵặâấầẩẫậđ]/i.test(w)) {
+      return false;
+    }
+    if (/(rv|lv|nv|st|sp|sc|sk|ct|pt|ft|lt|nt|nd|rd|ld|rk|lk|mp|nk|nch|tch)/.test(w)) {
+      return true;
+    }
+    if (/[bdfjklqrsvwxz]$/.test(w)) {
+      return true;
+    }
+    if (/(oo|ee|ea|ou|ow|ew)/.test(w) && w.length >= 4) {
+      return true;
+    }
+    return false;
+  }
   function shouldAutoRestoreEnglish(rawWord, currentWord) {
     if (!rawWord && !currentWord) return false;
     const curClean = (currentWord || "").trim().toLowerCase();
@@ -2421,10 +2478,10 @@
         rawClean = reversed2.toLowerCase();
       }
     }
-    if (rawClean === curClean && /^[a-z0-9]+$/i.test(curClean)) {
+    if (rawClean === curClean) {
       return false;
     }
-    if (/^[a-zA-Z]+$/.test(curClean) && isLikelyEnglishWord(curClean)) {
+    if (/^[a-zA-Z]+$/.test(curClean) && isLikelyEnglishWord(curClean) && !ENGLISH_TELEX_TRAPS.has(rawClean)) {
       return false;
     }
     if (/\d/.test(rawClean)) {
@@ -2445,6 +2502,12 @@
     }
     const reversed = reverseVietnameseWord(currentWord).toLowerCase();
     if (reversed && reversed.length >= 3 && isLikelyEnglishWord(reversed) && !/\d/.test(reversed)) {
+      return true;
+    }
+    if (rawClean && hasEnglishPhonotactics(rawClean)) {
+      return true;
+    }
+    if (reversed && reversed.length >= 3 && hasEnglishPhonotactics(reversed) && !/\d/.test(reversed)) {
       return true;
     }
     return false;
@@ -2859,7 +2922,7 @@
       if (shouldAutoRestoreEnglish(raw, currentWord)) {
         const rawLower = (raw || "").toLowerCase();
         let restored2 = "";
-        if (raw && !/\d/.test(raw) && isLikelyEnglishWord(rawLower)) {
+        if (raw && !/\d/.test(raw)) {
           restored2 = raw;
         } else {
           restored2 = reverseVietnameseWord(currentWord) || raw || currentWord;

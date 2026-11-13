@@ -269,7 +269,7 @@ export class AvimEngine {
     if (shouldAutoRestoreEnglish(raw, currentWord)) {
       const rawLower = (raw || '').toLowerCase();
       let restored = '';
-      if (raw && !/\d/.test(raw) && isLikelyEnglishWord(rawLower)) {
+      if (raw && !/\d/.test(raw)) {
         restored = raw;
       } else {
         restored = reverseVietnameseWord(currentWord) || raw || currentWord;
