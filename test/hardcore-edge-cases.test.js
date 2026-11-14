@@ -224,6 +224,10 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(simulateTyping(vni, 'duoc795')).toBe('được');
     expect(simulateTyping(vni, 'toan21')).toBe('toán');
     expect(simulateTyping(vni, 'toan12')).toBe('toàn');
+    expect(simulateTyping(vni, 'chon71')).toBe('chớn');
+    expect(simulateTyping(vni, 'chon17')).toBe('chớn');
+    expect(simulateTyping(telex, 'chonws')).toBe('chớn');
+    expect(simulateTyping(telex, 'chonsw')).toBe('chớn');
 
     // B. Từ tiếng Việt hiếm & chuẩn ngữ âm
     expect(simulateTyping(telex, 'khuyur')).toBe('khuỷu');
