@@ -30,22 +30,17 @@ typing-log*.jsonl
 .idea/
 .antigravity/
 .aistudio/
+.antigravityignore
+.antigravityrules
 
 # OS generated files
 .DS_Store
 Thumbs.db
 
 # Playground app (Web demo)
-src/App.tsx
-src/index.css
-src/main.tsx
-src/reportWebVitals.ts
-src/vite-env.d.ts
-public/
-src/components/
-index.html
 vite.config.ts
 metadata.json
 
-vite.config.ts
-metadata.json
+# misc
+openviet-ime-codebase.txt
+google-suggestions.md

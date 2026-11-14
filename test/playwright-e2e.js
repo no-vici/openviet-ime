@@ -169,7 +169,7 @@ async function runE2ETestSuite() {
 
     // Check if Backspace or ESC occurred unexpectedly
     const hasContextError = currentKeySequence.includes('Backspace') || currentKeySequence.includes('Escape');
-    const isMatched = actualText.toLowerCase().includes(tc.expected.toLowerCase());
+    const isMatched = actualText.toLowerCase() === tc.expected.toLowerCase();
 
     if (hasContextError || !isMatched) {
       errorLogs.push({

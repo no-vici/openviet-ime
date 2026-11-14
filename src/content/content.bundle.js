@@ -3100,6 +3100,7 @@
       this.currentWordRaw = "";
       this.lastTransformed = "";
       this.lastToneToggledWord = null;
+      this.toneCancelled = false;
     }
     setMethod(method) {
       this.method = method;
@@ -3137,6 +3138,7 @@
       this.currentWordRaw = "";
       this.lastTransformed = "";
       this.lastToneToggledWord = null;
+      this.toneCancelled = false;
     }
     /**
      * Revert current word buffer back to raw keystrokes (Instant ESC Revert - GoNhanh)
@@ -3210,12 +3212,19 @@
         this.resetWordSession();
         return { restore: false, result: currentWord };
       }
+      const raw = this.currentWordRaw;
+      if (this.toneCancelled && raw && raw.length >= 4) {
+        const dedupedRaw = raw.replace(/([sfrxj])\1/i, "$1");
+        if (dedupedRaw !== raw && (COMMON_ENGLISH_WORDS.has(dedupedRaw.toLowerCase()) || isLikelyEnglishWord(dedupedRaw))) {
+          this.resetWordSession();
+          return { restore: true, result: matchCasing(currentWord, dedupedRaw) };
+        }
+      }
       const curLower = currentWord.toLowerCase();
       if (/^[a-zA-Z]+$/.test(currentWord) && (COMMON_ENGLISH_WORDS.has(curLower) || userDictionary.has(curLower))) {
         this.resetWordSession();
         return { restore: false, result: currentWord };
       }
-      const raw = this.currentWordRaw;
       if (raw && /\d/.test(raw)) {
         this.resetWordSession();
         return { restore: false, result: currentWord };
@@ -4153,6 +4162,7 @@
         const appendKey = key;
         const result = cleaned + appendKey;
         this.lastToneToggledWord = { base: result, key: lowerKey };
+        this.toneCancelled = true;
         return { transformed: true, result };
       }
       if (this.lastToneToggledWord && this.lastToneToggledWord.base === word && this.lastToneToggledWord.key === lowerKey) {
@@ -4185,7 +4195,8 @@
       if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
         const parsedNew = parseSyllable(newWord);
         const lowerN = parsedNew?.nucleus?.toLowerCase() || "";
-        const isIncompleteSyllable = parsedNew && (parsedNew.coda.length === 0 && (lowerN === "\u0103" || lowerN === "\xE2" || lowerN === "oo" || lowerN === "u\xF4" || lowerN === "i\xEA" || lowerN === "\u01B0\u01A1" || lowerN === "y\xEA") || parsedNew.coda.length > 0 && ["uo", "ie", "ye"].includes(lowerN));
+        const lowerGV = ((parsedNew?.glide || "") + (parsedNew?.nucleus || "")).toLowerCase();
+        const isIncompleteSyllable = parsedNew && (parsedNew.coda.length === 0 && (lowerN === "\u0103" || lowerN === "\xE2" || lowerN === "oo" || lowerN === "u\xF4" || lowerN === "i\xEA" || lowerN === "\u01B0\u01A1" || lowerN === "y\xEA" || ["oa", "oe", "uy"].includes(lowerGV)) || parsedNew.coda.length > 0 && ["uo", "ie", "ye"].includes(lowerN));
         if (!isIncompleteSyllable) {
           return { transformed: false, result: word + key };
         }

@@ -132,6 +132,7 @@ export class AvimEngine {
     this.currentWordRaw = '';
     this.lastTransformed = '';
     this.lastToneToggledWord = null;
+    this.toneCancelled = false;
   }
 
   setMethod(method) {
@@ -180,6 +181,7 @@ export class AvimEngine {
     this.currentWordRaw = '';
     this.lastTransformed = '';
     this.lastToneToggledWord = null;
+    this.toneCancelled = false;
   }
 
   /**
@@ -280,6 +282,17 @@ export class AvimEngine {
       return { restore: false, result: currentWord };
     }
 
+    const raw = this.currentWordRaw;
+
+    // Check tone cancellation de-duplication on word delimiter (e.g. tesst -> test, passs -> pass)
+    if (this.toneCancelled && raw && raw.length >= 4) {
+      const dedupedRaw = raw.replace(/([sfrxj])\1/i, '$1');
+      if (dedupedRaw !== raw && (COMMON_ENGLISH_WORDS.has(dedupedRaw.toLowerCase()) || isLikelyEnglishWord(dedupedRaw))) {
+        this.resetWordSession();
+        return { restore: true, result: matchCasing(currentWord, dedupedRaw) };
+      }
+    }
+
     // Safety guard: If currentWord is already pure ASCII and is a known English word,
     // it never needs restoration (prevents raw cancellation keystrokes like 'tesst' from corrupting it).
     const curLower = currentWord.toLowerCase();
@@ -288,7 +301,6 @@ export class AvimEngine {
       return { restore: false, result: currentWord };
     }
 
-    const raw = this.currentWordRaw;
     // 3. Reject any raw sequence containing digits (VNI numbers or digits)
     if (raw && /\d/.test(raw)) {
       this.resetWordSession();
@@ -1478,6 +1490,7 @@ export class AvimEngine {
       const appendKey = key;
       const result = cleaned + appendKey;
       this.lastToneToggledWord = { base: result, key: lowerKey };
+      this.toneCancelled = true;
       return { transformed: true, result };
     }
 
@@ -1539,8 +1552,13 @@ export class AvimEngine {
     if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
       const parsedNew = parseSyllable(newWord);
       const lowerN = parsedNew?.nucleus?.toLowerCase() || '';
+      const lowerGV = ((parsedNew?.glide || '') + (parsedNew?.nucleus || '')).toLowerCase();
       const isIncompleteSyllable = parsedNew && (
-        (parsedNew.coda.length === 0 && (lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo' || lowerN === 'uô' || lowerN === 'iê' || lowerN === 'ươ' || lowerN === 'yê')) ||
+        (parsedNew.coda.length === 0 && (
+          lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo' ||
+          lowerN === 'uô' || lowerN === 'iê' || lowerN === 'ươ' || lowerN === 'yê' ||
+          ['oa', 'oe', 'uy'].includes(lowerGV)
+        )) ||
         (parsedNew.coda.length > 0 && ['uo', 'ie', 'ye'].includes(lowerN))
       );
       if (!isIncompleteSyllable) {
