@@ -58,6 +58,29 @@ export const RARE_AND_PLACE_SYLLABLES = [
   'goong', 'goòng', 'goóng', 'xoong', 'xoòng', 'xoóng', 'xoọng', 'boong', 'boòng', 'boóng', 'moong', 'toong'
 ];
 
+// Âm tiết phương ngữ Nam Bộ, biến âm dz / z và chánh tả miền Nam trước 1975
+export const SOUTHERN_DIALECT_SYLLABLES = [
+  // Biến âm dz / z
+  'dzà', 'dzạ', 'dzái', 'dzài', 'dzán', 'dzàng', 'dzành', 'dzào', 'dzạt', 'dzày',
+  'dzắc', 'dzăm', 'dzằn', 'dzăng', 'dzắt', 'dzầm', 'dzần', 'dzập', 'dzật', 'dzậy',
+  'dzẻ', 'dzẽ', 'dzẹp', 'dzề', 'dzễ', 'dzế', 'dzì', 'dzìa', 'dzí', 'dzịn',
+  'dzít', 'dzị', 'dzịu', 'dzò', 'dzòm', 'dzòn', 'dzòng', 'dzọt', 'dzô', 'dzội',
+  'dzột', 'dzớ', 'dzới', 'dzợt', 'dzù', 'dzụ', 'dzục', 'dzui', 'dzùm', 'dzùng',
+  'dzụt', 'dzừ', 'dzừa', 'dzừng', 'dzứt', 'dzự', 'dzựng', 'zì', 'zị', 'zậy', 'zô',
+
+  // Chánh tả miền Nam & biến âm vần (chánh, sanh, nhứt, thiệt, gởi, quỉ, chưn...)
+  'chánh', 'sanh', 'tánh', 'thạnh', 'huỳnh', 'kiểng', 'ngươn', 'nhứt', 'nhựt',
+  'thiệt', 'chưn', 'cưn', 'hưn', 'mưn', 'tưn', 'xưn', 'qui', 'quí', 'quì',
+  'quĩ', 'quị', 'quít', 'quịt', 'gởi', 'ngởi', 'chởi', 'dởi', 'mởi',
+  'nởi', 'tởi', 'xởi', 'bửng', 'bựng',
+
+  // Đại từ, trợ từ, thán từ & từ đặc trưng Nam Bộ
+  'ảnh', 'bả', 'cổ', 'ổng', 'trỏng', 'bển', 'ngoải', 'trển', 'nghen', 'hen',
+  'hông', 'hổng', 'mèn', 'đéc', 'nư', 'tỏn', 'hum', 'quởn', 'quỡn', 'quớt',
+  'chét', 'nhỏng', 'rịch', 'xàm', 'xạo', 'chằn', 'lữa', 'thúi', 'giựt', 'ngươi',
+  'sẩy', 'xẩy', 'mánh', 'mụi', 'tém', 'lết', 'cù', 'lét', 'trớt', 'dách', 'dzách'
+];
+
 /**
  * Canonicalize text for consistent Vietnamese comparison:
  * 1. Normalize to Unicode NFC (composed)
@@ -85,6 +108,7 @@ export function getVietnameseWordSet() {
     }
     ALL_VIETNAMESE_SINGLE_VOWELS.forEach(v => _vietnameseWordSet.add(canon(v)));
     RARE_AND_PLACE_SYLLABLES.forEach(s => _vietnameseWordSet.add(canon(s)));
+    SOUTHERN_DIALECT_SYLLABLES.forEach(s => _vietnameseWordSet.add(canon(s)));
   }
   return _vietnameseWordSet;
 }

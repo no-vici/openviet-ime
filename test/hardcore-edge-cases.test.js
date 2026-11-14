@@ -246,8 +246,40 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     expect(simulateTyping(telex, 'quow')).toBe('quơ');
     expect(simulateTyping(telex, 'huow')).toBe('huơ');
 
-    // Từ khẩu ngữ & địa danh
+    // Từ khẩu ngữ, phương ngữ Nam Bộ & chánh tả cổ
     expect(simulateTyping(telex, 'dziaf')).toBe('dzìa');
+    expect(simulateTyping(telex, 'dzui')).toBe('dzui');
+    expect(simulateTyping(telex, 'dzaayj')).toBe('dzậy');
+    expect(simulateTyping(telex, 'zif')).toBe('zì');
+    expect(simulateTyping(telex, 'zij')).toBe('zị');
+    expect(simulateTyping(telex, 'zaayj')).toBe('zậy');
+    expect(simulateTyping(telex, 'quis')).toBe('quí');
+    expect(simulateTyping(telex, 'quif')).toBe('quì');
+    expect(simulateTyping(telex, 'quir')).toBe('quỉ');
+    expect(simulateTyping(telex, 'quix')).toBe('quĩ');
+    expect(simulateTyping(telex, 'quij')).toBe('quị');
+    expect(simulateTyping(vni, 'qui1')).toBe('quí');
+    expect(simulateTyping(vni, 'qui2')).toBe('quì');
+    expect(simulateTyping(vni, 'qui3')).toBe('quỉ');
+    expect(simulateTyping(vni, 'qui4')).toBe('quĩ');
+    expect(simulateTyping(vni, 'qui5')).toBe('quị');
+    expect(simulateTyping(telex, 'chanhs')).toBe('chánh');
+    expect(simulateTyping(telex, 'sanh')).toBe('sanh');
+    expect(simulateTyping(telex, 'nhuwts')).toBe('nhứt');
+    expect(simulateTyping(telex, 'thieetj')).toBe('thiệt');
+    expect(simulateTyping(telex, 'gowir')).toBe('gởi');
+    expect(simulateTyping(telex, 'anhr')).toBe('ảnh');
+    expect(simulateTyping(telex, 'bar')).toBe('bả');
+    expect(simulateTyping(telex, 'coor')).toBe('cổ');
+    expect(simulateTyping(telex, 'oongr')).toBe('ổng');
+    expect(simulateTyping(telex, 'trongr')).toBe('trỏng');
+    expect(simulateTyping(telex, 'treenr')).toBe('trển');
+    expect(simulateTyping(telex, 'nghen')).toBe('nghen');
+    expect(simulateTyping(telex, 'hoong')).toBe('hông');
+    expect(simulateTyping(telex, 'hoorng')).toBe('hổng');
+    expect(simulateTyping(telex, 'menf')).toBe('mèn');
+    expect(simulateTyping(telex, 'giuwtj')).toBe('giựt');
+    expect(simulateTyping(telex, 'dzachs')).toBe('dzách');
     expect(simulateTyping(telex, 'ddrawsk')).toBe('đrắk');
     expect(simulateTyping(telex, 'kroong')).toBe('krông');
 

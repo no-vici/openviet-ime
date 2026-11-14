@@ -809,7 +809,7 @@ export function isForeignWord(word) {
     if (clean.includes('w') && !clean.includes('qu') && !/^[uưaăoơ]/.test(clean)) return true;
     if (clean.includes('j') && !clean.startsWith('gi')) return true;
     if (clean.includes('f') && !clean.startsWith('ph')) return true;
-    if (clean.includes('z') && !clean.startsWith('dz')) return true;
+    if (clean.includes('z') && !clean.startsWith('dz') && !/^[zZ][aáàảãạăắằẳẵặâấầẩẫậeéèẻẽẹêếềểễệiíìỉĩịoóòỏõọôốồổỗộơớờởỡợuúùủũụưừứửữựyýỳỷỹỵ]/.test(clean)) return true;
   }
 
   // Double consonants (English words like 'plugin', 'hello', 'class', 'error', 'apple')

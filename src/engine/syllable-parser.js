@@ -127,8 +127,8 @@ export const VALID_ONSETS = [
   // 2-char onsets (traditional + ethnic / Central Highlands)
   'ch', 'gh', 'gi', 'kh', 'nh', 'ng', 'ph', 'th', 'tr', 'qu',
   'kr', 'pr', 'dr', 'đr', 'br', 'kl', 'pl', 'bl', 'dz',
-  // 1-char onsets
-  'b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'x'
+  // 1-char onsets (traditional + colloquial/slang 'z')
+  'b', 'c', 'd', 'đ', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'x', 'z'
 ];
 
 export class ParsedSyllable {
