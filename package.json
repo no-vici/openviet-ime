@@ -16,6 +16,7 @@
     "build": "npm run bundle:extension",
     "generate:icons": "node scripts/generate-icons.js",
     "set-version": "node scripts/set-version.js",
+    "pack:source": "git archive --format=zip --prefix=openviet-ime-source/ -o web-ext-artifacts/openviet_ime-source.zip HEAD",
     "test": "node --test test/avim.test.js test/macro.test.js test/autocomplete.test.js test/syllable-parser.test.js test/vietc-regression.test.js test/phonology-roundtrip.test.js test/mixed-corpus.test.js test/hardcore-edge-cases.test.js",
     "test:e2e": "node test/playwright-e2e.js"
   },
