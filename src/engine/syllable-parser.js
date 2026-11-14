@@ -307,9 +307,21 @@ export class ParsedSyllable {
       }
     }
 
-    // 4. Short vowels ă, â must have coda if word is complete (unless in-progress typing)
+    // 4. Open diphthongs (ia, ya, ua, ưa) cannot take a consonant coda in Vietnamese
+    const lowerN = this.nucleus.toLowerCase();
+    if (['ia', 'ya', 'ua', 'ưa'].includes(lowerN) && lowerCoda.length > 0) {
+      return false;
+    }
+
+    // 5. Closed diphthongs (uo, ie, ye): plain 'uo', 'ie', 'ye' with a coda can NEVER take a tone mark
+    // in a completed syllable unless explicitly horned ('ươ') or circumflexed ('uô', 'iê', 'yê').
+    // When typing, they are valid intermediate forms (inProgress = true) allowing subsequent shape modifiers.
+    if (!inProgress && this.tone !== TONE_MARK.NONE && lowerCoda.length > 0 && ['uo', 'ie', 'ye'].includes(lowerN)) {
+      return false;
+    }
+
+    // 6. Short vowels ă, â must have coda if word is complete (unless in-progress typing)
     if (!inProgress) {
-      const lowerN = this.nucleus.toLowerCase();
       if ((lowerN === 'ă' || lowerN === 'â') && this.coda.length === 0) {
         return false;
       }

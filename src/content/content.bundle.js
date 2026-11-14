@@ -732,8 +732,14 @@
           return false;
         }
       }
+      const lowerN = this.nucleus.toLowerCase();
+      if (["ia", "ya", "ua", "\u01B0a"].includes(lowerN) && lowerCoda.length > 0) {
+        return false;
+      }
+      if (!inProgress && this.tone !== TONE_MARK.NONE && lowerCoda.length > 0 && ["uo", "ie", "ye"].includes(lowerN)) {
+        return false;
+      }
       if (!inProgress) {
-        const lowerN = this.nucleus.toLowerCase();
         if ((lowerN === "\u0103" || lowerN === "\xE2") && this.coda.length === 0) {
           return false;
         }
@@ -2950,24 +2956,43 @@
       if (!this.autoRestoreEnglish) {
         return { restore: false, result: currentWord };
       }
-      if (this.method === IME_METHOD.VNI) {
-        this.resetWordSession();
-        return { restore: false, result: currentWord };
-      }
       if (!currentWord || currentWord.length <= 1) {
         this.resetWordSession();
         return { restore: false, result: currentWord };
       }
       if (this.phonologyRules) {
-        const parsed = parseSyllable(currentWord);
-        if (parsed && parsed.nucleus) {
-          const lowerN = parsed.nucleus.toLowerCase();
-          if ((lowerN === "\u0103" || lowerN === "\xE2") && parsed.coda.length === 0 && !userDictionary.has(currentWord.toLowerCase())) {
-            const rawSeq = this.currentWordRaw || reverseVietnameseWord(currentWord) || currentWord;
-            this.resetWordSession();
-            return { restore: true, result: matchCasing(currentWord, rawSeq) };
+        const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(currentWord);
+        if (hasDiacritics && !userDictionary.has(currentWord.toLowerCase())) {
+          const parsed = parseSyllable(currentWord);
+          if (parsed && !parsed.isValid({ inProgress: false })) {
+            const lowerN = parsed.nucleus.toLowerCase();
+            const lowerCoda = parsed.coda.toLowerCase();
+            const STANDARD_CODAS = /* @__PURE__ */ new Set(["", "c", "ch", "m", "n", "ng", "nh", "p", "t", "k", "l", "r", "h"]);
+            const isShortVowelMissingCoda = (lowerN === "\u0103" || lowerN === "\xE2") && lowerCoda.length === 0;
+            const isClosedDiphWithStandardCodaAndTone = parsed.tone > 0 && STANDARD_CODAS.has(lowerCoda) && lowerCoda.length > 0 && ["uo", "ie", "ye"].includes(lowerN);
+            const isOpenDiphWithCoda = ["ia", "ya", "ua", "\u01B0a"].includes(lowerN) && lowerCoda.length > 0;
+            if (isShortVowelMissingCoda || isClosedDiphWithStandardCodaAndTone || isOpenDiphWithCoda) {
+              let rawSeq = this.currentWordRaw;
+              if (!rawSeq) {
+                if (isClosedDiphWithStandardCodaAndTone) {
+                  const untoned = parsed.withTone(0).reconstruct();
+                  const isVni = this.method === IME_METHOD.VNI;
+                  const toneMapTelex = { 1: "s", 2: "f", 3: "r", 4: "x", 5: "j" };
+                  const toneMapVni = { 1: "1", 2: "2", 3: "3", 4: "4", 5: "5" };
+                  rawSeq = untoned + (isVni ? toneMapVni[parsed.tone] || "" : toneMapTelex[parsed.tone] || "");
+                } else {
+                  rawSeq = reverseVietnameseWord(currentWord) || currentWord;
+                }
+              }
+              this.resetWordSession();
+              return { restore: true, result: matchCasing(currentWord, rawSeq) };
+            }
           }
         }
+      }
+      if (this.method === IME_METHOD.VNI) {
+        this.resetWordSession();
+        return { restore: false, result: currentWord };
       }
       const curLower = currentWord.toLowerCase();
       if (/^[a-zA-Z]+$/.test(currentWord) && (COMMON_ENGLISH_WORDS.has(curLower) || userDictionary.has(curLower))) {
@@ -3944,7 +3969,7 @@
       if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
         const parsedNew = parseSyllable(newWord);
         const lowerN = parsedNew?.nucleus?.toLowerCase() || "";
-        const isIncompleteSyllable = parsedNew && parsedNew.coda.length === 0 && (lowerN === "\u0103" || lowerN === "\xE2" || lowerN === "oo");
+        const isIncompleteSyllable = parsedNew && (parsedNew.coda.length === 0 && (lowerN === "\u0103" || lowerN === "\xE2" || lowerN === "oo") || parsedNew.coda.length > 0 && ["uo", "ie", "ye"].includes(lowerN));
         if (!isIncompleteSyllable) {
           return { transformed: false, result: word + key };
         }

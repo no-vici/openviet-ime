@@ -150,6 +150,42 @@ test('VietC / vnchKey - Tone Placement on Clusters (qu, gi, uê, uơ, ươ, ưu)
   // Telex double o toggle on -ong -> -oong
   assert.equal(telex.processKey('xông', 'o').result, 'xoong');
   assert.equal(telex.processKey('gồng', 'o').result, 'goòng');
+
+  // Closed diphthongs intermediate promotion (Jasper case: Huyèn, tién, biét, duòng, nuóc)
+  assert.equal(telex.processKey('Huyèn', 'e').result, 'Huyền');
+  assert.equal(telex.processKey('chuyén', 'e').result, 'chuyến');
+  assert.equal(telex.processKey('tuyét', 'e').result, 'tuyết');
+  assert.equal(telex.processKey('tién', 'e').result, 'tiến');
+  assert.equal(telex.processKey('biét', 'e').result, 'biết');
+  assert.equal(telex.processKey('duòng', 'w').result, 'dường');
+  assert.equal(telex.processKey('nuóc', 'w').result, 'nước');
+  assert.equal(telex.processKey('buòng', 'o').result, 'buồng');
+
+  // VNI Closed diphthongs promotion
+  assert.equal(vni.processKey('Huyèn', '6').result, 'Huyền');
+  assert.equal(vni.processKey('chuyén', '6').result, 'chuyến');
+  assert.equal(vni.processKey('tuyét', '6').result, 'tuyết');
+  assert.equal(vni.processKey('tién', '6').result, 'tiến');
+  assert.equal(vni.processKey('biét', '6').result, 'biết');
+  assert.equal(vni.processKey('duòng', '7').result, 'dường');
+  assert.equal(vni.processKey('nuóc', '7').result, 'nước');
+  assert.equal(vni.processKey('buòng', '6').result, 'buồng');
+
+  // Space Auto-Restore on incomplete intermediate closed/open diphthongs
+  assert.equal(telex.checkAutoRestore('Huyèn').result, 'Huyenf');
+  assert.equal(telex.checkAutoRestore('chuyén').result, 'chuyens');
+  assert.equal(telex.checkAutoRestore('tuyét').result, 'tuyets');
+  assert.equal(telex.checkAutoRestore('tién').result, 'tiens');
+  assert.equal(telex.checkAutoRestore('biét').result, 'biets');
+  assert.equal(telex.checkAutoRestore('duòng').result, 'duongf');
+  assert.equal(telex.checkAutoRestore('nuóc').result, 'nuocs');
+  assert.equal(telex.checkAutoRestore('buòng').result, 'buongf');
+  assert.equal(vni.checkAutoRestore('Huyèn').result, 'Huyen2');
+  assert.equal(vni.checkAutoRestore('chuyén').result, 'chuyen1');
+  assert.equal(vni.checkAutoRestore('tuyét').result, 'tuyet1');
+  assert.equal(vni.checkAutoRestore('tién').result, 'tien1');
+  assert.equal(vni.checkAutoRestore('duòng').result, 'duong2');
+  assert.equal(vni.checkAutoRestore('nuóc').result, 'nuoc1');
 });
 
 test('VietC / vnchKey - Natural Phonological Guard on Tech Terms', () => {

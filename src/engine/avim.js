@@ -222,33 +222,62 @@ export class AvimEngine {
       return { restore: false, result: currentWord };
     }
 
-    // 1. In VNI mode, diacritics are numeric (1-9).
-    // English words never contain digits and never suffer from Telex collisions.
-    // Auto-restore must NEVER run in VNI mode.
-    if (this.method === IME_METHOD.VNI) {
-      this.resetWordSession();
-      return { restore: false, result: currentWord };
-    }
-
-    // 2. Reject empty or single-letter vowels (á, à, ả, ã, ạ, ú, ù, ủ, ĩ, etc.)
+    // 1. Reject empty or single-letter vowels (á, à, ả, ã, ạ, ú, ù, ủ, ĩ, etc.)
     if (!currentWord || currentWord.length <= 1) {
       this.resetWordSession();
       return { restore: false, result: currentWord };
     }
 
-    // 2b. Phonological Strictness: Short vowels ă, â can NEVER stand alone without a coda consonant at word completion.
-    // If user stops typing and hits Space right after 'đă', 'câ', 'bă', 'tắ', auto-restore to raw keys (e.g. 'ddaw', 'caa')
-    // unless the word is a known exception (e.g. in userDictionary).
+    // 2. Phonological Strictness (Chánh Tả check on word completion - vnchKey architecture):
+    // - Short vowels ă, â can NEVER stand alone without a coda consonant at word completion (e.g. 'đă', 'câ', 'bă', 'tắ').
+    // - Closed diphthongs (uo, ie, ye) with a standard coda can NEVER take a tone mark in a completed syllable without
+    //   explicit horn ('ươ') or circumflex ('uô', 'iê', 'yê') (e.g. 'Huyèn', 'chuyén', 'tién', 'biét', 'duòng', 'nuóc').
+    // - Open diphthongs (ia, ya, ua, ưa) can NEVER take a coda consonant (e.g. 'mian', 'khuyan').
+    // If user stops typing and hits Space on these incomplete/invalid intermediate forms, auto-restore to raw keystrokes!
+    // This applies to both Telex and VNI.
     if (this.phonologyRules) {
-      const parsed = parseSyllable(currentWord);
-      if (parsed && parsed.nucleus) {
-        const lowerN = parsed.nucleus.toLowerCase();
-        if ((lowerN === 'ă' || lowerN === 'â') && parsed.coda.length === 0 && !userDictionary.has(currentWord.toLowerCase())) {
-          const rawSeq = this.currentWordRaw || reverseVietnameseWord(currentWord) || currentWord;
-          this.resetWordSession();
-          return { restore: true, result: matchCasing(currentWord, rawSeq) };
+      const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(currentWord);
+      if (hasDiacritics && !userDictionary.has(currentWord.toLowerCase())) {
+        const parsed = parseSyllable(currentWord);
+        if (parsed && !parsed.isValid({ inProgress: false })) {
+          const lowerN = parsed.nucleus.toLowerCase();
+          const lowerCoda = parsed.coda.toLowerCase();
+          const STANDARD_CODAS = new Set(['', 'c', 'ch', 'm', 'n', 'ng', 'nh', 'p', 't', 'k', 'l', 'r', 'h']);
+
+          // Only intercept specific phonological intermediate/invalid patterns here:
+          // 1) short vowels ă/â without coda
+          // 2) closed diphthongs with standard coda and tone (e.g. Huyèn, tién, duòng, nuóc)
+          // 3) open diphthongs with coda (e.g. mían, khuyan)
+          const isShortVowelMissingCoda = (lowerN === 'ă' || lowerN === 'â') && lowerCoda.length === 0;
+          const isClosedDiphWithStandardCodaAndTone = parsed.tone > 0 && STANDARD_CODAS.has(lowerCoda) && lowerCoda.length > 0 && ['uo', 'ie', 'ye'].includes(lowerN);
+          const isOpenDiphWithCoda = ['ia', 'ya', 'ua', 'ưa'].includes(lowerN) && lowerCoda.length > 0;
+
+          if (isShortVowelMissingCoda || isClosedDiphWithStandardCodaAndTone || isOpenDiphWithCoda) {
+            let rawSeq = this.currentWordRaw;
+            if (!rawSeq) {
+              if (isClosedDiphWithStandardCodaAndTone) {
+                const untoned = parsed.withTone(0).reconstruct();
+                const isVni = this.method === IME_METHOD.VNI;
+                const toneMapTelex = { 1: 's', 2: 'f', 3: 'r', 4: 'x', 5: 'j' };
+                const toneMapVni = { 1: '1', 2: '2', 3: '3', 4: '4', 5: '5' };
+                rawSeq = untoned + (isVni ? (toneMapVni[parsed.tone] || '') : (toneMapTelex[parsed.tone] || ''));
+              } else {
+                rawSeq = reverseVietnameseWord(currentWord) || currentWord;
+              }
+            }
+            this.resetWordSession();
+            return { restore: true, result: matchCasing(currentWord, rawSeq) };
+          }
         }
       }
+    }
+
+    // 3. In VNI mode, diacritics are numeric (1-9).
+    // English words never contain digits and never suffer from Telex collisions.
+    // For phonologically valid words, English auto-restore never runs in VNI mode.
+    if (this.method === IME_METHOD.VNI) {
+      this.resetWordSession();
+      return { restore: false, result: currentWord };
     }
 
     // Safety guard: If currentWord is already pure ASCII and is a known English word,
@@ -1504,13 +1533,15 @@ export class AvimEngine {
     // Spell check validation (against Hunspell dictionary, if enabled)
     // Note: Incomplete open syllables with short vowels (ă, â) awaiting codas
     // (e.g. 'đrắ' + 'k' -> 'đrắk', 'tắ' + 'c' -> 'tắc') or double-o loanwords awaiting 'ng'
-    // (e.g. 'xoò' + 'ng' -> 'xoòng', 'boó' + 'ng' -> 'boóng') are valid in-progress keystrokes
-    // and must not be blocked prematurely by Hunspell spellCheck.
+    // (e.g. 'xoò' + 'ng' -> 'xoòng', 'boó' + 'ng' -> 'boóng') or closed diphthongs awaiting circumflex/horn
+    // (e.g. 'diem' + 'r' -> 'diẻm' awaiting 'e' -> 'diểm', 'duong' + 'f' -> 'duòng' awaiting 'w' -> 'dường')
+    // are valid in-progress keystrokes and must not be blocked prematurely by Hunspell spellCheck.
     if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
       const parsedNew = parseSyllable(newWord);
       const lowerN = parsedNew?.nucleus?.toLowerCase() || '';
-      const isIncompleteSyllable = parsedNew && parsedNew.coda.length === 0 && (
-        lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo'
+      const isIncompleteSyllable = parsedNew && (
+        (parsedNew.coda.length === 0 && (lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo')) ||
+        (parsedNew.coda.length > 0 && ['uo', 'ie', 'ye'].includes(lowerN))
       );
       if (!isIncompleteSyllable) {
         // If invalid complete syllable, pass-through without tone
