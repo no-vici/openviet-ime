@@ -1,7 +1,7 @@
 {
   "name": "openviet-ime",
   "private": true,
-  "version": "1.1.3",
+  "version": "1.1.4",
   "type": "module",
   "scripts": {
     "bundle:extension": "esbuild src/content/content.js --bundle --outfile=src/content/content.bundle.js --format=iife && esbuild src/options/options.js --bundle --outfile=src/options/options.bundle.js --format=iife",
@@ -15,6 +15,7 @@
     "bundle:edge": "npm run build:edge",
     "build": "npm run bundle:extension",
     "generate:icons": "node scripts/generate-icons.js",
+    "set-version": "node scripts/set-version.js",
     "test": "node --test test/avim.test.js test/macro.test.js test/autocomplete.test.js test/syllable-parser.test.js test/vietc-regression.test.js test/phonology-roundtrip.test.js test/mixed-corpus.test.js test/hardcore-edge-cases.test.js",
     "test:e2e": "node test/playwright-e2e.js"
   },
