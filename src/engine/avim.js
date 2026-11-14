@@ -1531,16 +1531,16 @@ export class AvimEngine {
     }
 
     // Spell check validation (against Hunspell dictionary, if enabled)
-    // Note: Incomplete open syllables with short vowels (ă, â) awaiting codas
-    // (e.g. 'đrắ' + 'k' -> 'đrắk', 'tắ' + 'c' -> 'tắc') or double-o loanwords awaiting 'ng'
-    // (e.g. 'xoò' + 'ng' -> 'xoòng', 'boó' + 'ng' -> 'boóng') or closed diphthongs awaiting circumflex/horn
-    // (e.g. 'diem' + 'r' -> 'diẻm' awaiting 'e' -> 'diểm', 'duong' + 'f' -> 'duòng' awaiting 'w' -> 'dường')
+    // Note: Incomplete open syllables with short vowels (ă, â) or closed diphthongs awaiting codas
+    // (e.g. 'đrắ' + 'k' -> 'đrắk', 'tắ' + 'c' -> 'tắc', 'uổ' + 'ng' -> 'uổng', 'uồ' + 'n' -> 'uồn', 'tiế' + 'n' -> 'tiến')
+    // or double-o loanwords awaiting 'ng' (e.g. 'xoò' + 'ng' -> 'xoòng', 'boó' + 'ng' -> 'boóng')
+    // or closed diphthongs awaiting circumflex/horn (e.g. 'diem' + 'r' -> 'diẻm' awaiting 'e' -> 'diểm')
     // are valid in-progress keystrokes and must not be blocked prematurely by Hunspell spellCheck.
     if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
       const parsedNew = parseSyllable(newWord);
       const lowerN = parsedNew?.nucleus?.toLowerCase() || '';
       const isIncompleteSyllable = parsedNew && (
-        (parsedNew.coda.length === 0 && (lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo')) ||
+        (parsedNew.coda.length === 0 && (lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo' || lowerN === 'uô' || lowerN === 'iê' || lowerN === 'ươ' || lowerN === 'yê')) ||
         (parsedNew.coda.length > 0 && ['uo', 'ie', 'ye'].includes(lowerN))
       );
       if (!isIncompleteSyllable) {

@@ -42,13 +42,15 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'extent', 'extra', 'extreme', 'exact', 'exam', 'example', 'exist', 'execute', 'exercise', 'exceed',
   'except', 'excess', 'exchange', 'excite', 'exclude', 'excuse', 'expand', 'expend', 'expense', 'expire',
 
-  // Telex trap: words with 'r' (hỏi)
+  // Telex trap: words with 'r' (hỏi) & double 'r' cancellation traps (rr -> r)
   'for', 'or', 'our', 'your', 'her', 'their', 'other', 'after', 'under', 'over', 'never', 'ever',
   'water', 'paper', 'order', 'power', 'user', 'super', 'server', 'number', 'member', 'driver',
   'render', 'router', 'player', 'master', 'worker', 'filter', 'center', 'letter', 'matter', 'better',
   'doctor', 'factor', 'sector', 'vector', 'senior', 'junior', 'error', 'horror', 'mirror', 'sensor',
   'cursor', 'armor', 'harbor', 'color', 'flavor', 'labor', 'mayor', 'prior', 'vigor', 'vapor', 'favor',
   'clear', 'near', 'dear', 'fear', 'hear', 'bear', 'wear', 'tear', 'year', 'gear', 'rear', 'pear',
+  'sorry', 'array', 'carrier', 'barrel', 'correct', 'corrupt', 'borrow', 'arrow', 'narrow',
+  'marry', 'carry', 'worry', 'current', 'currency', 'occur', 'occurred', 'refer', 'referred', 'prefer', 'preferred',
 
   // Telex trap: words with 'w' (horn/breve: ơ, ư, ă)
   'we', 'with', 'work', 'word', 'world', 'week', 'write', 'wrong', 'window', 'windows', 'white',
@@ -573,6 +575,8 @@ export const ENGLISH_TELEX_TRAPS = new Set([
   'text', 'next', 'context', 'exit', 'user', 'super', 'server', 'router', 'player',
   'master', 'worker', 'filter', 'center', 'letter', 'matter', 'better', 'doctor',
   'factor', 'sector', 'vector', 'error', 'horror', 'mirror', 'sensor', 'cursor',
+  'sorry', 'array', 'carrier', 'barrel', 'correct', 'corrupt', 'borrow', 'arrow', 'narrow',
+  'marry', 'carry', 'worry', 'current', 'currency', 'occur', 'occurred', 'refer', 'referred', 'prefer', 'preferred',
   'push', 'expect', 'luxury', 'window', 'windows', 'work', 'word', 'world',
   'tesla', 'screen', 'saas', 'ajax', 'duplex', 'complex', 'index', 'matrix',
   'syntax', 'prefix', 'suffix', 'annex', 'latex', 'reflex', 'pixel', 'toxic',

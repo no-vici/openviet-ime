@@ -43,7 +43,8 @@ export const RARE_AND_PLACE_SYLLABLES = [
   'zị', 'zi', 'zia', 'hén', 'nghen', 'hổng', 'hạp', 'quớt', 'nư', 'quỉ',
   'lét', 'mụi', 'bẹo', 'bậu', 'tỏn', 'hum', 'chác', 'cháo',
   'khồng', 'khỗng', 'khộng', 'ngánh', 'ngãnh',
-  'quỡn', 'huỡ',
+  'quỡn', 'quỡ', 'huỡ',
+  'uồn', 'toãn', 'toạn',
   'goong', 'goòng', 'goóng', 'xoong', 'xoòng', 'xoóng', 'xoọng', 'boong', 'boòng', 'boóng', 'moong', 'toong'
 ];
 

@@ -195,5 +195,88 @@ describe('OpenViet IME - Hardcore Edge Cases Testing', () => {
     userDictionary.remove('sas');
     userDictionary.remove('da5');
   });
+
+  test('7. Nightmare Edge Cases & Bilingual Sloppy Typing (vnchKey Suite)', () => {
+    const telex = new AvimEngine({ method: 1, spellCheck: true });
+    const vni = new AvimEngine({ method: 2, spellCheck: true });
+
+    function simulateTyping(engine, word) {
+      let res = '';
+      engine.resetWordSession();
+      for (const k of word) {
+        engine.trackRawKey(k);
+        const r = engine.processKey(res, k);
+        res = r.transformed ? r.result : res + k;
+      }
+      return res;
+    }
+
+    // A. Gõ ẩu / đảo thứ tự phím dấu (Sloppy Typing)
+    expect(simulateTyping(telex, 'nguowif')).toBe('người');
+    expect(simulateTyping(telex, 'nghieeng')).toBe('nghiêng');
+    expect(simulateTyping(telex, 'dduocwj')).toBe('được');
+    expect(simulateTyping(telex, 'toansf')).toBe('toàn');
+    expect(simulateTyping(telex, 'toansfr')).toBe('toản');
+    expect(simulateTyping(telex, 'toansfz')).toBe('toan');
+
+    // VNI đảo phím số
+    expect(simulateTyping(vni, 'duoc975')).toBe('được');
+    expect(simulateTyping(vni, 'duoc795')).toBe('được');
+    expect(simulateTyping(vni, 'toan21')).toBe('toán');
+    expect(simulateTyping(vni, 'toan12')).toBe('toàn');
+
+    // B. Từ tiếng Việt hiếm & chuẩn ngữ âm
+    expect(simulateTyping(telex, 'khuyur')).toBe('khuỷu');
+    expect(simulateTyping(telex, 'khuaays')).toBe('khuấy');
+    expect(simulateTyping(telex, 'khueechs')).toBe('khuếch');
+    expect(simulateTyping(telex, 'uoongr')).toBe('uổng');
+    expect(simulateTyping(telex, 'uoorng')).toBe('uổng');
+    expect(simulateTyping(telex, 'uoofn')).toBe('uồn');
+    expect(simulateTyping(telex, 'toanx')).toBe('toãn');
+    expect(simulateTyping(telex, 'toanj')).toBe('toạn');
+    expect(simulateTyping(telex, 'huouw')).toBe('hươu');
+    expect(simulateTyping(telex, 'ddowif')).toBe('đời');
+    expect(simulateTyping(telex, 'thuowr')).toBe('thuở');
+    expect(simulateTyping(telex, 'quowrn')).toBe('quởn');
+    expect(simulateTyping(telex, 'quowxn')).toBe('quỡn');
+    expect(simulateTyping(telex, 'quow')).toBe('quơ');
+    expect(simulateTyping(telex, 'huow')).toBe('huơ');
+
+    // Từ khẩu ngữ & địa danh
+    expect(simulateTyping(telex, 'dziaf')).toBe('dzìa');
+    expect(simulateTyping(telex, 'ddrawsk')).toBe('đrắk');
+    expect(simulateTyping(telex, 'kroong')).toBe('krông');
+
+    // C. Bẫy nuốt ký tự tiếng Anh chứa 'rr' (sorry, error, mirror, array, carrier)
+    function simulateWithSession(engine, str) {
+      engine.resetWordSession();
+      let w = '';
+      for (const c of str) {
+        engine.trackRawKey(c);
+        const res = engine.processKey(w, c);
+        w = res.transformed ? res.result : w + c;
+      }
+      const restored = engine.checkAutoRestore(w, ' ');
+      return restored.restore ? restored.result : w;
+    }
+
+    expect(simulateWithSession(telex, 'error')).toBe('error');
+    expect(simulateWithSession(telex, 'mirror')).toBe('mirror');
+    expect(simulateWithSession(telex, 'sorry')).toBe('sorry');
+    expect(simulateWithSession(telex, 'array')).toBe('array');
+    expect(simulateWithSession(telex, 'carrier')).toBe('carrier');
+    expect(simulateWithSession(telex, 'correct')).toBe('correct');
+    expect(simulateWithSession(telex, 'borrow')).toBe('borrow');
+    expect(simulateWithSession(telex, 'worry')).toBe('worry');
+
+    // D. Bảo toàn từ tiếng Việt khi gõ trùng từ tiếng Anh
+    expect(simulateTyping(telex, 'this')).toBe('thí');
+    expect(simulateTyping(telex, 'these')).toBe('thế');
+    expect(simulateTyping(telex, 'there')).toBe('thể');
+    expect(simulateTyping(telex, 'its')).toBe('ít');
+    expect(simulateTyping(telex, 'bus')).toBe('bú');
+    expect(simulateTyping(telex, 'chaos')).toBe('cháo');
+    expect(simulateTyping(telex, 'see')).toBe('sê');
+  });
 });
 

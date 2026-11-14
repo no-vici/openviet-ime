@@ -298,7 +298,11 @@
     "ng\xE1nh",
     "ng\xE3nh",
     "qu\u1EE1n",
+    "qu\u1EE1",
     "hu\u1EE1",
+    "u\u1ED3n",
+    "to\xE3n",
+    "to\u1EA1n",
     "goong",
     "go\xF2ng",
     "go\xF3ng",
@@ -1034,7 +1038,7 @@
     "expend",
     "expense",
     "expire",
-    // Telex trap: words with 'r' (hỏi)
+    // Telex trap: words with 'r' (hỏi) & double 'r' cancellation traps (rr -> r)
     "for",
     "or",
     "our",
@@ -1100,6 +1104,26 @@
     "gear",
     "rear",
     "pear",
+    "sorry",
+    "array",
+    "carrier",
+    "barrel",
+    "correct",
+    "corrupt",
+    "borrow",
+    "arrow",
+    "narrow",
+    "marry",
+    "carry",
+    "worry",
+    "current",
+    "currency",
+    "occur",
+    "occurred",
+    "refer",
+    "referred",
+    "prefer",
+    "preferred",
     // Telex trap: words with 'w' (horn/breve: ơ, ư, ă)
     "we",
     "with",
@@ -2393,6 +2417,26 @@
     "mirror",
     "sensor",
     "cursor",
+    "sorry",
+    "array",
+    "carrier",
+    "barrel",
+    "correct",
+    "corrupt",
+    "borrow",
+    "arrow",
+    "narrow",
+    "marry",
+    "carry",
+    "worry",
+    "current",
+    "currency",
+    "occur",
+    "occurred",
+    "refer",
+    "referred",
+    "prefer",
+    "preferred",
     "push",
     "expect",
     "luxury",
@@ -3969,7 +4013,7 @@
       if (this.spellCheck && !this.isValidVietnameseWord(newWord)) {
         const parsedNew = parseSyllable(newWord);
         const lowerN = parsedNew?.nucleus?.toLowerCase() || "";
-        const isIncompleteSyllable = parsedNew && (parsedNew.coda.length === 0 && (lowerN === "\u0103" || lowerN === "\xE2" || lowerN === "oo") || parsedNew.coda.length > 0 && ["uo", "ie", "ye"].includes(lowerN));
+        const isIncompleteSyllable = parsedNew && (parsedNew.coda.length === 0 && (lowerN === "\u0103" || lowerN === "\xE2" || lowerN === "oo" || lowerN === "u\xF4" || lowerN === "i\xEA" || lowerN === "\u01B0\u01A1" || lowerN === "y\xEA") || parsedNew.coda.length > 0 && ["uo", "ie", "ye"].includes(lowerN));
         if (!isIncompleteSyllable) {
           return { transformed: false, result: word + key };
         }
