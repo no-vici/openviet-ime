@@ -589,6 +589,20 @@ export const ENGLISH_TELEX_TRAPS = new Set([
 ]);
 
 /**
+ * Words that collide with common Vietnamese words when typed via Telex.
+ * (Inspired by vnchKey english_prefer_vietnamese.txt)
+ * For these words, Vietnamese is preferred by default on single typing (e.g. 'as' -> 'á', 'rest' -> 'rết').
+ * They are protected from unexpected Space auto-restore so that normal Vietnamese sentences remain natural.
+ * In Code / Cheat mode or when retyping tone keys, English can still be produced directly.
+ */
+export const ENGLISH_PREFER_VIETNAMESE = new Set([
+  'as', 'is', 'os', 'us', 'of', 'if', 'or',
+  'conf', 'must', 'rust', 'rest', 'test', 'cast', 'past', 'cost', 'post', 'host', 'lost', 'fast', 'dust', 'best',
+  'this', 'these', 'bits', 'hits', 'fits', 'sit', 'fits',
+  'case', 'care', 'base', 'dose', 'rose', 'fuse', 'nose'
+]);
+
+/**
  * Helper to check if a word is a known English word, user dictionary word,
  * or regular English inflection (-ing, -ed, -er, -or, -s, -es, -ly).
  */
@@ -731,10 +745,10 @@ export function shouldAutoRestoreEnglish(rawWord, currentWord) {
   // Rule 3: Valid Vietnamese syllables protection
   // If currentWord is a valid Vietnamese syllable (e.g. cá, má, bú, sĩ, sẽ, mã, thí, cót, hót, nơ, hơ, toán, nước, được):
   // Preserve it! Auto-restore should NEVER overwrite valid Vietnamese words,
-  // UNLESS rawClean is an explicit known multi-letter English Telex trap.
+  // UNLESS rawClean is an explicit known multi-letter English Telex trap AND not in ENGLISH_PREFER_VIETNAMESE.
   const vnSet = getVietnameseWordSet();
   if (vnSet.has(curClean)) {
-    if (rawClean && ENGLISH_TELEX_TRAPS.has(rawClean)) {
+    if (rawClean && ENGLISH_TELEX_TRAPS.has(rawClean) && !ENGLISH_PREFER_VIETNAMESE.has(rawClean)) {
       return true;
     }
     return false;

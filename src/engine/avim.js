@@ -127,6 +127,8 @@ export class AvimEngine {
     this.escRevert = options.escRevert ?? true;
     this.phonologyRules = options.phonologyRules ?? true;
     this.autoHarmonizeCase = options.autoHarmonizeCase ?? false;
+    this.typeW2U = options.typeW2U ?? true;
+    this.smartHorn = options.smartHorn ?? true;
 
     // Session state tracking for current word
     this.currentWordRaw = '';
@@ -169,6 +171,14 @@ export class AvimEngine {
 
   setAutoHarmonizeCase(enabled) {
     this.autoHarmonizeCase = Boolean(enabled);
+  }
+
+  setTypeW2U(enabled) {
+    this.typeW2U = Boolean(enabled);
+  }
+
+  setSmartHorn(enabled) {
+    this.smartHorn = Boolean(enabled);
   }
 
   trackRawKey(key) {
@@ -385,7 +395,7 @@ export class AvimEngine {
           }
         }
         const innerRes = this.processKey(cleanWord, key);
-        const wrappedResult = quotePrefix + innerRes.result + quoteSuffix;
+        const wrappedResult = (quotePrefix + innerRes.result + quoteSuffix).normalize('NFC');
         this.lastTransformed = wrappedResult;
         return {
           transformed: innerRes.transformed,
@@ -501,6 +511,7 @@ export class AvimEngine {
     // 2. Try consonant modification (e.g. 'd' + 'd' -> 'đ')
     const consResult = this.checkConsonant(word, key);
     if (consResult.transformed) {
+      consResult.result = (consResult.result || '').normalize('NFC');
       this.lastTransformed = consResult.result;
       return consResult;
     }
@@ -508,6 +519,7 @@ export class AvimEngine {
     // 3. Try vowel shape modification (e.g. 'a' + 'a' -> 'â', 'o' + 'w' -> 'ơ')
     const shapeResult = this.checkVowelShape(word, key);
     if (shapeResult.transformed) {
+      shapeResult.result = (shapeResult.result || '').normalize('NFC');
       this.lastTransformed = shapeResult.result;
       return shapeResult;
     }
@@ -524,6 +536,7 @@ export class AvimEngine {
     //   '6' (circumflex) <-> '7' (horn):  bốn + 7 -> bớn, bớn + 6 -> bốn, giồ + 7 -> giờ, giờ + 6 -> giồ
     const swapResult = this.checkShapeModifierSwapping(word, key);
     if (swapResult.transformed) {
+      swapResult.result = (swapResult.result || '').normalize('NFC');
       this.lastTransformed = swapResult.result;
       return swapResult;
     }
@@ -531,6 +544,7 @@ export class AvimEngine {
     // 4. Try tone mark placement / toggle (e.g. 'toan' + 's' -> 'toán')
     const toneResult = this.checkTone(word, key);
     if (toneResult.transformed) {
+      toneResult.result = (toneResult.result || '').normalize('NFC');
       this.lastTransformed = toneResult.result;
       return toneResult;
     }
@@ -540,13 +554,14 @@ export class AvimEngine {
     // parse the resulting syllable and dynamically relocate the tone mark to the phonetically correct nucleus.
     const dynamicResult = this.checkDynamicToneShift(word, key);
     if (dynamicResult.transformed) {
+      dynamicResult.result = (dynamicResult.result || '').normalize('NFC');
       this.lastTransformed = dynamicResult.result;
       return dynamicResult;
     }
 
     // 5. Default: append key
     const newWord = word + key;
-    const finalWord = this.autoHarmonizeCase ? harmonizeSyllableCase(newWord) : newWord;
+    const finalWord = ((this.autoHarmonizeCase ? harmonizeSyllableCase(newWord) : newWord) || '').normalize('NFC');
     this.lastTransformed = finalWord;
     return { transformed: finalWord !== newWord, result: finalWord };
   }
@@ -884,7 +899,15 @@ export class AvimEngine {
    *   8 -> ă
    */
   checkVowelShape(word, key) {
-    if (!word) return { transformed: false, result: word + key };
+    if (!word) {
+      if (this.typeW2U === false && key.toLowerCase() === 'w') {
+        const method = this.getEffectiveMethod(key);
+        if (method === IME_METHOD.TELEX) {
+          return { transformed: true, result: key === 'W' ? 'Ư' : 'ư' };
+        }
+      }
+      return { transformed: false, result: word + key };
+    }
     const method = this.getEffectiveMethod(key);
     const lowerKey = key.toLowerCase();
 
@@ -1238,15 +1261,17 @@ export class AvimEngine {
     }
 
     // 1. Check double 'uo' / 'uô' / 'ươ' -> 'ươ'
-    const uoPair = this.findUoPair(word);
-    if (uoPair) {
-      return this.applyUoHorn(word, uoPair);
-    }
+    if (this.smartHorn !== false) {
+      const uoPair = this.findUoPair(word);
+      if (uoPair) {
+        return this.applyUoHorn(word, uoPair);
+      }
 
-    // 2. Check double 'uu' / 'ưu' -> 'ưu'
-    const uuPair = this.findUuPair(word);
-    if (uuPair) {
-      return this.applyUuHorn(word, uuPair);
+      // 2. Check double 'uu' / 'ưu' -> 'ưu'
+      const uuPair = this.findUuPair(word);
+      if (uuPair) {
+        return this.applyUuHorn(word, uuPair);
+      }
     }
 
     // 3. Check if the single word is 'ư' or 'Ư' (user typed w twice to get w)
@@ -1289,17 +1314,21 @@ export class AvimEngine {
       }
     }
 
-    // 4. If no vowel found and at start, 'w' becomes 'ư'
+    // 4. If no vowel found and at start, 'w' becomes 'ư' (unless typeW2U is Non-Start)
     if (word.length === 0) {
+      if (this.typeW2U !== false) {
+        // vnchKey Non-Start policy: initial 'w' is treated as Latin consonant 'w' (e.g. web, win, wiki)
+        return { transformed: false, result: 'w' };
+      }
       return { transformed: true, result: 'ư' };
     }
 
-    // 5. If word has NO vowel yet and ends with a consonant (e.g. 'th', 'm', 'b'), 'w' acts as 'ư'
+    // 5. If word has NO vowel yet and ends with a consonant (e.g. 'th', 'm', 'b', 'đ'), 'w' acts as 'ư'
     const lastChar = word.slice(-1);
     const parsedWord = parseSyllable(word);
     const hasVowelNucleus = Boolean(parsedWord && parsedWord.nucleus);
 
-    if (!hasVowelNucleus && /^[a-zA-Z]$/.test(lastChar) && !CHAR_TO_BASE_AND_TONE[lastChar] && lastChar.toLowerCase() !== 'w') {
+    if (!hasVowelNucleus && /^[a-zA-ZđĐ]$/.test(lastChar) && !CHAR_TO_BASE_AND_TONE[lastChar] && lastChar.toLowerCase() !== 'w') {
       const isUpper = lastChar === lastChar.toUpperCase();
       return {
         transformed: true,
@@ -1316,15 +1345,17 @@ export class AvimEngine {
   applyVniModifier(word, modifierType) {
     if (modifierType === 'horn') {
       // 1. Check if word contains 'uo' digraph pair (e.g. duoc, uoc, nuoc, muon)
-      const uoPair = this.findUoPair(word);
-      if (uoPair) {
-        return this.applyUoHorn(word, uoPair);
-      }
+      if (this.smartHorn !== false) {
+        const uoPair = this.findUoPair(word);
+        if (uoPair) {
+          return this.applyUoHorn(word, uoPair);
+        }
 
-      // 2. Check if word contains 'uu' digraph pair (e.g. cuu, luu, muu, huu, tuu) -> 'ưu'
-      const uuPair = this.findUuPair(word);
-      if (uuPair) {
-        return this.applyUuHorn(word, uuPair);
+        // 2. Check if word contains 'uu' digraph pair (e.g. cuu, luu, muu, huu, tuu) -> 'ưu'
+        const uuPair = this.findUuPair(word);
+        if (uuPair) {
+          return this.applyUuHorn(word, uuPair);
+        }
       }
 
       // 3. Otherwise scan backwards for last 'u' or 'o' (or already 'ư' / 'ơ')

@@ -419,6 +419,10 @@
     ctrlToggleEnabled: true,
     quickConsonants: false,
     quickTelex: true,
+    typeW2U: true,
+    // vnchKey TypeW2U (Non-Start): 'w' acts as 'ư' after consonants / 'uw' / 'uow', but standalone initial 'w' stays English
+    smartHorn: true,
+    // vnchKey SmartHorn: intelligent horn placement on uo/uu/trio exception pairs
     emojiShortcuts: true,
     autoCapitalize: true,
     perDomainMemory: true,
@@ -4801,6 +4805,8 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const toneStyleSelect = document.getElementById("toneStyleSelect");
     const spellCheckOption = document.getElementById("spellCheckOption");
     const quickTelexOption = document.getElementById("quickTelexOption");
+    const typeW2UOption = document.getElementById("typeW2UOption");
+    const smartHornOption = document.getElementById("smartHornOption");
     const emojiShortcutsOption = document.getElementById("emojiShortcutsOption");
     const autoCapitalizeOption = document.getElementById("autoCapitalizeOption");
     const perDomainMemoryOption = document.getElementById("perDomainMemoryOption");
@@ -4837,6 +4843,8 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
       if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || "modern";
       if (spellCheckOption) spellCheckOption.checked = Boolean(settings.spellCheck);
       if (quickTelexOption) quickTelexOption.checked = settings.quickTelex !== false;
+      if (typeW2UOption) typeW2UOption.checked = settings.typeW2U !== false;
+      if (smartHornOption) smartHornOption.checked = settings.smartHorn !== false;
       if (emojiShortcutsOption) emojiShortcutsOption.checked = settings.emojiShortcuts !== false;
       if (autoCapitalizeOption) autoCapitalizeOption.checked = settings.autoCapitalize !== false;
       if (perDomainMemoryOption) perDomainMemoryOption.checked = settings.perDomainMemory !== false;
@@ -4887,6 +4895,18 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     if (quickTelexOption) {
       quickTelexOption.addEventListener("change", async () => {
         settings.quickTelex = quickTelexOption.checked;
+        await saveState();
+      });
+    }
+    if (typeW2UOption) {
+      typeW2UOption.addEventListener("change", async () => {
+        settings.typeW2U = typeW2UOption.checked;
+        await saveState();
+      });
+    }
+    if (smartHornOption) {
+      smartHornOption.addEventListener("change", async () => {
+        settings.smartHorn = smartHornOption.checked;
         await saveState();
       });
     }

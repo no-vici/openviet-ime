@@ -7,6 +7,8 @@ async function initPopup() {
   const methodButtons = document.querySelectorAll('.method-btn');
   const macroToggle = document.getElementById('macroToggle');
   const quickTelexToggle = document.getElementById('quickTelexToggle');
+  const typeW2UToggle = document.getElementById('typeW2UToggle');
+  const smartHornToggle = document.getElementById('smartHornToggle');
   const emojiShortcutsToggle = document.getElementById('emojiShortcutsToggle');
   const autoCapitalizeToggle = document.getElementById('autoCapitalizeToggle');
   const perDomainMemoryToggle = document.getElementById('perDomainMemoryToggle');
@@ -117,6 +119,12 @@ async function initPopup() {
     macroToggle.checked = Boolean(settings.macroEnabled);
     if (quickTelexToggle) {
       quickTelexToggle.checked = settings.quickTelex !== false;
+    }
+    if (typeW2UToggle) {
+      typeW2UToggle.checked = settings.typeW2U !== false;
+    }
+    if (smartHornToggle) {
+      smartHornToggle.checked = settings.smartHorn !== false;
     }
     if (emojiShortcutsToggle) {
       emojiShortcutsToggle.checked = settings.emojiShortcuts !== false;
@@ -271,6 +279,20 @@ async function initPopup() {
   if (quickTelexToggle) {
     quickTelexToggle.addEventListener('change', async () => {
       settings.quickTelex = quickTelexToggle.checked;
+      await saveSettings();
+    });
+  }
+
+  if (typeW2UToggle) {
+    typeW2UToggle.addEventListener('change', async () => {
+      settings.typeW2U = typeW2UToggle.checked;
+      await saveSettings();
+    });
+  }
+
+  if (smartHornToggle) {
+    smartHornToggle.addEventListener('change', async () => {
+      settings.smartHorn = smartHornToggle.checked;
       await saveSettings();
     });
   }

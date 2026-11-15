@@ -15,6 +15,8 @@ export const DEFAULT_SETTINGS = {
   ctrlToggleEnabled: true,
   quickConsonants: false,
   quickTelex: true,
+  typeW2U: true,         // vnchKey TypeW2U (Non-Start): 'w' acts as 'ư' after consonants / 'uw' / 'uow', but standalone initial 'w' stays English
+  smartHorn: true,       // vnchKey SmartHorn: intelligent horn placement on uo/uu/trio exception pairs
   emojiShortcuts: true,
   autoCapitalize: true,
   perDomainMemory: true,

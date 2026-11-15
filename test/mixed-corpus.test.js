@@ -623,6 +623,115 @@ test('Bug Fixes - Emoji match object, Saigon Xưa trigger collision & macro k de
   assert.equal(koRes.expandedText, 'không');
 });
 
+test('vnchKey Innovation Suite - TypeW2U (Non-Start), SmartHorn & Adaptive Habit Persistence', () => {
+  // 1. TypeW2U (Non-Start): initial 'w' remains ASCII 'w', but 'w' after consonants / vowels converts to 'ư' / horns
+  const telexW2U = new AvimEngine({ method: IME_METHOD.TELEX, typeW2U: true });
+
+  // Initial 'w' remains raw
+  assert.equal(telexW2U.processKey('', 'w').result, 'w');
+  assert.equal(telexW2U.processKey('', 'w').transformed, false);
+
+  // After single & compound consonants, 'w' acts as 'ư'
+  assert.equal(telexW2U.processKey('th', 'w').result, 'thư');
+  assert.equal(telexW2U.processKey('th', 'w').transformed, true);
+
+  assert.equal(telexW2U.processKey('d', 'w').result, 'dư');
+  assert.equal(telexW2U.processKey('đ', 'w').result, 'đư');
+  assert.equal(telexW2U.processKey('Đ', 'w').result, 'ĐƯ');
+  assert.equal(telexW2U.processKey('tr', 'w').result, 'trư');
+  assert.equal(telexW2U.processKey('m', 'w').result, 'mư');
+  assert.equal(telexW2U.processKey('b', 'w').result, 'bư');
+
+  // Sequential typing of words starting with 'w'
+  function simulateWord(engine, seq) {
+    let r = '';
+    for (const ch of seq) {
+      r = engine.processKey(r, ch).result;
+    }
+    return r;
+  }
+
+  assert.equal(simulateWord(telexW2U, 'web'), 'web');
+  assert.equal(simulateWord(telexW2U, 'wifi'), 'wifi');
+  assert.equal(simulateWord(telexW2U, 'wiki'), 'wiki');
+  assert.equal(simulateWord(telexW2U, 'world'), 'world');
+
+  // TypeW2U disabled (legacy): initial 'w' turns to 'ư'
+  const telexLegacyW = new AvimEngine({ method: IME_METHOD.TELEX, typeW2U: false });
+  assert.equal(telexLegacyW.processKey('', 'w').result, 'ư');
+  assert.equal(telexLegacyW.processKey('', 'w').transformed, true);
+
+  // 2. SmartHorn: intelligent pair horn placement on 'uo', 'uu' and trio exceptions (thuở, quơ, huơ)
+  const smartHornEngine = new AvimEngine({ method: IME_METHOD.TELEX, smartHorn: true });
+  assert.equal(smartHornEngine.processKey('duoc', 'w').result, 'dươc');
+  assert.equal(smartHornEngine.processKey('muon', 'w').result, 'mươn');
+  assert.equal(smartHornEngine.processKey('cuu', 'w').result, 'cưu');
+  assert.equal(smartHornEngine.processKey('thuo', 'w').result, 'thuơ');
+  assert.equal(smartHornEngine.processKey('quo', 'w').result, 'quơ');
+  assert.equal(smartHornEngine.processKey('huo', 'w').result, 'huơ');
+
+  // In VNI mode:
+  const smartHornVni = new AvimEngine({ method: IME_METHOD.VNI, smartHorn: true });
+  assert.equal(smartHornVni.processKey('duoc', '7').result, 'dươc');
+  assert.equal(smartHornVni.processKey('cuu', '7').result, 'cưu');
+  assert.equal(smartHornVni.processKey('thuo', '7').result, 'thuơ');
+  assert.equal(smartHornVni.processKey('quo', '7').result, 'quơ');
+  assert.equal(smartHornVni.processKey('huo', '7').result, 'huơ');
+});
+
+test('vnchKey Innovation Suite - Collision Protection, NFC Output & Developer Cheat Mode', async () => {
+  const { shouldAutoRestoreEnglish, ENGLISH_PREFER_VIETNAMESE } = await import('../src/engine/dictionary.js');
+  const { isDeveloperCheatContext } = await import('../src/engine/key-codes.js');
+
+  // 1. Collision Protection: ENGLISH_PREFER_VIETNAMESE
+  // Words in this list (as, is, rest, test, conf, must, rust, this, these) prefer Vietnamese
+  // when typed as standard syllables (e.g. 'rest' -> 'rết', 'must' -> 'mút', 'this' -> 'thí')
+  // and are protected from accidental auto-restore on Space.
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('rest'), true);
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('must'), true);
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('rust'), true);
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('this'), true);
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('these'), true);
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('conf'), true);
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('as'), true);
+  assert.equal(ENGLISH_PREFER_VIETNAMESE.has('is'), true);
+
+  // shouldAutoRestoreEnglish must NOT restore valid Vietnamese syllables when raw is in ENGLISH_PREFER_VIETNAMESE
+  assert.equal(shouldAutoRestoreEnglish('rest', 'rết'), false);
+  assert.equal(shouldAutoRestoreEnglish('must', 'mút'), false);
+  assert.equal(shouldAutoRestoreEnglish('rust', 'rút'), false);
+  assert.equal(shouldAutoRestoreEnglish('this', 'thí'), false);
+  assert.equal(shouldAutoRestoreEnglish('these', 'thế'), false);
+  assert.equal(shouldAutoRestoreEnglish('conf', 'còn'), false);
+  assert.equal(shouldAutoRestoreEnglish('as', 'á'), false);
+  assert.equal(shouldAutoRestoreEnglish('is', 'í'), false);
+
+  // But non-colliding tech words like 'text', 'user', 'router' STILL restore cleanly on space
+  assert.equal(shouldAutoRestoreEnglish('text', 'tẽt'), true);
+  assert.equal(shouldAutoRestoreEnglish('user', 'usẻ'), true);
+
+  // 2. NFC Output Guarantee
+  // All transformed outputs from avim.js must strictly conform to Unicode NFC
+  const telexEngine = new AvimEngine({ method: IME_METHOD.TELEX });
+  const word1 = telexEngine.processKey('hoa', 's').result;
+  assert.equal(word1, word1.normalize('NFC'));
+
+  const word2 = telexEngine.processKey('duoc', 'w').result;
+  assert.equal(word2, word2.normalize('NFC'));
+
+  const word3 = telexEngine.processKey('d', 'd').result;
+  assert.equal(word3, word3.normalize('NFC'));
+
+  // 3. Developer Cheat Context
+  assert.equal(isDeveloperCheatContext('github.com'), true);
+  assert.equal(isDeveloperCheatContext('leetcode.com'), true);
+  assert.equal(isDeveloperCheatContext('vscode.dev'), true);
+  assert.equal(isDeveloperCheatContext('gist.github.com'), true);
+  assert.equal(isDeveloperCheatContext('stackblitz.com'), true);
+  assert.equal(isDeveloperCheatContext('facebook.com'), false);
+  assert.equal(isDeveloperCheatContext('vnexpress.net'), false);
+});
+
 
 
 

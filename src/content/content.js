@@ -9,7 +9,7 @@
 import { AvimEngine } from '../engine/avim.js';
 import { MacroEngine, DEFAULT_MACROS } from '../engine/macro.js';
 import { DEFAULT_SETTINGS } from '../engine/config.js';
-import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode } from '../engine/key-codes.js';
+import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode, isDeveloperCheatContext } from '../engine/key-codes.js';
 import { DomObserver } from './dom-observer.js';
 import { TextReplacer } from './text-replacer.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
@@ -60,7 +60,9 @@ class AvimContentScript {
       quickConsonants: this.settings.quickConsonants,
       autoRestoreEnglish: this.settings.autoRestoreEnglish,
       escRevert: this.settings.escRevert,
-      phonologyRules: this.settings.phonologyRules
+      phonologyRules: this.settings.phonologyRules,
+      typeW2U: this.settings.typeW2U !== false,
+      smartHorn: this.settings.smartHorn !== false
     });
 
     this.macroEngine = new MacroEngine(this.settings.macros, {
@@ -119,11 +121,12 @@ class AvimContentScript {
       }
     }
 
-    // Load shared on-device habit model & user custom dictionary
+    // Load shared on-device habit model, user custom dictionary & persistent habit counts
     try {
       await Promise.all([
         autoCompleteEngine.loadFromStorage(),
-        userDictionary.loadFromStorage()
+        userDictionary.loadFromStorage(),
+        this.loadHabitCountsFromStorage()
       ]);
     } catch {}
     this.applySettings();
@@ -139,6 +142,8 @@ class AvimContentScript {
     this.avimEngine.setEscRevert(this.settings.escRevert !== false);
     this.avimEngine.setPhonologyRules(this.settings.phonologyRules !== false);
     this.avimEngine.setAutoHarmonizeCase(this.settings.autoHarmonizeCase === true);
+    this.avimEngine.setTypeW2U(this.settings.typeW2U !== false);
+    this.avimEngine.setSmartHorn(this.settings.smartHorn !== false);
 
     this.macroEngine.enabled = this.settings.macroEnabled;
     this.macroEngine.autoUndo = this.settings.autoUndo;
@@ -1327,6 +1332,7 @@ class AvimContentScript {
 
     const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
     this.erasedWordHabits.set(raw, currentCount);
+    this.saveHabitCountsToStorage();
 
     const threshold = Math.max(2, parseInt(this.settings.eraseHabitThreshold, 10) || 3);
     if (currentCount >= threshold) {
@@ -1339,6 +1345,39 @@ class AvimContentScript {
       }
     }
     return false;
+  }
+
+  async loadHabitCountsFromStorage() {
+    try {
+      const storage = (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local)
+        ? chrome.storage.local
+        : (typeof browser !== 'undefined' && browser.storage && browser.storage.local ? browser.storage.local : null);
+      if (storage) {
+        const data = await storage.get(['avim_erased_word_habits']);
+        if (data && data.avim_erased_word_habits && typeof data.avim_erased_word_habits === 'object') {
+          for (const [k, v] of Object.entries(data.avim_erased_word_habits)) {
+            if (typeof v === 'number') {
+              this.erasedWordHabits.set(k, v);
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+
+  async saveHabitCountsToStorage() {
+    try {
+      const storage = (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local)
+        ? chrome.storage.local
+        : (typeof browser !== 'undefined' && browser.storage && browser.storage.local ? browser.storage.local : null);
+      if (storage) {
+        const obj = {};
+        for (const [k, v] of this.erasedWordHabits.entries()) {
+          obj[k] = v;
+        }
+        await storage.set({ avim_erased_word_habits: obj });
+      }
+    } catch {}
   }
 
   /**
@@ -1720,10 +1759,27 @@ class AvimContentScript {
       : this.textReplacer.extractContentEditableWordBuffer();
     const currentWord = wordInfo?.word || '';
 
-    // 0. URL / Email / Code Syntax Guard:
-    // When typing links (http://, www., .com, /path), emails (user@...),
-    // or code identifiers (snake_case, kebab-case, dot.notation, $var, #id, etc.),
-    // completely suspend Vietnamese IME transformation, quick consonants, and auto-capitalize.
+    // 0. Developer Cheat Mode Guard (vnchKey cheat.rs):
+    // In developer contexts (GitHub, LeetCode, VSCode Web, CodeMirror, Monaco, terminal)
+    // or when typing URLs, emails, or code syntax, bypass Vietnamese diacritic transformation.
+    const isDevCheat = (typeof window !== 'undefined' && window.location)
+      ? isDeveloperCheatContext(window.location.hostname, target)
+      : false;
+
+    if (isDevCheat && /^[a-zA-Z0-9_.-]+$/.test(currentWord + key)) {
+      // In developer cheat contexts, prevent accidental tone transform on code identifiers
+      const candidate = (currentWord + key).toLowerCase();
+      const codeKeywords = new Set([
+        'user', 'test', 'error', 'filter', 'state', 'props', 'class', 'function',
+        'cost', 'fast', 'case', 'core', 'push', 'data', 'text', 'next', 'exit', 'post'
+      ]);
+      if (codeKeywords.has(candidate)) {
+        this.hideSuggestions();
+        this.avimEngine.resetWordSession();
+        return;
+      }
+    }
+
     if (isUrlOrEmailOrCode(textBeforeCaret, currentWord, key)) {
       this.hideSuggestions();
       this.avimEngine.resetWordSession();

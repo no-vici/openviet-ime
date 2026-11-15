@@ -543,6 +543,8 @@ function initPreferences() {
   const toneStyleSelect = document.getElementById('toneStyleSelect');
   const spellCheckOption = document.getElementById('spellCheckOption');
   const quickTelexOption = document.getElementById('quickTelexOption');
+  const typeW2UOption = document.getElementById('typeW2UOption');
+  const smartHornOption = document.getElementById('smartHornOption');
   const emojiShortcutsOption = document.getElementById('emojiShortcutsOption');
   const autoCapitalizeOption = document.getElementById('autoCapitalizeOption');
   const perDomainMemoryOption = document.getElementById('perDomainMemoryOption');
@@ -584,6 +586,8 @@ function initPreferences() {
     if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || 'modern';
     if (spellCheckOption) spellCheckOption.checked = Boolean(settings.spellCheck);
     if (quickTelexOption) quickTelexOption.checked = settings.quickTelex !== false;
+    if (typeW2UOption) typeW2UOption.checked = settings.typeW2U !== false;
+    if (smartHornOption) smartHornOption.checked = settings.smartHorn !== false;
     if (emojiShortcutsOption) emojiShortcutsOption.checked = settings.emojiShortcuts !== false;
     if (autoCapitalizeOption) autoCapitalizeOption.checked = settings.autoCapitalize !== false;
     if (perDomainMemoryOption) perDomainMemoryOption.checked = settings.perDomainMemory !== false;
@@ -644,6 +648,20 @@ function initPreferences() {
   if (quickTelexOption) {
     quickTelexOption.addEventListener('change', async () => {
       settings.quickTelex = quickTelexOption.checked;
+      await saveState();
+    });
+  }
+
+  if (typeW2UOption) {
+    typeW2UOption.addEventListener('change', async () => {
+      settings.typeW2U = typeW2UOption.checked;
+      await saveState();
+    });
+  }
+
+  if (smartHornOption) {
+    smartHornOption.addEventListener('change', async () => {
+      settings.smartHorn = smartHornOption.checked;
       await saveState();
     });
   }

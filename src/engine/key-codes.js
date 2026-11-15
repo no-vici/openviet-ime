@@ -188,3 +188,41 @@ export function isCamelOrPascalCase(token = '') {
 
   return false;
 }
+
+/**
+ * Developer Cheat Mode (inspired by vnchKey cheat.rs):
+ * Check if the active host or target DOM element is an established developer environment
+ * (e.g. GitHub, GitLab, LeetCode, VSCode Web, CodeMirror, Monaco Editor, Ace, terminal).
+ * In these contexts, common programming identifiers and keywords bypass Vietnamese diacritics.
+ */
+export const DEVELOPER_CHEAT_DOMAINS = new Set([
+  'github.com',
+  'gist.github.com',
+  'gitlab.com',
+  'leetcode.com',
+  'leetcode.cn',
+  'vscode.dev',
+  'github.dev',
+  'stackblitz.com',
+  'codesandbox.io',
+  'codepen.io',
+  'replit.com',
+  'jsfiddle.net',
+  'kaggle.com',
+  'huggingface.co'
+]);
+
+export function isDeveloperCheatContext(hostname = '', targetElement = null) {
+  if (hostname) {
+    const host = String(hostname).toLowerCase();
+    if (DEVELOPER_CHEAT_DOMAINS.has(host) || Array.from(DEVELOPER_CHEAT_DOMAINS).some(d => host.endsWith('.' + d))) {
+      return true;
+    }
+  }
+  if (targetElement && typeof targetElement.closest === 'function') {
+    if (targetElement.closest('.monaco-editor, .cm-editor, .CodeMirror, .ace_editor, pre, code, [data-mode-id], terminal, .xterm')) {
+      return true;
+    }
+  }
+  return false;
+}
