@@ -813,6 +813,27 @@
     "d\xE1ch",
     "dz\xE1ch"
   ];
+  var MODERN_SLANG_AND_COLLOQUIAL_SYLLABLES = [
+    "x\xF2",
+    "x\xF5",
+    "x\u1ED9p",
+    "x\u1ECBn",
+    "ph\xE8n",
+    "ph\u1EBBn",
+    "qu\u1EA9y",
+    "qu\u1EA1o",
+    "ng\xE1o",
+    "tr\u1EA9u",
+    "nhoi",
+    "b\u1EF1a",
+    "d\u1ECFm",
+    "\u0111\u1ECFm",
+    "ch\u1EA3nh",
+    "cho\u1EA3ng",
+    "m\xF3t",
+    "qu\u1EAFc",
+    "gh\u1EB9o"
+  ];
   function canon(str) {
     if (!str) return "";
     return str.normalize("NFC").replace(/[\u2018\u2019\u201B\u02BC\u02B9]/g, "'").toLowerCase();
@@ -829,6 +850,7 @@
       ALL_VIETNAMESE_SINGLE_VOWELS.forEach((v) => _vietnameseWordSet.add(canon(v)));
       RARE_AND_PLACE_SYLLABLES.forEach((s) => _vietnameseWordSet.add(canon(s)));
       SOUTHERN_DIALECT_SYLLABLES.forEach((s) => _vietnameseWordSet.add(canon(s)));
+      MODERN_SLANG_AND_COLLOQUIAL_SYLLABLES.forEach((s) => _vietnameseWordSet.add(canon(s)));
     }
     return _vietnameseWordSet;
   }

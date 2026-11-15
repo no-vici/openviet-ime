@@ -730,6 +730,17 @@ test('vnchKey Innovation Suite - Collision Protection, NFC Output & Developer Ch
   assert.equal(isDeveloperCheatContext('stackblitz.com'), true);
   assert.equal(isDeveloperCheatContext('facebook.com'), false);
   assert.equal(isDeveloperCheatContext('vnexpress.net'), false);
+
+  // 4. Dialect & Modern Slang Syllables Whitelist (e.g. 'xò' in 'xịn xò', 'quẩy', 'quạo', 'phèn')
+  // With spellCheck enabled, 'xof' must produce 'xò' without getting cancelled/blocked.
+  const spellCheckEngine = new AvimEngine({ method: IME_METHOD.TELEX, spellCheck: true });
+  assert.equal(spellCheckEngine.processKey('xo', 'f').result, 'xò');
+  assert.equal(spellCheckEngine.processKey('xo', 'f').transformed, true);
+  assert.equal(spellCheckEngine.isValidVietnameseWord('xò'), true);
+  assert.equal(spellCheckEngine.isValidVietnameseWord('xõ'), true);
+  assert.equal(spellCheckEngine.isValidVietnameseWord('phèn'), true);
+  assert.equal(spellCheckEngine.isValidVietnameseWord('quẩy'), true);
+  assert.equal(spellCheckEngine.isValidVietnameseWord('quạo'), true);
 });
 
 

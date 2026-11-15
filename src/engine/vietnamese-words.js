@@ -81,6 +81,13 @@ export const SOUTHERN_DIALECT_SYLLABLES = [
   'sẩy', 'xẩy', 'mánh', 'mụi', 'tém', 'lết', 'cù', 'lét', 'trớt', 'dách', 'dzách'
 ];
 
+// Khẩu ngữ, từ lóng hiện đại và phương ngữ quen thuộc (xò trong xịn xò, quẩy, ngáo, phèn, cọc...)
+export const MODERN_SLANG_AND_COLLOQUIAL_SYLLABLES = [
+  'xò', 'xõ', 'xộp', 'xịn',
+  'phèn', 'phẻn', 'quẩy', 'quạo', 'ngáo', 'trẩu', 'nhoi', 'bựa',
+  'dỏm', 'đỏm', 'chảnh', 'choảng', 'mót', 'quắc', 'ghẹo'
+];
+
 /**
  * Canonicalize text for consistent Vietnamese comparison:
  * 1. Normalize to Unicode NFC (composed)
@@ -109,6 +116,7 @@ export function getVietnameseWordSet() {
     ALL_VIETNAMESE_SINGLE_VOWELS.forEach(v => _vietnameseWordSet.add(canon(v)));
     RARE_AND_PLACE_SYLLABLES.forEach(s => _vietnameseWordSet.add(canon(s)));
     SOUTHERN_DIALECT_SYLLABLES.forEach(s => _vietnameseWordSet.add(canon(s)));
+    MODERN_SLANG_AND_COLLOQUIAL_SYLLABLES.forEach(s => _vietnameseWordSet.add(canon(s)));
   }
   return _vietnameseWordSet;
 }
