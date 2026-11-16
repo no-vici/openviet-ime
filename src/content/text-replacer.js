@@ -13,7 +13,7 @@ export class TextReplacer {
    */
   isTeamsEditor(root) {
     if (typeof window !== 'undefined' && window.location) {
-      const host = window.location.hostname.toLowerCase();
+      const host = (window.location.hostname || '').toLowerCase();
       if (host === 'teams.microsoft.com' || host.endsWith('.teams.microsoft.com') ||
           host === 'teams.live.com' || host.endsWith('.teams.live.com') ||
           host === 'teams.cloud.microsoft' || host.endsWith('.teams.cloud.microsoft')) {
@@ -21,7 +21,7 @@ export class TextReplacer {
       }
     }
     if (root && typeof root.closest === 'function') {
-      if (root.closest('[data-tid="ckeditor"], [data-tid="message-pane-input"], .rooster-editor')) {
+      if (root.closest('[data-tid*="ckeditor"], [data-tid*="message-pane-input"], .rooster-editor, .ck-editor__editable')) {
         return true;
       }
     }
@@ -62,44 +62,6 @@ export class TextReplacer {
   }
 
   /**
-   * Adapter for Microsoft Teams Web (RoosterJS):
-   * Selects the target range and dispatches a synthetic ClipboardEvent('paste')
-   * containing plain text so RoosterJS's PastePlugin updates its internal Content Model cleanly.
-   */
-  replaceViaPasteAdapter(root, replaceRange, nfcNewText) {
-    try {
-      const sel = window.getSelection();
-      if (!sel) return false;
-
-      if (replaceRange) {
-        sel.removeAllRanges();
-        sel.addRange(replaceRange);
-      }
-
-      const dataTransfer = new DataTransfer();
-      dataTransfer.setData('text/plain', nfcNewText);
-
-      const pasteEvent = new ClipboardEvent('paste', {
-        clipboardData: dataTransfer,
-        bubbles: true,
-        cancelable: true
-      });
-
-      // Dispatch paste event to the active editor element
-      const targetEl = document.activeElement || root;
-      targetEl.dispatchEvent(pasteEvent);
-
-      // If Teams handled and prevented default on the paste event, Content Model is updated!
-      if (pasteEvent.defaultPrevented) {
-        return true;
-      }
-    } catch {
-      // Fallback if DataTransfer/ClipboardEvent constructor is restricted
-    }
-    return false;
-  }
-
-  /**
    * Replace text in a ContentEditable container (handles regular editors, ProseMirror, Lexical, and Teams RoosterJS)
    * @param {HTMLElement} root ContentEditable root
    * @param {string} oldText String to replace
@@ -117,15 +79,40 @@ export class TextReplacer {
     // 1. Insertion with empty oldText (e.g., Auto-Capitalize or Next-Word insertion)
     if (!nfcOldText) {
       if (isTeams) {
-        const currentRange = sel.getRangeAt(0);
-        if (this.replaceViaPasteAdapter(root, currentRange, nfcNewText)) {
-          return;
-        }
+        try {
+          const host = root.closest?.('.ck-editor__editable, [data-tid*="ckeditor"], .rooster-editor') || root;
+          const currentRange = sel.getRangeAt(0);
+          let staticTarget;
+          try {
+            staticTarget = new StaticRange({
+              startContainer: currentRange.startContainer,
+              startOffset: currentRange.startOffset,
+              endContainer: currentRange.endContainer,
+              endOffset: currentRange.endOffset
+            });
+          } catch {}
+
+          const beforeInputEv = new InputEvent('beforeinput', {
+            inputType: 'insertText',
+            data: nfcNewText,
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+            targetRanges: staticTarget ? [staticTarget] : []
+          });
+
+          if (!host.dispatchEvent(beforeInputEv)) {
+            return;
+          }
+        } catch {}
       }
+
       try {
         if (document.execCommand('insertText', false, nfcNewText)) {
           const isLexical = root.hasAttribute?.('data-lexical-editor') || root.closest?.('[data-lexical-editor]');
-          if (!isLexical) {
+          // Note: In Teams or Lexical, execCommand('insertText') already dispatches a native InputEvent.
+          // Emitting a redundant synthetic InputEvent causes double character insertion in complex rich editors.
+          if (!isLexical && !isTeams) {
             this.dispatchSyntheticInput(root, nfcNewText);
           }
           return;
@@ -168,11 +155,51 @@ export class TextReplacer {
         replaceRange.setStart(node, replaceStart);
         replaceRange.setEnd(node, offset);
 
-        // 2. Microsoft Teams Web (RoosterJS) Adapter
+        // 2. Microsoft Teams Web (RoosterJS / CKEditor) & Model-backed Editors Adapter
+        // Teams (CKEditor 5) uses an internal model that strictly requires a single targeted
+        // `insertText` beforeinput event with `targetRanges` (StaticRange) spanning the rewritten tail.
         if (isTeams) {
-          if (this.replaceViaPasteAdapter(root, replaceRange, nfcNewText)) {
-            return;
-          }
+          try {
+            const host = root.closest?.('.ck-editor__editable, [data-tid*="ckeditor"], .rooster-editor') || root;
+            // Calculate common prefix between oldText and newText
+            let head = 0;
+            while (head < nfcOldText.length && head < nfcNewText.length && nfcOldText.charAt(head) === nfcNewText.charAt(head)) {
+              head++;
+            }
+            const tailStart = replaceStart + head;
+            const replacement = nfcNewText.slice(head);
+
+            let staticTarget;
+            try {
+              staticTarget = new StaticRange({
+                startContainer: node,
+                startOffset: tailStart,
+                endContainer: node,
+                endOffset: offset
+              });
+            } catch {}
+
+            const beforeInputEv = new InputEvent('beforeinput', {
+              inputType: 'insertText',
+              data: replacement,
+              bubbles: true,
+              cancelable: true,
+              composed: true,
+              targetRanges: staticTarget ? [staticTarget] : []
+            });
+
+            const claimedByEditor = !host.dispatchEvent(beforeInputEv);
+            if (claimedByEditor) {
+              return;
+            }
+
+            // Fallback for non-CKEditor Teams containers: selection replacement via execCommand
+            sel.removeAllRanges();
+            sel.addRange(replaceRange);
+            if (document.execCommand('insertText', false, nfcNewText)) {
+              return;
+            }
+          } catch {}
         }
 
         // 3. Standard Rich Editors (TipTap/ProseMirror, Lexical, Slate)
@@ -185,7 +212,7 @@ export class TextReplacer {
 
           if (document.execCommand('insertText', false, nfcNewText)) {
             const isLexical = root.hasAttribute?.('data-lexical-editor') || root.closest?.('[data-lexical-editor]');
-            if (!isLexical) {
+            if (!isLexical && !isTeams) {
               this.dispatchSyntheticInput(root, nfcNewText);
             }
             return;

@@ -223,6 +223,19 @@ class AvimContentScript {
 
   bindEvents() {
     document.addEventListener('keydown', this.handleKeyDown.bind(this), true);
+    
+    // Guard against Chromium / macOS beforeinput leak when keydown was prevented by IME transformation
+    document.addEventListener('beforeinput', (event) => {
+      if (this._blockedInputKey && (event.data === this._blockedInputKey || (event.inputType === 'insertText' && event.data === this._blockedInputKey))) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') {
+          event.stopImmediatePropagation();
+        }
+        this._blockedInputKey = null;
+      }
+    }, true);
+
     document.addEventListener('click', (e) => {
       if (this.suggestionHost && !this.suggestionHost.contains(e.target)) {
         this.hideSuggestions();
@@ -513,12 +526,14 @@ class AvimContentScript {
 
         // If collapsed range rect has 0 width or height (happens at line start or empty lines)
         if (!rect || (rect.width === 0 && rect.height === 0)) {
-          const marker = document.createElement('span');
-          marker.textContent = '\uFEFF';
-          const clone = range.cloneRange();
-          clone.insertNode(marker);
-          rect = marker.getBoundingClientRect();
-          if (marker.parentNode) marker.parentNode.removeChild(marker);
+          // Never mutate DOM inside complex rich editors (CKEditor/Slate) as inserting a temporary node
+          // permanently splits text nodes and corrupts editor model/caret position.
+          const parentEl = range.startContainer.nodeType === Node.ELEMENT_NODE
+            ? range.startContainer
+            : range.startContainer.parentElement;
+          if (parentEl) {
+            rect = parentEl.getBoundingClientRect();
+          }
         }
 
         if (rect && rect.top > 0) {
@@ -1987,6 +2002,8 @@ class AvimContentScript {
     if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= 'a' && key <= 'z') {
       if (this.shouldAutoCapitalize(target)) {
         const upperChar = key.toUpperCase();
+        this._blockedInputKey = key;
+        setTimeout(() => { if (this._blockedInputKey === key) this._blockedInputKey = null; }, 50);
         event.preventDefault();
         if (isNative) {
           const pos = target.selectionStart ?? target.value.length;
@@ -2026,6 +2043,9 @@ class AvimContentScript {
         const result = this.avimEngine.processKey(currentWord, key);
 
         if (result.transformed) {
+          this._blockedInputKey = key;
+          setTimeout(() => { if (this._blockedInputKey === key) this._blockedInputKey = null; }, 50);
+
           // Immediately prevent default and stop immediate propagation to prevent race conditions with frameworks (React/Vue/TipTap)
           event.preventDefault();
           event.stopPropagation();

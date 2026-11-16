@@ -5010,13 +5010,13 @@
      */
     isTeamsEditor(root) {
       if (typeof window !== "undefined" && window.location) {
-        const host = window.location.hostname.toLowerCase();
+        const host = (window.location.hostname || "").toLowerCase();
         if (host === "teams.microsoft.com" || host.endsWith(".teams.microsoft.com") || host === "teams.live.com" || host.endsWith(".teams.live.com") || host === "teams.cloud.microsoft" || host.endsWith(".teams.cloud.microsoft")) {
           return true;
         }
       }
       if (root && typeof root.closest === "function") {
-        if (root.closest('[data-tid="ckeditor"], [data-tid="message-pane-input"], .rooster-editor')) {
+        if (root.closest('[data-tid*="ckeditor"], [data-tid*="message-pane-input"], .rooster-editor, .ck-editor__editable')) {
           return true;
         }
       }
@@ -5047,35 +5047,6 @@
       this.dispatchSyntheticInput(el, nfcReplacement);
     }
     /**
-     * Adapter for Microsoft Teams Web (RoosterJS):
-     * Selects the target range and dispatches a synthetic ClipboardEvent('paste')
-     * containing plain text so RoosterJS's PastePlugin updates its internal Content Model cleanly.
-     */
-    replaceViaPasteAdapter(root, replaceRange, nfcNewText) {
-      try {
-        const sel = window.getSelection();
-        if (!sel) return false;
-        if (replaceRange) {
-          sel.removeAllRanges();
-          sel.addRange(replaceRange);
-        }
-        const dataTransfer = new DataTransfer();
-        dataTransfer.setData("text/plain", nfcNewText);
-        const pasteEvent = new ClipboardEvent("paste", {
-          clipboardData: dataTransfer,
-          bubbles: true,
-          cancelable: true
-        });
-        const targetEl = document.activeElement || root;
-        targetEl.dispatchEvent(pasteEvent);
-        if (pasteEvent.defaultPrevented) {
-          return true;
-        }
-      } catch {
-      }
-      return false;
-    }
-    /**
      * Replace text in a ContentEditable container (handles regular editors, ProseMirror, Lexical, and Teams RoosterJS)
      * @param {HTMLElement} root ContentEditable root
      * @param {string} oldText String to replace
@@ -5089,15 +5060,37 @@
       const isTeams = this.isTeamsEditor(root);
       if (!nfcOldText) {
         if (isTeams) {
-          const currentRange = sel.getRangeAt(0);
-          if (this.replaceViaPasteAdapter(root, currentRange, nfcNewText)) {
-            return;
+          try {
+            const host = root.closest?.('.ck-editor__editable, [data-tid*="ckeditor"], .rooster-editor') || root;
+            const currentRange = sel.getRangeAt(0);
+            let staticTarget;
+            try {
+              staticTarget = new StaticRange({
+                startContainer: currentRange.startContainer,
+                startOffset: currentRange.startOffset,
+                endContainer: currentRange.endContainer,
+                endOffset: currentRange.endOffset
+              });
+            } catch {
+            }
+            const beforeInputEv = new InputEvent("beforeinput", {
+              inputType: "insertText",
+              data: nfcNewText,
+              bubbles: true,
+              cancelable: true,
+              composed: true,
+              targetRanges: staticTarget ? [staticTarget] : []
+            });
+            if (!host.dispatchEvent(beforeInputEv)) {
+              return;
+            }
+          } catch {
           }
         }
         try {
           if (document.execCommand("insertText", false, nfcNewText)) {
             const isLexical = root.hasAttribute?.("data-lexical-editor") || root.closest?.("[data-lexical-editor]");
-            if (!isLexical) {
+            if (!isLexical && !isTeams) {
               this.dispatchSyntheticInput(root, nfcNewText);
             }
             return;
@@ -5134,8 +5127,42 @@
           replaceRange.setStart(node, replaceStart);
           replaceRange.setEnd(node, offset);
           if (isTeams) {
-            if (this.replaceViaPasteAdapter(root, replaceRange, nfcNewText)) {
-              return;
+            try {
+              const host = root.closest?.('.ck-editor__editable, [data-tid*="ckeditor"], .rooster-editor') || root;
+              let head = 0;
+              while (head < nfcOldText.length && head < nfcNewText.length && nfcOldText.charAt(head) === nfcNewText.charAt(head)) {
+                head++;
+              }
+              const tailStart = replaceStart + head;
+              const replacement = nfcNewText.slice(head);
+              let staticTarget;
+              try {
+                staticTarget = new StaticRange({
+                  startContainer: node,
+                  startOffset: tailStart,
+                  endContainer: node,
+                  endOffset: offset
+                });
+              } catch {
+              }
+              const beforeInputEv = new InputEvent("beforeinput", {
+                inputType: "insertText",
+                data: replacement,
+                bubbles: true,
+                cancelable: true,
+                composed: true,
+                targetRanges: staticTarget ? [staticTarget] : []
+              });
+              const claimedByEditor = !host.dispatchEvent(beforeInputEv);
+              if (claimedByEditor) {
+                return;
+              }
+              sel.removeAllRanges();
+              sel.addRange(replaceRange);
+              if (document.execCommand("insertText", false, nfcNewText)) {
+                return;
+              }
+            } catch {
             }
           }
           try {
@@ -5144,7 +5171,7 @@
             this.dispatchBeforeInput(root, nfcNewText, replaceRange);
             if (document.execCommand("insertText", false, nfcNewText)) {
               const isLexical = root.hasAttribute?.("data-lexical-editor") || root.closest?.("[data-lexical-editor]");
-              if (!isLexical) {
+              if (!isLexical && !isTeams) {
                 this.dispatchSyntheticInput(root, nfcNewText);
               }
               return;
@@ -7707,6 +7734,16 @@
     }
     bindEvents() {
       document.addEventListener("keydown", this.handleKeyDown.bind(this), true);
+      document.addEventListener("beforeinput", (event) => {
+        if (this._blockedInputKey && (event.data === this._blockedInputKey || event.inputType === "insertText" && event.data === this._blockedInputKey)) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === "function") {
+            event.stopImmediatePropagation();
+          }
+          this._blockedInputKey = null;
+        }
+      }, true);
       document.addEventListener("click", (e) => {
         if (this.suggestionHost && !this.suggestionHost.contains(e.target)) {
           this.hideSuggestions();
@@ -7967,12 +8004,10 @@
           const range = sel.getRangeAt(0);
           let rect2 = range.getBoundingClientRect();
           if (!rect2 || rect2.width === 0 && rect2.height === 0) {
-            const marker = document.createElement("span");
-            marker.textContent = "\uFEFF";
-            const clone = range.cloneRange();
-            clone.insertNode(marker);
-            rect2 = marker.getBoundingClientRect();
-            if (marker.parentNode) marker.parentNode.removeChild(marker);
+            const parentEl = range.startContainer.nodeType === Node.ELEMENT_NODE ? range.startContainer : range.startContainer.parentElement;
+            if (parentEl) {
+              rect2 = parentEl.getBoundingClientRect();
+            }
           }
           if (rect2 && rect2.top > 0) {
             return { left: rect2.left, top: rect2.top, height: rect2.height || 20 };
@@ -9201,6 +9236,10 @@
       if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= "a" && key <= "z") {
         if (this.shouldAutoCapitalize(target)) {
           const upperChar = key.toUpperCase();
+          this._blockedInputKey = key;
+          setTimeout(() => {
+            if (this._blockedInputKey === key) this._blockedInputKey = null;
+          }, 50);
           event.preventDefault();
           if (isNative) {
             const pos = target.selectionStart ?? target.value.length;
@@ -9232,6 +9271,10 @@
           this.avimEngine.trackRawKey(key);
           const result = this.avimEngine.processKey(currentWord2, key);
           if (result.transformed) {
+            this._blockedInputKey = key;
+            setTimeout(() => {
+              if (this._blockedInputKey === key) this._blockedInputKey = null;
+            }, 50);
             event.preventDefault();
             event.stopPropagation();
             if (typeof event.stopImmediatePropagation === "function") {
