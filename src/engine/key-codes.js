@@ -111,6 +111,14 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
   }
 
   // 3. Code Identifiers & Syntax
+  // CSS units & numeric-prefixed tokens (e.g. 10px, 2rem, 50vh, 100ms)
+  if (/^\d+[a-zA-Z]+$/.test(currentChunk) || /^\d+[a-zA-Z]+$/.test(token)) {
+    return true;
+  }
+  // Short Git commit hashes (7-40 hex chars containing both digits and a-f, e.g. a1b2c3d)
+  if (/^(?=.*\d)(?=.*[a-f])[0-9a-f]{7,40}$/i.test(currentChunk)) {
+    return true;
+  }
   // Shell, Bash, PHP, Perl variables: $var, ${VAR}, $1, $_POST, $this->
   if (/^\$\{?[a-zA-Z0-9_]+/i.test(currentChunk) || /^\$\{?[a-zA-Z0-9_]+/i.test(token)) {
     return true;

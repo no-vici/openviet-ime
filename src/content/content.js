@@ -13,7 +13,8 @@ import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode, isDeveloperChe
 import { DomObserver } from './dom-observer.js';
 import { TextReplacer } from './text-replacer.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
-import { userDictionary } from '../engine/dictionary.js';
+import { userDictionary, reverseVietnameseWord } from '../engine/dictionary.js';
+import { getVietnameseWordSet } from '../engine/vietnamese-words.js';
 import { EMOJI_MAP, checkEmojiShortcut } from '../engine/emoji.js';
 
 class AvimContentScript {
@@ -861,6 +862,33 @@ class AvimContentScript {
    * ======================================================================== */
 
   handleKeyDown(event) {
+    // Ctrl + Shift + U: Cycle case (lower -> UPPER -> Title) on current word
+    if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && (event.key === 'u' || event.key === 'U')) {
+      const target = this.domObserver.getActiveElement();
+      if (this.domObserver.isEligibleTarget(target)) {
+        const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+        const wordInfo = isNative
+          ? this.textReplacer.extractNativeWordBuffer(target)
+          : this.textReplacer.extractContentEditableWordBuffer();
+        if (wordInfo && wordInfo.word) {
+          event.preventDefault();
+          event.stopPropagation();
+          const w = wordInfo.word;
+          const lower = w.toLowerCase();
+          const upper = w.toUpperCase();
+          const title = w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+          const nextCase = (w === lower) ? upper : (w === upper ? title : lower);
+          if (isNative) {
+            this.textReplacer.replaceInNativeInput(target, wordInfo.startIndex, wordInfo.endIndex, nextCase);
+          } else {
+            this.textReplacer.replaceInContentEditable(target, w, nextCase);
+          }
+          this.avimEngine.lastTransformed = nextCase;
+          return;
+        }
+      }
+    }
+
     // 0. Double-Ctrl Toggle Detection (Classic AVIM Feature)
     if (event.key === 'Control') {
       if (event.repeat) return;
@@ -1339,8 +1367,14 @@ class AvimContentScript {
   recordWordErase(rawCandidate, transformedWord) {
     if (this.settings.eraseHabitLearning === false) return false;
     if (!rawCandidate || !transformedWord) return false;
-    const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(transformedWord);
+    const cleanTransformed = transformedWord.trim().toLowerCase();
+    const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(cleanTransformed);
     if (!hasDiacritics) return false;
+
+    // Protect valid Vietnamese dictionary words (e.g. "cá", "toán") from being blacklisted
+    if (getVietnameseWordSet().has(cleanTransformed)) {
+      return false;
+    }
 
     const raw = String(rawCandidate).trim().toLowerCase();
     if (raw.length < 2) return false;
@@ -1735,7 +1769,7 @@ class AvimContentScript {
       const match = trimmed.match(/([\p{L}\p{M}]+)$/u);
       if (match) {
         const adopted = match[1];
-        this.avimEngine.currentWordRaw = adopted;
+        this.avimEngine.currentWordRaw = reverseVietnameseWord(adopted) || adopted;
         this.avimEngine.lastTransformed = adopted;
         this.lastWordBeforeDelimiter = '';
       this.secondLastWordBeforeDelimiter = '';

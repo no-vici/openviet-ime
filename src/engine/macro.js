@@ -84,6 +84,32 @@ export const SAIGON_XUA_MACROS = [
   { trigger: 'xl', value: 'xe lam', enabled: true }
 ];
 
+export const DEV_GIT_MACROS = [
+  { trigger: ';gits', value: 'git status', enabled: true },
+  { trigger: ';gitc', value: 'git commit -m ""', enabled: true },
+  { trigger: ';gitp', value: 'git push origin main', enabled: true },
+  { trigger: ';gitl', value: 'git log --oneline -n 10', enabled: true },
+  { trigger: ';gitb', value: 'git checkout -b ', enabled: true },
+  { trigger: ';clg', value: 'console.log()', enabled: true },
+  { trigger: ';todo', value: '// TODO: ', enabled: true },
+  { trigger: ';fixme', value: '// FIXME: ', enabled: true }
+];
+
+export const MATH_SCIENCE_MACROS = [
+  { trigger: ';pi', value: 'π', enabled: true },
+  { trigger: ';sum', value: '∑', enabled: true },
+  { trigger: ';inf', value: '∞', enabled: true },
+  { trigger: ';deg', value: '°', enabled: true },
+  { trigger: ';pm', value: '±', enabled: true },
+  { trigger: ';neq', value: '≠', enabled: true },
+  { trigger: ';leq', value: '≤', enabled: true },
+  { trigger: ';geq', value: '≥', enabled: true },
+  { trigger: ';arr', value: '→', enabled: true },
+  { trigger: ';alpha', value: 'α', enabled: true },
+  { trigger: ';beta', value: 'β', enabled: true },
+  { trigger: ';delta', value: 'Δ', enabled: true }
+];
+
 export class MacroEngine {
   constructor(macros = DEFAULT_MACROS, options = {}) {
     this.macros = new Map();

@@ -965,11 +965,13 @@ export class UserDictionary {
       const w = l.trim().toLowerCase();
       if (w && !this.words.has(w)) {
         this.words.add(w);
+        this.customWords.add(w);
         addedCount++;
       }
     });
 
     if (addedCount > 0) {
+      this.cachedIndex = null;
       this.saveToStorage();
     }
     return addedCount;

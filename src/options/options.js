@@ -3,7 +3,7 @@
  * Handles table rendering, filtering, modal CRUD, import/export, and preferences persistence.
  */
 
-import { DEFAULT_MACROS, SAIGON_XUA_MACROS, MacroEngine } from '../engine/macro.js';
+import { DEFAULT_MACROS, SAIGON_XUA_MACROS, DEV_GIT_MACROS, MATH_SCIENCE_MACROS, MacroEngine } from '../engine/macro.js';
 import { DEFAULT_SETTINGS } from '../engine/config.js';
 import { userDictionary } from '../engine/dictionary.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
@@ -304,6 +304,28 @@ function initTable() {
     }
   });
 
+  document.getElementById('loadDevGitPresetBtn')?.addEventListener('click', async () => {
+    if (confirm('Nạp thêm bộ gõ tắt Lập trình & Git vào bảng gõ tắt hiện tại?')) {
+      DEV_GIT_MACROS.forEach(m => {
+        macroEngine.setMacro(m.trigger, m.value, m.enabled);
+      });
+      renderRows();
+      await saveState();
+      showToast(`Đã nạp thành công ${DEV_GIT_MACROS.length} mẫu Lập trình & Git!`);
+    }
+  });
+
+  document.getElementById('loadMathPresetBtn')?.addEventListener('click', async () => {
+    if (confirm('Nạp thêm bộ gõ tắt Toán học & Ký hiệu vào bảng gõ tắt hiện tại?')) {
+      MATH_SCIENCE_MACROS.forEach(m => {
+        macroEngine.setMacro(m.trigger, m.value, m.enabled);
+      });
+      renderRows();
+      await saveState();
+      showToast(`Đã nạp thành công ${MATH_SCIENCE_MACROS.length} mẫu Toán học & Ký hiệu!`);
+    }
+  });
+
   renderRows();
   window.refreshMacroTable = renderRows;
 }
@@ -583,7 +605,7 @@ function initPreferences() {
 
   window.syncPreferencesUI = function syncPreferencesUI() {
     if (methodSelect) methodSelect.value = String(settings.method ?? 3);
-    if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || 'modern';
+    if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || 'classic';
     if (spellCheckOption) spellCheckOption.checked = Boolean(settings.spellCheck);
     if (quickTelexOption) quickTelexOption.checked = settings.quickTelex !== false;
     if (typeW2UOption) typeW2UOption.checked = settings.typeW2U !== false;

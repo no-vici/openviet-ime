@@ -65,7 +65,8 @@
     { trigger: "cx", value: "c\u0169ng", enabled: true },
     { trigger: "idk", value: "tao h\xF4ng bi\u1EBFt", enabled: true },
     { trigger: "+today", value: "$DATE", enabled: true },
-    { trigger: "+now", value: "$DATETIME", enabled: true }
+    { trigger: "+now", value: "$DATETIME", enabled: true },
+    { trigger: "+cb", value: "$CLIPBOARD", enabled: true }
   ];
   var SAIGON_XUA_MACROS = [
     { trigger: "sgx", value: "S\xE0i G\xF2n x\u01B0a", enabled: true },
@@ -108,6 +109,30 @@
     { trigger: "dtt", value: "\u0111\xF2 Th\u1EE7 Thi\xEAm", enabled: true },
     { trigger: "xtm", value: "xe th\u1ED5 m\u1ED9", enabled: true },
     { trigger: "xl", value: "xe lam", enabled: true }
+  ];
+  var DEV_GIT_MACROS = [
+    { trigger: ";gits", value: "git status", enabled: true },
+    { trigger: ";gitc", value: 'git commit -m ""', enabled: true },
+    { trigger: ";gitp", value: "git push origin main", enabled: true },
+    { trigger: ";gitl", value: "git log --oneline -n 10", enabled: true },
+    { trigger: ";gitb", value: "git checkout -b ", enabled: true },
+    { trigger: ";clg", value: "console.log()", enabled: true },
+    { trigger: ";todo", value: "// TODO: ", enabled: true },
+    { trigger: ";fixme", value: "// FIXME: ", enabled: true }
+  ];
+  var MATH_SCIENCE_MACROS = [
+    { trigger: ";pi", value: "\u03C0", enabled: true },
+    { trigger: ";sum", value: "\u2211", enabled: true },
+    { trigger: ";inf", value: "\u221E", enabled: true },
+    { trigger: ";deg", value: "\xB0", enabled: true },
+    { trigger: ";pm", value: "\xB1", enabled: true },
+    { trigger: ";neq", value: "\u2260", enabled: true },
+    { trigger: ";leq", value: "\u2264", enabled: true },
+    { trigger: ";geq", value: "\u2265", enabled: true },
+    { trigger: ";arr", value: "\u2192", enabled: true },
+    { trigger: ";alpha", value: "\u03B1", enabled: true },
+    { trigger: ";beta", value: "\u03B2", enabled: true },
+    { trigger: ";delta", value: "\u0394", enabled: true }
   ];
   var MacroEngine = class {
     constructor(macros = DEFAULT_MACROS, options = {}) {
@@ -159,7 +184,7 @@
      * @param {string} delimiter The character triggering expansion (e.g. ' ', '\n', '.')
      * @returns {{ match: boolean, expandedText?: string, rawTrigger?: string, delimiter?: string }}
      */
-    checkExpansion(rawWord, delimiter) {
+    checkExpansion(rawWord, delimiter, context = {}) {
       if (!this.enabled || !rawWord || !isDelimiter(delimiter)) {
         return { match: false };
       }
@@ -173,7 +198,17 @@
       if (!entry || !entry.enabled) {
         return { match: false };
       }
-      const expandedText = this.preserveCase(rawWord, this.resolveDynamicVariables(entry.value));
+      const needsClipboard = /\$CLIPBOARD\b/i.test(entry.value) && context.clipboardText === void 0;
+      if (needsClipboard) {
+        return {
+          match: true,
+          requiresClipboard: true,
+          expandedText: entry.value,
+          rawTrigger: rawWord,
+          delimiter
+        };
+      }
+      const expandedText = this._expandValue(rawWord, entry.value, context);
       this.lastExpansion = {
         rawTrigger: rawWord,
         expandedText,
@@ -188,6 +223,39 @@
         rawTrigger: rawWord,
         delimiter
       };
+    }
+    /**
+     * Finalize an expansion that required asynchronous clipboard reading.
+     * @param {{ rawTrigger: string, expandedText: string, delimiter: string }} expansion
+     * @param {string} clipboardText
+     * @returns {string}
+     */
+    finalizeClipboardExpansion(expansion, clipboardText = "") {
+      const expandedText = this._expandValue(expansion.rawTrigger, expansion.expandedText, {
+        clipboardText: clipboardText ?? ""
+      });
+      this.lastExpansion = {
+        rawTrigger: expansion.rawTrigger,
+        expandedText,
+        delimiter: expansion.delimiter,
+        step: 1,
+        timestamp: Date.now()
+      };
+      return expandedText;
+    }
+    _expandValue(rawWord, templateValue, context = {}) {
+      const hasClipboard = /\$CLIPBOARD\b/i.test(templateValue);
+      if (!hasClipboard) {
+        return this.preserveCase(rawWord, this.resolveDynamicVariables(templateValue, context));
+      }
+      const parts = templateValue.split(/(\$CLIPBOARD\b)/i);
+      const clipboardText = context.clipboardText ?? "";
+      return parts.map((part) => {
+        if (/^\$CLIPBOARD$/i.test(part)) {
+          return clipboardText;
+        }
+        return this.preserveCase(rawWord, this.resolveDynamicVariables(part, context));
+      }).join("");
     }
     /**
      * Backtracking / 2-Step Undo:
@@ -279,13 +347,14 @@
       return { snap: false };
     }
     /**
-     * Resolve Dynamic Date & Time variables in macro expansion
+     * Resolve Dynamic Date, Time, and Clipboard variables in macro expansion
      * $DATE -> DD/MM/YYYY (e.g. 08/11/2026)
      * $TIME -> HH:mm (e.g. 08:45)
      * $DATETIME -> DD/MM/YYYY HH:mm
      * $YEAR -> YYYY
+     * $CLIPBOARD -> current clipboard text (if provided in context)
      */
-    resolveDynamicVariables(value) {
+    resolveDynamicVariables(value, context = {}) {
       if (!value || typeof value !== "string" || !value.includes("$")) {
         return value;
       }
@@ -299,7 +368,11 @@
       const dateStr = `${day}/${month}/${year}`;
       const timeStr = `${hours}:${minutes}`;
       const dateTimeStr = `${dateStr} ${timeStr}`;
-      return value.replace(/\$DATETIME\b/g, dateTimeStr).replace(/\$DATE\b/g, dateStr).replace(/\$TIME\b/g, timeStr).replace(/\$YEAR\b/g, year);
+      let result = value.replace(/\$DATETIME\b/g, dateTimeStr).replace(/\$DATE\b/g, dateStr).replace(/\$TIME\b/g, timeStr).replace(/\$YEAR\b/g, year);
+      if (context.clipboardText !== void 0) {
+        result = result.replace(/\$CLIPBOARD\b/gi, context.clipboardText);
+      }
+      return result;
     }
     clearUndo() {
       this.lastExpansion = null;
@@ -2033,10 +2106,12 @@
         const w = l.trim().toLowerCase();
         if (w && !this.words.has(w)) {
           this.words.add(w);
+          this.customWords.add(w);
           addedCount++;
         }
       });
       if (addedCount > 0) {
+        this.cachedIndex = null;
         this.saveToStorage();
       }
       return addedCount;
@@ -4621,6 +4696,26 @@
         showToast("\u0110\xE3 n\u1EA1p th\xE0nh c\xF4ng 40 m\u1EABu t\u1EEB vi\u1EBFt t\u1EAFt S\xE0i G\xF2n X\u01B0a!");
       }
     });
+    document.getElementById("loadDevGitPresetBtn")?.addEventListener("click", async () => {
+      if (confirm("N\u1EA1p th\xEAm b\u1ED9 g\xF5 t\u1EAFt L\u1EADp tr\xECnh & Git v\xE0o b\u1EA3ng g\xF5 t\u1EAFt hi\u1EC7n t\u1EA1i?")) {
+        DEV_GIT_MACROS.forEach((m) => {
+          macroEngine.setMacro(m.trigger, m.value, m.enabled);
+        });
+        renderRows();
+        await saveState();
+        showToast(`\u0110\xE3 n\u1EA1p th\xE0nh c\xF4ng ${DEV_GIT_MACROS.length} m\u1EABu L\u1EADp tr\xECnh & Git!`);
+      }
+    });
+    document.getElementById("loadMathPresetBtn")?.addEventListener("click", async () => {
+      if (confirm("N\u1EA1p th\xEAm b\u1ED9 g\xF5 t\u1EAFt To\xE1n h\u1ECDc & K\xFD hi\u1EC7u v\xE0o b\u1EA3ng g\xF5 t\u1EAFt hi\u1EC7n t\u1EA1i?")) {
+        MATH_SCIENCE_MACROS.forEach((m) => {
+          macroEngine.setMacro(m.trigger, m.value, m.enabled);
+        });
+        renderRows();
+        await saveState();
+        showToast(`\u0110\xE3 n\u1EA1p th\xE0nh c\xF4ng ${MATH_SCIENCE_MACROS.length} m\u1EABu To\xE1n h\u1ECDc & K\xFD hi\u1EC7u!`);
+      }
+    });
     renderRows();
     window.refreshMacroTable = renderRows;
   }
@@ -4862,7 +4957,7 @@ B\u1EA1n c\xF3 mu\u1ED1n ghi \u0111\xE8 l\xEAn t\u1EEB n\xE0y kh\xF4ng?`)) {
     const aiTabSuggestionStyle = document.getElementById("aiTabSuggestionStyle");
     window.syncPreferencesUI = function syncPreferencesUI() {
       if (methodSelect) methodSelect.value = String(settings.method ?? 3);
-      if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || "modern";
+      if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || "classic";
       if (spellCheckOption) spellCheckOption.checked = Boolean(settings.spellCheck);
       if (quickTelexOption) quickTelexOption.checked = settings.quickTelex !== false;
       if (typeW2UOption) typeW2UOption.checked = settings.typeW2U !== false;

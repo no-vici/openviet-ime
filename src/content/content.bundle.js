@@ -73,6 +73,12 @@
     if (currentChunk.includes("@") || token.includes("@")) {
       return true;
     }
+    if (/^\d+[a-zA-Z]+$/.test(currentChunk) || /^\d+[a-zA-Z]+$/.test(token)) {
+      return true;
+    }
+    if (/^(?=.*\d)(?=.*[a-f])[0-9a-f]{7,40}$/i.test(currentChunk)) {
+      return true;
+    }
     if (/^\$\{?[a-zA-Z0-9_]+/i.test(currentChunk) || /^\$\{?[a-zA-Z0-9_]+/i.test(token)) {
       return true;
     }
@@ -3006,10 +3012,12 @@
         const w = l.trim().toLowerCase();
         if (w && !this.words.has(w)) {
           this.words.add(w);
+          this.customWords.add(w);
           addedCount++;
         }
       });
       if (addedCount > 0) {
+        this.cachedIndex = null;
         this.saveToStorage();
       }
       return addedCount;
@@ -8324,6 +8332,29 @@
      * Key Event Dispatcher
      * ======================================================================== */
     handleKeyDown(event) {
+      if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && (event.key === "u" || event.key === "U")) {
+        const target2 = this.domObserver.getActiveElement();
+        if (this.domObserver.isEligibleTarget(target2)) {
+          const isNative = target2 instanceof HTMLInputElement || target2 instanceof HTMLTextAreaElement;
+          const wordInfo = isNative ? this.textReplacer.extractNativeWordBuffer(target2) : this.textReplacer.extractContentEditableWordBuffer();
+          if (wordInfo && wordInfo.word) {
+            event.preventDefault();
+            event.stopPropagation();
+            const w = wordInfo.word;
+            const lower = w.toLowerCase();
+            const upper = w.toUpperCase();
+            const title = w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+            const nextCase = w === lower ? upper : w === upper ? title : lower;
+            if (isNative) {
+              this.textReplacer.replaceInNativeInput(target2, wordInfo.startIndex, wordInfo.endIndex, nextCase);
+            } else {
+              this.textReplacer.replaceInContentEditable(target2, w, nextCase);
+            }
+            this.avimEngine.lastTransformed = nextCase;
+            return;
+          }
+        }
+      }
       if (event.key === "Control") {
         if (event.repeat) return;
         if (this.settings.ctrlToggleEnabled !== false) {
@@ -8711,8 +8742,12 @@
     recordWordErase(rawCandidate, transformedWord) {
       if (this.settings.eraseHabitLearning === false) return false;
       if (!rawCandidate || !transformedWord) return false;
-      const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(transformedWord);
+      const cleanTransformed = transformedWord.trim().toLowerCase();
+      const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(cleanTransformed);
       if (!hasDiacritics) return false;
+      if (getVietnameseWordSet().has(cleanTransformed)) {
+        return false;
+      }
       const raw = String(rawCandidate).trim().toLowerCase();
       if (raw.length < 2) return false;
       const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
@@ -9048,7 +9083,7 @@
         const match = trimmed.match(/([\p{L}\p{M}]+)$/u);
         if (match) {
           const adopted = match[1];
-          this.avimEngine.currentWordRaw = adopted;
+          this.avimEngine.currentWordRaw = reverseVietnameseWord(adopted) || adopted;
           this.avimEngine.lastTransformed = adopted;
           this.lastWordBeforeDelimiter = "";
           this.secondLastWordBeforeDelimiter = "";
