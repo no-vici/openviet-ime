@@ -178,11 +178,18 @@ class AvimContentScript {
         if (message.type === 'SETTINGS_UPDATED') {
           const oldMethod = this.settings.method;
           if (message.settings) Object.assign(this.settings, message.settings);
+          if (message.domainMethods && typeof message.domainMethods === 'object') {
+            this.settings.domainMethods = message.domainMethods;
+            const host = (typeof window !== 'undefined' && window.location) ? window.location.hostname : '';
+            if (host && message.domainMethods[host] !== undefined) {
+              this.settings.method = message.domainMethods[host];
+            }
+          }
           if (message.macros) this.settings.macros = message.macros;
           if (message.userDictionary && Array.isArray(message.userDictionary)) {
             userDictionary.loadWords(message.userDictionary);
           }
-          if (message.settings || message.macros || message.userDictionary) {
+          if (message.settings || message.macros || message.userDictionary || message.domainMethods) {
             this.applySettings();
           }
           // If turning ON from OFF via popup or global shortcut, trigger word rescue
