@@ -141,6 +141,16 @@ export function runAvimTests() {
   const toggleHornVni = vniEngine.processKey('được', '7').result;
   assert('VNI Retyping horn toggles back: được + 7 -> đuọc', toggleHornVni === 'đuọc', 'đuọc', toggleHornVni);
 
+  // 8b. Regression: Telex words ending in -s / -t (cas, toans, tesst)
+  for (const [input, expected] of [['cas', 'cá'], ['toans', 'toán'], ['tesst', 'test']]) {
+    telexEngine.resetWordSession();
+    let w = '';
+    for (const ch of input) w = telexEngine.processKey(w, ch).result;
+    const restore = telexEngine.checkAutoRestore(w);
+    const finalW = (restore && restore.restore) ? restore.result : w;
+    assert(`Telex regression: ${input} -> ${expected}`, finalW === expected, expected, finalW);
+  }
+
   // 9. Informal / Dialect & Free Diacritic Placement (dzìa, dzô, dzùi, nhìu, bít)
   let dzia = '';
   ['d', 'z', 'i', 'a', 'f'].forEach(k => { dzia = telexEngine.processKey(dzia, k).result; });
