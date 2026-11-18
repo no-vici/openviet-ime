@@ -1,6 +1,6 @@
 # BUILD INSTRUCTIONS FOR MOZILLA ADD-ONS REVIEWERS
 
-This document outlines the step-by-step instructions to reproduce the exact binary distribution of **OpenViet IME (v1.2.1)** from this source code package, as required by the [Mozilla Add-on Source Code Policy](https://extensionworkshop.com/documentation/publish/source-code-submission/).
+This document outlines the step-by-step instructions to reproduce the exact binary distribution of **OpenViet IME (v1.3.0)** from this source code package, as required by the [Mozilla Add-on Source Code Policy](https://extensionworkshop.com/documentation/publish/source-code-submission/).
 
 ---
 
@@ -72,7 +72,7 @@ npm run bundle:firefox
 
 After running `npm run bundle:firefox`, the final add-on package will be generated at:
 ```
-web-ext-artifacts/openviet_ime-firefox-1.2.1.zip
+web-ext-artifacts/openviet_ime-firefox-1.3.0.zip
 ```
 This `.zip` file is the exact identical package submitted to Mozilla Add-ons (AMO).
 

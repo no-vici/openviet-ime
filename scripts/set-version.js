@@ -88,15 +88,30 @@ for (const readmeName of readmeFiles) {
   if (fs.existsSync(readmePath)) {
     let content = fs.readFileSync(readmePath, 'utf8');
     let changed = false;
-    // Replace version badges or text like version-1.1.3-blue or v1.1.3 if applicable
+    // Replace version badges and package zip filenames
     if (content.includes('version-') || content.includes('openviet_ime-')) {
       content = content.replace(/(version-)\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/g, `$1${newVersion}`);
+      content = content.replace(/(openviet_ime-(?:chrome|firefox|edge)-)\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(\.zip)/g, `$1${newVersion}$2`);
       changed = true;
     }
     if (changed) {
       fs.writeFileSync(readmePath, content, 'utf8');
       console.log(`✅ Updated ${readmeName}`);
     }
+  }
+}
+
+// 5. Update src/popup/popup.html fallback version
+const popupHtmlPath = path.join(rootDir, 'src/popup/popup.html');
+if (fs.existsSync(popupHtmlPath)) {
+  let popupHtml = fs.readFileSync(popupHtmlPath, 'utf8');
+  const updatedPopupHtml = popupHtml.replace(
+    /(id="appVersion">)v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(<\/div>)/g,
+    `$1v${newVersion}$2`
+  );
+  if (updatedPopupHtml !== popupHtml) {
+    fs.writeFileSync(popupHtmlPath, updatedPopupHtml, 'utf8');
+    console.log(`✅ Updated src/popup/popup.html`);
   }
 }
 
