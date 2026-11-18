@@ -90,7 +90,7 @@ if (browserApi.storage && browserApi.storage.onChanged) {
     // CRITICAL: Strictly only broadcast when settings, macros, or user dictionary change!
     // NEVER broadcast on habit model (avim_gboard_habit_model) or local caches,
     // which caused an exponential broadcast storm freezing the browser.
-    if (!changes.avim_settings && !changes.avim_macros && !changes.avim_user_dictionary) {
+    if (!changes.avim_settings && !changes.avim_macros && !changes.avim_user_dictionary && !changes.avim_domain_methods) {
       return;
     }
 
@@ -111,7 +111,8 @@ if (browserApi.storage && browserApi.storage.onChanged) {
               type: 'SETTINGS_UPDATED',
               settings: changes.avim_settings?.newValue,
               macros: changes.avim_macros?.newValue,
-              userDictionary: changes.avim_user_dictionary?.newValue
+              userDictionary: changes.avim_user_dictionary?.newValue,
+              domainMethods: changes.avim_domain_methods?.newValue
             }).catch(() => {
               // Tab may not have content script injected
             });

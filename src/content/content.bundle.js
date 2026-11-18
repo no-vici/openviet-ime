@@ -8752,6 +8752,10 @@
       if (raw.length < 2) return false;
       const currentCount = (this.erasedWordHabits.get(raw) || 0) + 1;
       this.erasedWordHabits.set(raw, currentCount);
+      if (this.erasedWordHabits.size > 500) {
+        const oldestKey = this.erasedWordHabits.keys().next().value;
+        this.erasedWordHabits.delete(oldestKey);
+      }
       this.saveHabitCountsToStorage();
       const threshold = Math.max(2, parseInt(this.settings.eraseHabitThreshold, 10) || 3);
       if (currentCount >= threshold) {
