@@ -42,5 +42,6 @@ vite.config.ts
 metadata.json
 
 # misc
-openviet-ime-codebase.txt
+openviet_ime_codebase.txt
 google-suggestions.md
+generate_openviet-ime_codebase_text.py
