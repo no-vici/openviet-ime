@@ -36,7 +36,8 @@
   ],
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "clipboardRead"
   ],
   "commands": {
     "toggle-ime": {

@@ -104,5 +104,19 @@ export function runMacroTests() {
   const importCsvRes = csvEngine.importCSV(csvExport);
   assert('CSV import/export integrity', importCsvRes.success && csvEngine.getMacros().length === 5, '5 macros', `${csvEngine.getMacros().length} macros`);
 
+  // 11. Dynamic $CLIPBOARD variable
+  const cbEngine = new MacroEngine([
+    { trigger: '+cb', value: '$CLIPBOARD', enabled: true },
+    { trigger: 'link', value: 'URL: $CLIPBOARD', enabled: true }
+  ]);
+  const pendingCb = cbEngine.checkExpansion('+cb', ' ');
+  assert('Macro $CLIPBOARD flags requiresClipboard', pendingCb.match === true && pendingCb.requiresClipboard === true, true, pendingCb.requiresClipboard);
+
+  const finalizedCb = cbEngine.finalizeClipboardExpansion(pendingCb, 'https://Example.COM/Path');
+  assert('finalizeClipboardExpansion preserves exact clipboard casing', finalizedCb === 'https://Example.COM/Path', 'https://Example.COM/Path', finalizedCb);
+
+  const inlineCb = cbEngine.checkExpansion('LINK', ' ', { clipboardText: 'https://foo.bar/Baz' });
+  assert('Inline $CLIPBOARD preserves clipboard casing even when trigger is UPPERCASE', inlineCb.match && inlineCb.expandedText === 'URL: https://foo.bar/Baz', 'URL: https://foo.bar/Baz', inlineCb.expandedText);
+
   return results;
 }

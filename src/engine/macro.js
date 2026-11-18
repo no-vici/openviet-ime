@@ -32,7 +32,8 @@ export const DEFAULT_MACROS = [
   { trigger: 'cx', value: 'cũng', enabled: true },
   { trigger: 'idk', value: 'tao hông biết', enabled: true },
   { trigger: '+today', value: '$DATE', enabled: true },
-  { trigger: '+now', value: '$DATETIME', enabled: true }
+  { trigger: '+now', value: '$DATETIME', enabled: true },
+  { trigger: '+cb', value: '$CLIPBOARD', enabled: true }
 ];
 
 /**
@@ -140,7 +141,7 @@ export class MacroEngine {
    * @param {string} delimiter The character triggering expansion (e.g. ' ', '\n', '.')
    * @returns {{ match: boolean, expandedText?: string, rawTrigger?: string, delimiter?: string }}
    */
-  checkExpansion(rawWord, delimiter) {
+  checkExpansion(rawWord, delimiter, context = {}) {
     if (!this.enabled || !rawWord || !isDelimiter(delimiter)) {
       return { match: false };
     }
@@ -161,7 +162,18 @@ export class MacroEngine {
       return { match: false };
     }
 
-    const expandedText = this.preserveCase(rawWord, this.resolveDynamicVariables(entry.value));
+    const needsClipboard = /\$CLIPBOARD\b/i.test(entry.value) && context.clipboardText === undefined;
+    if (needsClipboard) {
+      return {
+        match: true,
+        requiresClipboard: true,
+        expandedText: entry.value,
+        rawTrigger: rawWord,
+        delimiter
+      };
+    }
+
+    const expandedText = this._expandValue(rawWord, entry.value, context);
 
     // Record last expansion for 2-step Backspace undo & punctuation snapping
     this.lastExpansion = {
@@ -178,6 +190,47 @@ export class MacroEngine {
       rawTrigger: rawWord,
       delimiter
     };
+  }
+
+  /**
+   * Finalize an expansion that required asynchronous clipboard reading.
+   * @param {{ rawTrigger: string, expandedText: string, delimiter: string }} expansion
+   * @param {string} clipboardText
+   * @returns {string}
+   */
+  finalizeClipboardExpansion(expansion, clipboardText = '') {
+    const expandedText = this._expandValue(expansion.rawTrigger, expansion.expandedText, {
+      clipboardText: clipboardText ?? ''
+    });
+
+    this.lastExpansion = {
+      rawTrigger: expansion.rawTrigger,
+      expandedText,
+      delimiter: expansion.delimiter,
+      step: 1,
+      timestamp: Date.now()
+    };
+
+    return expandedText;
+  }
+
+  _expandValue(rawWord, templateValue, context = {}) {
+    // Protect $CLIPBOARD from preserveCase so pasted URLs, code, or sentences keep their exact casing
+    const hasClipboard = /\$CLIPBOARD\b/i.test(templateValue);
+    if (!hasClipboard) {
+      return this.preserveCase(rawWord, this.resolveDynamicVariables(templateValue, context));
+    }
+
+    const parts = templateValue.split(/(\$CLIPBOARD\b)/i);
+    const clipboardText = context.clipboardText ?? '';
+    return parts
+      .map(part => {
+        if (/^\$CLIPBOARD$/i.test(part)) {
+          return clipboardText;
+        }
+        return this.preserveCase(rawWord, this.resolveDynamicVariables(part, context));
+      })
+      .join('');
   }
 
   /**
@@ -285,13 +338,14 @@ export class MacroEngine {
   }
 
   /**
-   * Resolve Dynamic Date & Time variables in macro expansion
+   * Resolve Dynamic Date, Time, and Clipboard variables in macro expansion
    * $DATE -> DD/MM/YYYY (e.g. 08/11/2026)
    * $TIME -> HH:mm (e.g. 08:45)
    * $DATETIME -> DD/MM/YYYY HH:mm
    * $YEAR -> YYYY
+   * $CLIPBOARD -> current clipboard text (if provided in context)
    */
-  resolveDynamicVariables(value) {
+  resolveDynamicVariables(value, context = {}) {
     if (!value || typeof value !== 'string' || !value.includes('$')) {
       return value;
     }
@@ -308,11 +362,17 @@ export class MacroEngine {
     const timeStr = `${hours}:${minutes}`;
     const dateTimeStr = `${dateStr} ${timeStr}`;
 
-    return value
+    let result = value
       .replace(/\$DATETIME\b/g, dateTimeStr)
       .replace(/\$DATE\b/g, dateStr)
       .replace(/\$TIME\b/g, timeStr)
       .replace(/\$YEAR\b/g, year);
+
+    if (context.clipboardText !== undefined) {
+      result = result.replace(/\$CLIPBOARD\b/gi, context.clipboardText);
+    }
+
+    return result;
   }
 
   clearUndo() {

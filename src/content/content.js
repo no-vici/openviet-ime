@@ -1918,6 +1918,13 @@ class AvimContentScript {
           const expansion = this.macroEngine.checkExpansion(currentWord, key);
           if (expansion.match) {
             event.preventDefault();
+
+            if (expansion.requiresClipboard) {
+              this.avimEngine.resetWordSession();
+              this._expandClipboardMacro(target, isNative, wordInfo, currentWord, expansion, key);
+              return;
+            }
+
             const fullReplacement = expansion.expandedText + key;
 
             if (isNative) {
@@ -2203,6 +2210,35 @@ class AvimContentScript {
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(6px)';
     }, 1500);
+  }
+
+  async _expandClipboardMacro(target, isNative, wordInfo, currentWord, expansion, key) {
+    let clipboardText = '';
+    try {
+      if (navigator?.clipboard?.readText) {
+        clipboardText = await navigator.clipboard.readText();
+      }
+    } catch {
+      clipboardText = '';
+    }
+
+    const expandedText = this.macroEngine.finalizeClipboardExpansion(expansion, clipboardText);
+    const fullReplacement = expandedText + key;
+
+    if (isNative) {
+      this.textReplacer.replaceInNativeInput(
+        target,
+        wordInfo.startIndex,
+        wordInfo.endIndex,
+        fullReplacement
+      );
+    } else {
+      this.textReplacer.replaceInContentEditable(
+        target,
+        currentWord,
+        fullReplacement
+      );
+    }
   }
 }
 
