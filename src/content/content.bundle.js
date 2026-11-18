@@ -7248,9 +7248,9 @@
         this.learnedModel.learningEnabled = !!enabled;
       }
     }
-    loadFromStorage() {
+    async loadFromStorage() {
       if (this.learnedModel && typeof this.learnedModel.loadFromStorage === "function") {
-        this.learnedModel.loadFromStorage();
+        return await this.learnedModel.loadFromStorage();
       }
     }
     saveToStorage() {

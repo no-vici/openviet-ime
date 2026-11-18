@@ -4072,9 +4072,9 @@
         this.learnedModel.learningEnabled = !!enabled;
       }
     }
-    loadFromStorage() {
+    async loadFromStorage() {
       if (this.learnedModel && typeof this.learnedModel.loadFromStorage === "function") {
-        this.learnedModel.loadFromStorage();
+        return await this.learnedModel.loadFromStorage();
       }
     }
     saveToStorage() {
@@ -5211,7 +5211,7 @@ Bạn có muốn ghi đè lên từ này không?`)) {
       settings.blacklistedDomains = lines;
       await saveState();
     });
-    function renderDomainMethodsTable2() {
+    function renderDomainMethodsTable() {
       if (!domainMethodsTableBody) return;
       domainMethodsTableBody.textContent = "";
       const domains = Object.keys(settings.domainMethods || {}).sort();
@@ -5274,7 +5274,8 @@ Bạn có muốn ghi đè lên từ này không?`)) {
         delBtn.addEventListener("click", async () => {
           delete settings.domainMethods[domain];
           await saveState();
-          renderDomainMethodsTable2();
+          window.renderDomainMethodsTable = renderDomainMethodsTable;
+          renderDomainMethodsTable();
         });
         tdActions.appendChild(delBtn);
         tr.appendChild(tdActions);
@@ -5295,7 +5296,8 @@ Bạn có muốn ghi đè lên từ này không?`)) {
       if (!settings.domainMethods) settings.domainMethods = {};
       settings.domainMethods[raw] = parseInt(newDomainMethodSelect?.value || "0", 10);
       newDomainInput.value = "";
-      renderDomainMethodsTable2();
+      window.renderDomainMethodsTable = renderDomainMethodsTable;
+      renderDomainMethodsTable();
       saveState();
     }
     addDomainBtn?.addEventListener("click", addDomain);
@@ -5305,7 +5307,8 @@ Bạn có muốn ghi đè lên từ này không?`)) {
         addDomain();
       }
     });
-    renderDomainMethodsTable2();
+    window.renderDomainMethodsTable = renderDomainMethodsTable;
+    renderDomainMethodsTable();
   }
   var renderHabitsTableAndStats = () => {
   };
@@ -5639,7 +5642,7 @@ Bạn có muốn ghi đè lên từ này không?`)) {
     loadState().then(() => {
       if (typeof refreshMacroTable === "function") refreshMacroTable();
       if (typeof refreshDictTable === "function") refreshDictTable();
-      if (typeof renderDomainMethodsTable === "function") renderDomainMethodsTable();
+      if (typeof window.renderDomainMethodsTable === "function") window.renderDomainMethodsTable();
       if (typeof renderHabitsTableAndStats === "function") renderHabitsTableAndStats();
       if (typeof window.syncPreferencesUI === "function") window.syncPreferencesUI();
     }).catch((err) => {

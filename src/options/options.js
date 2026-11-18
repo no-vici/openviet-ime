@@ -969,7 +969,8 @@ function initPreferences() {
       delBtn.addEventListener('click', async () => {
         delete settings.domainMethods[domain];
         await saveState();
-        renderDomainMethodsTable();
+        window.renderDomainMethodsTable = renderDomainMethodsTable;
+  renderDomainMethodsTable();
       });
       tdActions.appendChild(delBtn);
       tr.appendChild(tdActions);
@@ -991,7 +992,8 @@ function initPreferences() {
     if (!settings.domainMethods) settings.domainMethods = {};
     settings.domainMethods[raw] = parseInt(newDomainMethodSelect?.value || '0', 10);
     newDomainInput.value = '';
-    renderDomainMethodsTable();
+    window.renderDomainMethodsTable = renderDomainMethodsTable;
+  renderDomainMethodsTable();
     saveState();
   }
 
@@ -1003,6 +1005,7 @@ function initPreferences() {
     }
   });
 
+  window.renderDomainMethodsTable = renderDomainMethodsTable;
   renderDomainMethodsTable();
 }
 
@@ -1413,7 +1416,7 @@ function initOptionsPage() {
   loadState().then(() => {
     if (typeof refreshMacroTable === 'function') refreshMacroTable();
     if (typeof refreshDictTable === 'function') refreshDictTable();
-    if (typeof renderDomainMethodsTable === 'function') renderDomainMethodsTable();
+    if (typeof window.renderDomainMethodsTable === 'function') window.renderDomainMethodsTable();
     if (typeof renderHabitsTableAndStats === 'function') renderHabitsTableAndStats();
     if (typeof window.syncPreferencesUI === 'function') window.syncPreferencesUI();
   }).catch(err => {
