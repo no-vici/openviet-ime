@@ -361,7 +361,12 @@ export class AvimEngine {
     }
 
     // 3. Reject any raw sequence containing digits (VNI numbers or digits)
+    // Unless it is an alphanumeric trap like a1s, b2c (letters + digits + letters) not in VN dict
     if (raw && /\d/.test(raw)) {
+      if (/^[a-zA-Z]+\d+[a-zA-Z]+$/.test(raw) && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
+        this.resetWordSession();
+        return { restore: true, result: raw };
+      }
       this.resetWordSession();
       return { restore: false, result: currentWord };
     }
@@ -608,8 +613,19 @@ export class AvimEngine {
       return dynamicResult;
     }
 
-    // 5. Default: append key
-    const newWord = word + key;
+    // 5. Default: append key (and upgrade ưo -> ươ before final consonant n, ng, c, t, m, p)
+    let newWord = word + key;
+    if (/^[a-zA-Z]*[ưừứửữự]o(?:n|ng|c|t|m|p)$/i.test(newWord)) {
+      const upgraded = newWord.replace(/([ưừứửữự])(o)(n|ng|c|t|m|p)$/i, (_, uChar, oChar, coda) => {
+        const oHorn = oChar === 'O' ? 'Ơ' : 'ơ';
+        return uChar + oHorn + coda;
+      });
+      if (upgraded !== newWord) {
+        newWord = upgraded.normalize('NFC');
+        this.lastTransformed = newWord;
+        return { transformed: true, result: newWord };
+      }
+    }
     const finalWord = ((this.autoHarmonizeCase ? harmonizeSyllableCase(newWord) : newWord) || '').normalize('NFC');
     this.lastTransformed = finalWord;
     return { transformed: finalWord !== newWord, result: finalWord };

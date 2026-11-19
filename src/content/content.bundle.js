@@ -3390,6 +3390,10 @@
         return { restore: false, result: currentWord };
       }
       if (raw && /\d/.test(raw)) {
+        if (/^[a-zA-Z]+\d+[a-zA-Z]+$/.test(raw) && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
+          this.resetWordSession();
+          return { restore: true, result: raw };
+        }
         this.resetWordSession();
         return { restore: false, result: currentWord };
       }
@@ -3564,7 +3568,18 @@
         this.lastTransformed = dynamicResult.result;
         return dynamicResult;
       }
-      const newWord = word + key;
+      let newWord = word + key;
+      if (/^[a-zA-Z]*[ưừứửữự]o(?:n|ng|c|t|m|p)$/i.test(newWord)) {
+        const upgraded = newWord.replace(/([ưừứửữự])(o)(n|ng|c|t|m|p)$/i, (_, uChar, oChar, coda) => {
+          const oHorn = oChar === "O" ? "Ơ" : "ơ";
+          return uChar + oHorn + coda;
+        });
+        if (upgraded !== newWord) {
+          newWord = upgraded.normalize("NFC");
+          this.lastTransformed = newWord;
+          return { transformed: true, result: newWord };
+        }
+      }
       const finalWord = ((this.autoHarmonizeCase ? harmonizeSyllableCase(newWord) : newWord) || "").normalize("NFC");
       this.lastTransformed = finalWord;
       return { transformed: finalWord !== newWord, result: finalWord };
@@ -9339,7 +9354,10 @@
           const charBeforeWord = textBeforeCaret.slice(0, Math.max(0, textBeforeCaret.length - currentWord.length)).slice(-1);
           const isTechAdjacent = /[./\\@:()[\]=&?]/.test(key) || /[./\\@:(=&?]/.test(charBeforeWord);
           if (this.macroEngine.enabled && !isTechAdjacent) {
-            const expansion = this.macroEngine.checkExpansion(currentWord, key);
+            let expansion = this.macroEngine.checkExpansion(currentWord, key);
+            if (!expansion.match && !expansion.suppressed && this.avimEngine.currentWordRaw && this.avimEngine.currentWordRaw !== currentWord) {
+              expansion = this.macroEngine.checkExpansion(this.avimEngine.currentWordRaw, key);
+            }
             if (expansion.match) {
               event.preventDefault();
               if (expansion.requiresClipboard) {

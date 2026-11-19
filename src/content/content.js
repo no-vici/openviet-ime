@@ -1983,7 +1983,10 @@ class AvimContentScript {
         const charBeforeWord = textBeforeCaret.slice(0, Math.max(0, textBeforeCaret.length - currentWord.length)).slice(-1);
         const isTechAdjacent = /[./\\@:()[\]=&?]/.test(key) || /[./\\@:(=&?]/.test(charBeforeWord);
         if (this.macroEngine.enabled && !isTechAdjacent) {
-          const expansion = this.macroEngine.checkExpansion(currentWord, key);
+          let expansion = this.macroEngine.checkExpansion(currentWord, key);
+          if (!expansion.match && !expansion.suppressed && this.avimEngine.currentWordRaw && this.avimEngine.currentWordRaw !== currentWord) {
+            expansion = this.macroEngine.checkExpansion(this.avimEngine.currentWordRaw, key);
+          }
           if (expansion.match) {
             event.preventDefault();
 
