@@ -3569,10 +3569,13 @@
         return dynamicResult;
       }
       let newWord = word + key;
-      if (/^[a-zA-Z]*[ưừứửữự]o(?:n|ng|c|t|m|p)$/i.test(newWord)) {
+      if (/^[a-zA-Z]*(?:[ưừứửữự]o|u[ơờớởỡợ])(?:n|ng|c|t|m|p)$/i.test(newWord)) {
         const upgraded = newWord.replace(/([ưừứửữự])(o)(n|ng|c|t|m|p)$/i, (_, uChar, oChar, coda) => {
           const oHorn = oChar === "O" ? "Ơ" : "ơ";
           return uChar + oHorn + coda;
+        }).replace(/(u)([ơờớởỡợ])(n|ng|c|t|m|p)$/i, (_, uChar, oChar, coda) => {
+          const uHorn = uChar === "U" ? "Ư" : "ư";
+          return uHorn + oChar + coda;
         });
         if (upgraded !== newWord) {
           newWord = upgraded.normalize("NFC");
