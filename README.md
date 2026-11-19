@@ -548,6 +548,15 @@ OpenViet IME is built from the ground up for the modern web ecosystem. By design
 
 ---
 
+## Debugging & Live Inspector
+
+- **Options UI**: Open **Options** and click **🐛 Copy Debug Snapshot** to copy your extension version, browser info, active settings, and engine state to the clipboard for bug reports.
+- **DevTools Console**: On any active web page, run:
+  ```js
+  window.__AVIM_XKEY__?.avimEngine?.inspectState()
+  ```
+  to inspect the live IME engine state (`method`, `toneStyle`, `currentWordRaw`, `lastTransformed`, `toneCancelled`, `prevWordWasEnglish`).
+
 ## License & Acknowledgements
 
 ### License

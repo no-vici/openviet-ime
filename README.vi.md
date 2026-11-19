@@ -549,6 +549,15 @@ OpenViet IME được phát triển hoàn toàn cho kỷ nguyên web hiện đ�
 
 ---
 
+## Gỡ Lỗi & Live Inspector
+
+- **Giao diện Tùy chọn (Options)**: Mở **Options** và bấm nút **🐛 Copy Debug Snapshot** để sao chép nhanh phiên bản, thông tin trình duyệt, cấu hình đang bật và trạng thái engine vào clipboard khi gửi báo lỗi.
+- **DevTools Console**: Trên bất kỳ trang web nào đang bật bộ gõ, chạy lệnh:
+  ```js
+  window.__AVIM_XKEY__?.avimEngine?.inspectState()
+  ```
+  để xem trực tiếp trạng thái engine (`method`, `toneStyle`, `currentWordRaw`, `lastTransformed`, `toneCancelled`, `prevWordWasEnglish`).
+
 ## Bản Quyền & Lời Cảm Ơn
 
 ### Giấy Phép
