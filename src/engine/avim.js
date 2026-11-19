@@ -1654,7 +1654,11 @@ export class AvimEngine {
       const parsedNew = parseSyllable(newWord);
       const lowerN = parsedNew?.nucleus?.toLowerCase() || '';
       const lowerGV = ((parsedNew?.glide || '') + (parsedNew?.nucleus || '')).toLowerCase();
+      const isSingleVowelWithDbar = parsedNew?.onset?.toLowerCase() === 'đ' &&
+                                    parsedNew?.coda?.length === 0 &&
+                                    lowerN.length === 1;
       const isIncompleteSyllable = parsedNew && (
+        isSingleVowelWithDbar ||
         (parsedNew.coda.length === 0 && (
           lowerN === 'ă' || lowerN === 'â' || lowerN === 'oo' ||
           lowerN === 'uô' || lowerN === 'iê' || lowerN === 'ươ' || lowerN === 'yê' ||

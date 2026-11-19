@@ -4398,7 +4398,8 @@
         const parsedNew = parseSyllable(newWord);
         const lowerN = parsedNew?.nucleus?.toLowerCase() || "";
         const lowerGV = ((parsedNew?.glide || "") + (parsedNew?.nucleus || "")).toLowerCase();
-        const isIncompleteSyllable = parsedNew && (parsedNew.coda.length === 0 && (lowerN === "ă" || lowerN === "â" || lowerN === "oo" || lowerN === "uô" || lowerN === "iê" || lowerN === "ươ" || lowerN === "yê" || ["oa", "oe", "uy"].includes(lowerGV)) || parsedNew.coda.length > 0 && ["uo", "ie", "ye"].includes(lowerN));
+        const isSingleVowelWithDbar = parsedNew?.onset?.toLowerCase() === "đ" && parsedNew?.coda?.length === 0 && lowerN.length === 1;
+        const isIncompleteSyllable = parsedNew && (isSingleVowelWithDbar || parsedNew.coda.length === 0 && (lowerN === "ă" || lowerN === "â" || lowerN === "oo" || lowerN === "uô" || lowerN === "iê" || lowerN === "ươ" || lowerN === "yê" || ["oa", "oe", "uy"].includes(lowerGV)) || parsedNew.coda.length > 0 && ["uo", "ie", "ye"].includes(lowerN));
         if (!isIncompleteSyllable) {
           return { transformed: false, result: word + key };
         }
