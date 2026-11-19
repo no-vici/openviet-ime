@@ -127,17 +127,23 @@ export class TextReplacer {
     // If node is an ELEMENT_NODE (e.g. <p> container in TipTap / ProseMirror / RoosterJS), locate the text node
     if (node.nodeType === Node.ELEMENT_NODE && node.childNodes.length > 0) {
       if (offset > 0 && node.childNodes[offset - 1]) {
-        const prev = node.childNodes[offset - 1];
-        if (prev.nodeType === Node.TEXT_NODE) {
+        let prev = node.childNodes[offset - 1];
+        while (prev && prev.nodeType !== Node.TEXT_NODE && prev.lastChild) {
+          prev = prev.lastChild;
+        }
+        if (prev && prev.nodeType === Node.TEXT_NODE) {
           node = prev;
           offset = prev.textContent.length;
-        } else if (prev.lastChild && prev.lastChild.nodeType === Node.TEXT_NODE) {
-          node = prev.lastChild;
-          offset = node.textContent.length;
         }
-      } else if (node.childNodes[offset] && node.childNodes[offset].nodeType === Node.TEXT_NODE) {
-        node = node.childNodes[offset];
-        offset = 0;
+      } else if (node.childNodes[offset]) {
+        let cur = node.childNodes[offset];
+        while (cur && cur.nodeType !== Node.TEXT_NODE && cur.firstChild) {
+          cur = cur.firstChild;
+        }
+        if (cur && cur.nodeType === Node.TEXT_NODE) {
+          node = cur;
+          offset = 0;
+        }
       }
     }
 
@@ -334,17 +340,23 @@ export class TextReplacer {
 
     if (node.nodeType === Node.ELEMENT_NODE && node.childNodes.length > 0) {
       if (offset > 0 && node.childNodes[offset - 1]) {
-        const prev = node.childNodes[offset - 1];
-        if (prev.nodeType === Node.TEXT_NODE) {
+        let prev = node.childNodes[offset - 1];
+        while (prev && prev.nodeType !== Node.TEXT_NODE && prev.lastChild) {
+          prev = prev.lastChild;
+        }
+        if (prev && prev.nodeType === Node.TEXT_NODE) {
           node = prev;
           offset = prev.textContent.length;
-        } else if (prev.lastChild && prev.lastChild.nodeType === Node.TEXT_NODE) {
-          node = prev.lastChild;
-          offset = node.textContent.length;
         }
-      } else if (node.childNodes[offset] && node.childNodes[offset].nodeType === Node.TEXT_NODE) {
-        node = node.childNodes[offset];
-        offset = 0;
+      } else if (node.childNodes[offset]) {
+        let cur = node.childNodes[offset];
+        while (cur && cur.nodeType !== Node.TEXT_NODE && cur.firstChild) {
+          cur = cur.firstChild;
+        }
+        if (cur && cur.nodeType === Node.TEXT_NODE) {
+          node = cur;
+          offset = 0;
+        }
       }
     }
 
