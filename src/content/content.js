@@ -2176,7 +2176,7 @@ class AvimContentScript {
         } else {
           this.hideSuggestions();
         }
-      }, 10);
+      }, 80);
     }
   }
 

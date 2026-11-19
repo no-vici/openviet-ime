@@ -463,7 +463,7 @@ export class AvimEngine {
     // If the word already contains any digits (e.g. 'icon6', 'mp3', 'h2o', 'f88'),
     // underscores, @, or path slashes (code / URL / email identifiers),
     // pass key through literally without applying IME diacritics.
-    if (/\d/.test(word) || word.includes('_') || word.includes('@') || word.includes('/')) {
+    if (word.includes('_') || word.includes('@') || word.includes('/') || /^[a-zA-Z]+\d+$/.test(word)) {
       const newWord = word + key;
       this.lastTransformed = newWord;
       return { transformed: false, result: newWord };

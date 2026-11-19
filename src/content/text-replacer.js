@@ -213,9 +213,6 @@ export class TextReplacer {
           sel.removeAllRanges();
           sel.addRange(replaceRange);
 
-          // Dispatch beforeinput with insertReplacementText if supported
-          this.dispatchBeforeInput(root, nfcNewText, replaceRange);
-
           if (document.execCommand('insertText', false, nfcNewText)) {
             const isLexical = root.hasAttribute?.('data-lexical-editor') || root.closest?.('[data-lexical-editor]');
             if (!isLexical && !isTeams) {

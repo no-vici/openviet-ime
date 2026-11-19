@@ -3467,7 +3467,7 @@
           };
         }
       }
-      if (/\d/.test(word) || word.includes("_") || word.includes("@") || word.includes("/")) {
+      if (word.includes("_") || word.includes("@") || word.includes("/") || /^[a-zA-Z]+\d+$/.test(word)) {
         const newWord2 = word + key;
         this.lastTransformed = newWord2;
         return { transformed: false, result: newWord2 };
@@ -5315,7 +5315,6 @@
           try {
             sel.removeAllRanges();
             sel.addRange(replaceRange);
-            this.dispatchBeforeInput(root, nfcNewText, replaceRange);
             if (document.execCommand("insertText", false, nfcNewText)) {
               const isLexical = root.hasAttribute?.("data-lexical-editor") || root.closest?.("[data-lexical-editor]");
               if (!isLexical && !isTeams) {
@@ -9540,7 +9539,7 @@
           } else {
             this.hideSuggestions();
           }
-        }, 10);
+        }, 80);
       }
     }
     toggleMethod() {
