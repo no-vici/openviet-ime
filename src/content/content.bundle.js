@@ -5266,11 +5266,11 @@
       }
       if (node && node.nodeType === Node.TEXT_NODE) {
         const rawText = node.textContent || "";
-        const text = rawText.normalize("NFC");
-        const textBeforeCursor = text.slice(0, offset);
+        const rawBeforeCursor = rawText.slice(0, offset);
+        const textBeforeCursor = rawBeforeCursor.normalize("NFC");
         if (textBeforeCursor.endsWith(nfcOldText)) {
-          const replaceStart = offset - nfcOldText.length;
-          const newContent = text.slice(0, replaceStart) + nfcNewText + text.slice(offset);
+          const replaceStart = Math.max(0, offset - (rawBeforeCursor.length - textBeforeCursor.slice(0, -nfcOldText.length).length));
+          const newContent = (rawText.slice(0, replaceStart) + nfcNewText + rawText.slice(offset)).normalize("NFC");
           const replaceRange = document.createRange();
           replaceRange.setStart(node, replaceStart);
           replaceRange.setEnd(node, offset);
@@ -7894,14 +7894,15 @@
     }
     bindEvents() {
       document.addEventListener("keydown", this.handleKeyDown.bind(this), true);
+      this._blockedKeys = /* @__PURE__ */ new Set();
       document.addEventListener("beforeinput", (event) => {
-        if (this._blockedInputKey && (event.data === this._blockedInputKey || event.inputType === "insertText" && event.data === this._blockedInputKey)) {
+        if (event.data && this._blockedKeys && this._blockedKeys.has(event.data)) {
           event.preventDefault();
           event.stopPropagation();
           if (typeof event.stopImmediatePropagation === "function") {
             event.stopImmediatePropagation();
           }
-          this._blockedInputKey = null;
+          this._blockedKeys.delete(event.data);
         }
       }, true);
       document.addEventListener("click", (e) => {
@@ -9456,10 +9457,9 @@
       if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= "a" && key <= "z") {
         if (this.shouldAutoCapitalize(target)) {
           const upperChar = key.toUpperCase();
-          this._blockedInputKey = key;
-          clearTimeout(this._blockClearTimer);
-          this._blockClearTimer = setTimeout(() => {
-            this._blockedInputKey = null;
+          this._blockedKeys.add(key);
+          setTimeout(() => {
+            this._blockedKeys.delete(key);
           }, 80);
           event.preventDefault();
           event.stopPropagation();
@@ -9500,10 +9500,9 @@
             this.avimEngine.lastTransformed = result.result;
           }
           if (result.transformed) {
-            this._blockedInputKey = key;
-            clearTimeout(this._blockClearTimer);
-            this._blockClearTimer = setTimeout(() => {
-              this._blockedInputKey = null;
+            this._blockedKeys.add(key);
+            setTimeout(() => {
+              this._blockedKeys.delete(key);
             }, 80);
             event.preventDefault();
             event.stopPropagation();

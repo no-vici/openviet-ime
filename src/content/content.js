@@ -233,14 +233,15 @@ class AvimContentScript {
     document.addEventListener('keydown', this.handleKeyDown.bind(this), true);
     
     // Guard against Chromium / macOS beforeinput leak when keydown was prevented by IME transformation
+    this._blockedKeys = new Set();
     document.addEventListener('beforeinput', (event) => {
-      if (this._blockedInputKey && (event.data === this._blockedInputKey || (event.inputType === 'insertText' && event.data === this._blockedInputKey))) {
+      if (event.data && this._blockedKeys && this._blockedKeys.has(event.data)) {
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === 'function') {
           event.stopImmediatePropagation();
         }
-        this._blockedInputKey = null;
+        this._blockedKeys.delete(event.data);
       }
     }, true);
 
@@ -2079,9 +2080,8 @@ class AvimContentScript {
     if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= 'a' && key <= 'z') {
       if (this.shouldAutoCapitalize(target)) {
         const upperChar = key.toUpperCase();
-        this._blockedInputKey = key;
-        clearTimeout(this._blockClearTimer);
-        this._blockClearTimer = setTimeout(() => { this._blockedInputKey = null; }, 80);
+        this._blockedKeys.add(key);
+        setTimeout(() => { this._blockedKeys.delete(key); }, 80);
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === 'function') {
@@ -2129,9 +2129,8 @@ class AvimContentScript {
         }
 
         if (result.transformed) {
-          this._blockedInputKey = key;
-          clearTimeout(this._blockClearTimer);
-          this._blockClearTimer = setTimeout(() => { this._blockedInputKey = null; }, 80);
+          this._blockedKeys.add(key);
+          setTimeout(() => { this._blockedKeys.delete(key); }, 80);
 
           // Immediately prevent default and stop immediate propagation to prevent race conditions with frameworks (React/Vue/TipTap)
           event.preventDefault();

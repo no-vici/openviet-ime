@@ -85,7 +85,7 @@ async function setStorageData(data) {
     for (const [k, v] of Object.entries(data)) {
       localStorage.setItem(k, JSON.stringify(v));
     }
-  } catch {}
+  } catch { }
 }
 
 async function loadState() {
@@ -350,7 +350,7 @@ function initModals() {
     triggerInput.focus();
   }
 
-  window.openEditModal = function(trigger) {
+  window.openEditModal = function (trigger) {
     const macro = macroEngine.macros.get(trigger.toLowerCase());
     if (!macro) return;
     editingTrigger = trigger;
@@ -478,13 +478,13 @@ function initDictionaryTab() {
       spanWord.textContent = word;
       tdWord.appendChild(spanWord);
       const isCustom = userDictionary.customWords && userDictionary.customWords.has(word);
-    if (isCustom) {
-      const badgeCustom = document.createElement('span');
-      badgeCustom.style.cssText = 'font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 600;';
-      badgeCustom.textContent = 'Tự học / Đã thêm';
-      tdWord.appendChild(badgeCustom);
-    }
-    tr.appendChild(tdWord);
+      if (isCustom) {
+        const badgeCustom = document.createElement('span');
+        badgeCustom.style.cssText = 'font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 600;';
+        badgeCustom.textContent = 'Tự học / Đã thêm';
+        tdWord.appendChild(badgeCustom);
+      }
+      tr.appendChild(tdWord);
 
       const tdActions = document.createElement('td');
       tdActions.style.textAlign = 'right';
@@ -840,7 +840,7 @@ function initPreferences() {
           typingLogCountBadge.textContent = `${count} chuỗi phím đã ghi`;
         }
       }
-    } catch {}
+    } catch { }
   }
 
   if (debugTypingLogOption) {
@@ -886,7 +886,7 @@ function initPreferences() {
           await storage.remove(['openviet_typing_logs']);
           await updateTypingLogUI();
         }
-      } catch {}
+      } catch { }
     });
   }
 
@@ -1012,7 +1012,7 @@ function initPreferences() {
         delete settings.domainMethods[domain];
         await saveState();
         window.renderDomainMethodsTable = renderDomainMethodsTable;
-  renderDomainMethodsTable();
+        renderDomainMethodsTable();
       });
       tdActions.appendChild(delBtn);
       tr.appendChild(tdActions);
@@ -1028,14 +1028,14 @@ function initPreferences() {
       if (raw.startsWith('http://') || raw.startsWith('https://')) {
         raw = new URL(raw).hostname;
       }
-    } catch {}
+    } catch { }
     raw = raw.replace(/^\/+|\/+$/g, '');
     if (!raw) return;
     if (!settings.domainMethods) settings.domainMethods = {};
     settings.domainMethods[raw] = parseInt(newDomainMethodSelect?.value || '0', 10);
     newDomainInput.value = '';
     window.renderDomainMethodsTable = renderDomainMethodsTable;
-  renderDomainMethodsTable();
+    renderDomainMethodsTable();
     saveState();
   }
 
@@ -1083,7 +1083,7 @@ function initPreferences() {
   });
 }
 
-let renderHabitsTableAndStats = () => {};
+let renderHabitsTableAndStats = () => { };
 
 function initAiHabitsTab() {
   const statTotalPairs = document.getElementById('statTotalPairs');
@@ -1117,7 +1117,7 @@ function initAiHabitsTab() {
   renderHabitsTableAndStats = async () => {
     try {
       await autoCompleteEngine.loadFromStorage();
-    } catch {}
+    } catch { }
     const stats = autoCompleteEngine.getLearnedStats();
     if (statTotalPairs) statTotalPairs.textContent = String(stats.totalPairs);
     if (statTotalTransitions) statTotalTransitions.textContent = String(stats.totalTransitions);

@@ -149,13 +149,13 @@ export class TextReplacer {
 
     if (node && node.nodeType === Node.TEXT_NODE) {
       const rawText = node.textContent || '';
-      const text = rawText.normalize('NFC');
 
       // Find where oldText occurred right before cursor
-      const textBeforeCursor = text.slice(0, offset);
+      const rawBeforeCursor = rawText.slice(0, offset);
+      const textBeforeCursor = rawBeforeCursor.normalize('NFC');
       if (textBeforeCursor.endsWith(nfcOldText)) {
-        const replaceStart = offset - nfcOldText.length;
-        const newContent = text.slice(0, replaceStart) + nfcNewText + text.slice(offset);
+        const replaceStart = Math.max(0, offset - (rawBeforeCursor.length - textBeforeCursor.slice(0, -nfcOldText.length).length));
+        const newContent = (rawText.slice(0, replaceStart) + nfcNewText + rawText.slice(offset)).normalize('NFC');
 
         const replaceRange = document.createRange();
         replaceRange.setStart(node, replaceStart);
