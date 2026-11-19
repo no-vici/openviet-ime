@@ -3573,9 +3573,9 @@
         const upgraded = newWord.replace(/([ưừứửữự])(o)(n|ng|c|t|m|p)$/i, (_, uChar, oChar, coda) => {
           const oHorn = oChar === "O" ? "Ơ" : "ơ";
           return uChar + oHorn + coda;
-        }).replace(/(u)([ơờớởỡợ])(n|ng|c|t|m|p)$/i, (_, uChar, oChar, coda) => {
+        }).replace(/([^qQ])(u)([ơờớởỡợ])(n|ng|c|t|m|p)$/i, (_, prev, uChar, oChar, coda) => {
           const uHorn = uChar === "U" ? "Ư" : "ư";
-          return uHorn + oChar + coda;
+          return prev + uHorn + oChar + coda;
         });
         if (upgraded !== newWord) {
           newWord = upgraded.normalize("NFC");
