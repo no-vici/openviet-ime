@@ -5280,6 +5280,35 @@ Bạn có muốn ghi đè lên từ này không?`)) {
           await saveState();
           window.renderDomainMethodsTable = renderDomainMethodsTable;
           renderDomainMethodsTable();
+          document.getElementById("copyDebugSnapshotBtn")?.addEventListener("click", async () => {
+            const manifestVersion = typeof chrome !== "undefined" && chrome.runtime?.getManifest ? chrome.runtime.getManifest().version : "unknown";
+            const snapshot = {
+              version: manifestVersion,
+              userAgent: navigator.userAgent,
+              settings: {
+                method: settings.method,
+                toneStyle: settings.toneStyle,
+                spellCheck: settings.spellCheck,
+                autoRestore: settings.autoRestore,
+                autoRestoreEnglish: settings.autoRestoreEnglish,
+                phonologyRules: settings.phonologyRules,
+                macroEnabled: settings.macroEnabled,
+                autoCompleteEnabled: settings.autoCompleteEnabled
+              },
+              engineState: {
+                method: settings.method,
+                toneStyle: settings.toneStyle,
+                macroCount: macroEngine.getMacros().length
+              },
+              timestamp: (/* @__PURE__ */ new Date()).toISOString()
+            };
+            try {
+              await navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2));
+              showToast("Đã copy Debug Snapshot vào clipboard!");
+            } catch {
+              showToast("Không thể copy vào clipboard.");
+            }
+          });
         });
         tdActions.appendChild(delBtn);
         tr.appendChild(tdActions);
@@ -5302,6 +5331,35 @@ Bạn có muốn ghi đè lên từ này không?`)) {
       newDomainInput.value = "";
       window.renderDomainMethodsTable = renderDomainMethodsTable;
       renderDomainMethodsTable();
+      document.getElementById("copyDebugSnapshotBtn")?.addEventListener("click", async () => {
+        const manifestVersion = typeof chrome !== "undefined" && chrome.runtime?.getManifest ? chrome.runtime.getManifest().version : "unknown";
+        const snapshot = {
+          version: manifestVersion,
+          userAgent: navigator.userAgent,
+          settings: {
+            method: settings.method,
+            toneStyle: settings.toneStyle,
+            spellCheck: settings.spellCheck,
+            autoRestore: settings.autoRestore,
+            autoRestoreEnglish: settings.autoRestoreEnglish,
+            phonologyRules: settings.phonologyRules,
+            macroEnabled: settings.macroEnabled,
+            autoCompleteEnabled: settings.autoCompleteEnabled
+          },
+          engineState: {
+            method: settings.method,
+            toneStyle: settings.toneStyle,
+            macroCount: macroEngine.getMacros().length
+          },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        try {
+          await navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2));
+          showToast("Đã copy Debug Snapshot vào clipboard!");
+        } catch {
+          showToast("Không thể copy vào clipboard.");
+        }
+      });
       saveState();
     }
     addDomainBtn?.addEventListener("click", addDomain);
@@ -5313,6 +5371,35 @@ Bạn có muốn ghi đè lên từ này không?`)) {
     });
     window.renderDomainMethodsTable = renderDomainMethodsTable;
     renderDomainMethodsTable();
+    document.getElementById("copyDebugSnapshotBtn")?.addEventListener("click", async () => {
+      const manifestVersion = typeof chrome !== "undefined" && chrome.runtime?.getManifest ? chrome.runtime.getManifest().version : "unknown";
+      const snapshot = {
+        version: manifestVersion,
+        userAgent: navigator.userAgent,
+        settings: {
+          method: settings.method,
+          toneStyle: settings.toneStyle,
+          spellCheck: settings.spellCheck,
+          autoRestore: settings.autoRestore,
+          autoRestoreEnglish: settings.autoRestoreEnglish,
+          phonologyRules: settings.phonologyRules,
+          macroEnabled: settings.macroEnabled,
+          autoCompleteEnabled: settings.autoCompleteEnabled
+        },
+        engineState: {
+          method: settings.method,
+          toneStyle: settings.toneStyle,
+          macroCount: macroEngine.getMacros().length
+        },
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2));
+        showToast("Đã copy Debug Snapshot vào clipboard!");
+      } catch {
+        showToast("Không thể copy vào clipboard.");
+      }
+    });
   }
   var renderHabitsTableAndStats = () => {
   };
