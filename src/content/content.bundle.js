@@ -64,7 +64,10 @@
     if (/\.(com|vn|net|org|io|dev|app|edu|gov|co|me|info|xyz|ai|tech|store|site)(\/|\?|#|$)/i.test(currentChunk)) {
       return true;
     }
-    if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk)) {
+    if (/^(\/[a-zA-Z0-9_.-]+|~\/|\.\/|\.\.\/)/.test(currentChunk)) {
+      return true;
+    }
+    if (/^[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]*$/.test(currentChunk)) {
       return true;
     }
     if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/i.test(currentChunk)) {
@@ -2201,7 +2204,21 @@
     "guide",
     "guest",
     "guard",
-    "guy"
+    "guy",
+    // Telex trap words
+    "cocoa",
+    "momo",
+    "mono",
+    "awkward",
+    "downward",
+    "forward",
+    "malware",
+    "network",
+    "owe",
+    "password",
+    "software",
+    "twee",
+    "weee"
   ]);
   var DEFAULT_USER_WORDS = Array.from(COMMON_ENGLISH_WORDS).sort();
   function hasCkPhonologyViolation(word) {
@@ -3201,6 +3218,8 @@
       this.lastToneToggledWord = null;
       this.toneCancelled = false;
       this.prevWordWasEnglish = false;
+      this.inEnglishContext = false;
+      this.mathContextWordsRemaining = 0;
     }
     setMethod(method) {
       this.method = method;
@@ -3259,6 +3278,8 @@
       this.lastToneToggledWord = null;
       this.toneCancelled = false;
       this.prevWordWasEnglish = false;
+      this.inEnglishContext = false;
+      this.mathContextWordsRemaining = 0;
     }
     /**
      * Revert current word buffer back to raw keystrokes (Instant ESC Revert - GoNhanh)
@@ -3301,12 +3322,24 @@
       }
       const rawCandidate = this.currentWordRaw || "";
       if (rawCandidate && rawCandidate !== currentWord) {
+        const lowerRaw = rawCandidate.toLowerCase();
         const isAllCapsAcronym = /^[A-Z]{2,5}$/.test(rawCandidate);
-        const isShortEnglishAfterEnglish = this.prevWordWasEnglish && /^(is|as|this|has|see|us|its|was)$/i.test(rawCandidate);
-        if ((isAllCapsAcronym || isShortEnglishAfterEnglish) && !userDictionary.has(currentWord.toLowerCase())) {
+        const isMathKeyword = /^(sin|cos|tan|cot|log|ln)$/i.test(lowerRaw);
+        const isEnglishAnchor = /^(the|that|a|an|he|she|there|this|it|we|they|you)$/i.test(lowerRaw);
+        const isCollisionWord = /^(is|as|this|has|see|us|its|was|tree|cos|must|room|and|or|plus|minus)$/i.test(lowerRaw);
+        if (isMathKeyword) {
+          this.mathContextWordsRemaining = 4;
+        }
+        const inContext = this.prevWordWasEnglish || this.inEnglishContext || this.mathContextWordsRemaining > 0;
+        if ((isAllCapsAcronym || inContext && isCollisionWord) && !userDictionary.has(currentWord.toLowerCase())) {
           this.prevWordWasEnglish = true;
+          this.inEnglishContext = true;
+          if (this.mathContextWordsRemaining > 0) this.mathContextWordsRemaining--;
           this.resetWordSession();
           return { restore: true, result: rawCandidate };
+        }
+        if (isEnglishAnchor) {
+          this.inEnglishContext = true;
         }
       }
       if (this.phonologyRules) {
@@ -8392,6 +8425,25 @@
           }
         }
       }
+      if (key === "`" && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
+        if (this._consecutiveBackticks === 3) {
+          this._inFencedCode = !this._inFencedCode;
+          this._inInlineCode = false;
+          this._consecutiveBackticks = 0;
+        } else {
+          this._inInlineCode = !this._inInlineCode;
+        }
+        this.avimEngine.resetWordSession();
+        return;
+      }
+      this._consecutiveBackticks = 0;
+      if (key === "Enter") {
+        this._inInlineCode = false;
+      }
+      if (this._inInlineCode || this._inFencedCode) {
+        return;
+      }
       if (event.key === "Control") {
         if (event.repeat) return;
         if (this.settings.ctrlToggleEnabled !== false) {
@@ -9284,7 +9336,9 @@
               return;
             }
           }
-          if (this.macroEngine.enabled) {
+          const charBeforeWord = textBeforeCaret.slice(0, Math.max(0, textBeforeCaret.length - currentWord.length)).slice(-1);
+          const isTechAdjacent = /[./\\@:()[\]=&?]/.test(key) || /[./\\@:(=&?]/.test(charBeforeWord);
+          if (this.macroEngine.enabled && !isTechAdjacent) {
             const expansion = this.macroEngine.checkExpansion(currentWord, key);
             if (expansion.match) {
               event.preventDefault();

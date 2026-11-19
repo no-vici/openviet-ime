@@ -896,6 +896,27 @@ class AvimContentScript {
       }
     }
 
+    // Backtick FSM for Markdown & Code blocks (`...` and ```...```)
+    if (key === '`' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+      this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
+      if (this._consecutiveBackticks === 3) {
+        this._inFencedCode = !this._inFencedCode;
+        this._inInlineCode = false;
+        this._consecutiveBackticks = 0;
+      } else {
+        this._inInlineCode = !this._inInlineCode;
+      }
+      this.avimEngine.resetWordSession();
+      return;
+    }
+    this._consecutiveBackticks = 0;
+    if (key === 'Enter') {
+      this._inInlineCode = false;
+    }
+    if (this._inInlineCode || this._inFencedCode) {
+      return;
+    }
+
     // 0. Double-Ctrl Toggle Detection (Classic AVIM Feature)
     if (event.key === 'Control') {
       if (event.repeat) return;
@@ -1958,8 +1979,10 @@ class AvimContentScript {
           }
         }
 
-        // 2. Check Macro Expansion
-        if (this.macroEngine.enabled) {
+        // 2. Check Macro Expansion (skip if adjacent to technical delimiters like . / \ @ : ( ) [ ] = & ?)
+        const charBeforeWord = textBeforeCaret.slice(0, Math.max(0, textBeforeCaret.length - currentWord.length)).slice(-1);
+        const isTechAdjacent = /[./\\@:()[\]=&?]/.test(key) || /[./\\@:(=&?]/.test(charBeforeWord);
+        if (this.macroEngine.enabled && !isTechAdjacent) {
           const expansion = this.macroEngine.checkExpansion(currentWord, key);
           if (expansion.match) {
             event.preventDefault();

@@ -95,8 +95,12 @@ export function isUrlOrEmailOrCode(textBeforeCaret = '', currentWord = '', nextK
   if (/\.(com|vn|net|org|io|dev|app|edu|gov|co|me|info|xyz|ai|tech|store|site)(\/|\?|#|$)/i.test(currentChunk)) {
     return true;
   }
-  // Unix / Linux / macOS absolute and home file paths: e.g. /usr/bin, /var/log, /etc/hosts, ~/.config, ./dist, ../src
-  if (/^(\/|~\/|\.\/|\.\.\/)[a-zA-Z0-9_.-]/i.test(currentChunk)) {
+  // Unix / Linux / macOS absolute and home file paths or slash commands: e.g. /usr/bin, /compact, /aws, ~/.config, ./dist
+  if (/^(\/[a-zA-Z0-9_.-]+|~\/|\.\/|\.\.\/)/.test(currentChunk)) {
+    return true;
+  }
+  // Short module prefixes before dot: e.g. os.path, sys.argv, io.BytesIO, fs.readFile
+  if (/^[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.]*$/.test(currentChunk)) {
     return true;
   }
   // Slashes in middle of non-space token (URL path: e.g. domain/path or api/v1)

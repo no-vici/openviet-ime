@@ -1995,7 +1995,21 @@
     "guide",
     "guest",
     "guard",
-    "guy"
+    "guy",
+    // Telex trap words
+    "cocoa",
+    "momo",
+    "mono",
+    "awkward",
+    "downward",
+    "forward",
+    "malware",
+    "network",
+    "owe",
+    "password",
+    "software",
+    "twee",
+    "weee"
   ]);
   var DEFAULT_USER_WORDS = Array.from(COMMON_ENGLISH_WORDS).sort();
   var UserDictionary = class {

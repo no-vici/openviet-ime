@@ -168,7 +168,9 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'see', 'than', 'then', 'now', 'look', 'only', 'come', 'think', 'also',
   'back', 'use', 'two', 'how', 'even', 'new',
   'because', 'any', 'these', 'give', 'day', 'most', 'city', 'center', 'cell', 'circle',
-  'gift', 'game', 'great', 'going', 'gone', 'group', 'guide', 'guest', 'guard', 'guy'
+  'gift', 'game', 'great', 'going', 'gone', 'group', 'guide', 'guest', 'guard', 'guy',
+  // Telex trap words
+  'cocoa', 'momo', 'mono', 'awkward', 'downward', 'forward', 'malware', 'network', 'owe', 'password', 'software', 'twee', 'weee'
 ]);
 
 // Common technical and English words to whitelist by default
