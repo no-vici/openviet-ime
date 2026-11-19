@@ -897,7 +897,7 @@ class AvimContentScript {
     }
 
     // Backtick FSM for Markdown & Code blocks (`...` and ```...```)
-    if (key === '`' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+    if (event.key === '`' && !event.ctrlKey && !event.altKey && !event.metaKey) {
       this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
       if (this._consecutiveBackticks === 3) {
         this._inFencedCode = !this._inFencedCode;
@@ -910,7 +910,7 @@ class AvimContentScript {
       return;
     }
     this._consecutiveBackticks = 0;
-    if (key === 'Enter') {
+    if (event.key === 'Enter') {
       this._inInlineCode = false;
     }
     if (this._inInlineCode || this._inFencedCode) {
