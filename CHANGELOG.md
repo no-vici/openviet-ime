@@ -2,6 +2,12 @@
 
 All notable changes to OpenViet IME will be documented in this file.
 
+## [1.4.1] - 2026-11-19
+
+### Fixed
+- Fixed a `ReferenceError` in `content.js` (`Backtick FSM` reading `key` before `const key = event.key` initialization) that blocked Vietnamese typing in v1.4.0.
+- Added `nghía` to the Vietnamese dictionary (`src/engine/vietnamese-words.js`).
+
 ## [1.4.0] - 2026-11-19
 
 ### Added
