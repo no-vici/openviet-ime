@@ -9473,7 +9473,8 @@
           }
           this.avimEngine.trackRawKey(upperChar);
           if (this.settings.autoCompleteEnabled !== false) {
-            setTimeout(() => {
+            clearTimeout(this._acTimer);
+            this._acTimer = setTimeout(() => {
               const wInfo = isNative ? this.textReplacer.extractNativeWordBuffer(target) : this.textReplacer.extractContentEditableWordBuffer();
               if (wInfo && wInfo.word && wInfo.word.length >= 1) {
                 const list = autoCompleteEngine.getSuggestions(wInfo.word, 4);
@@ -9483,7 +9484,7 @@
                   this.hideSuggestions();
                 }
               }
-            }, 10);
+            }, 80);
           }
           return;
         }

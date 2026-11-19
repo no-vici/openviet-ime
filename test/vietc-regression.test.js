@@ -271,3 +271,21 @@ test('Ngó Sen / vnchKey - Word Rescue (On-Activation) & Selection Accent Rescue
   assert.equal(classicEngine.applyAccentToSelection('hoa', 'r'), 'hỏa');
   assert.equal(classicEngine.applyAccentToSelection('hoa', 's'), 'hóa');
 });
+
+test('VNI - đ + single vowel regression (d9a4 -> đã, d9e63 -> để, d9o1 -> đó, d9u3 -> đủ)', () => {
+  const typeVni = (seq) => {
+    const engine = new AvimEngine({ method: IME_METHOD.VNI, spellCheck: true, autoRestore: true });
+    let word = '';
+    for (const ch of seq) {
+      const res = engine.processKey(word, ch);
+      word = res.result;
+    }
+    const restore = engine.checkAutoRestore(word);
+    return restore.restore ? restore.result : word;
+  };
+
+  assert.equal(typeVni('d9a4'), 'đã');
+  assert.equal(typeVni('d9e63'), 'để');
+  assert.equal(typeVni('d9o1'), 'đó');
+  assert.equal(typeVni('d9u3'), 'đủ');
+});

@@ -2096,7 +2096,8 @@ class AvimContentScript {
         }
         this.avimEngine.trackRawKey(upperChar);
         if (this.settings.autoCompleteEnabled !== false) {
-          setTimeout(() => {
+          clearTimeout(this._acTimer);
+          this._acTimer = setTimeout(() => {
             const wInfo = isNative
               ? this.textReplacer.extractNativeWordBuffer(target)
               : this.textReplacer.extractContentEditableWordBuffer();
@@ -2108,7 +2109,7 @@ class AvimContentScript {
                 this.hideSuggestions();
               }
             }
-          }, 10);
+          }, 80);
         }
         return;
       }
