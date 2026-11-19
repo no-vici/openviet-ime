@@ -2081,7 +2081,8 @@ class AvimContentScript {
       if (this.shouldAutoCapitalize(target)) {
         const upperChar = key.toUpperCase();
         this._blockedInputKey = key;
-        setTimeout(() => { if (this._blockedInputKey === key) this._blockedInputKey = null; }, 50);
+        clearTimeout(this._blockClearTimer);
+        this._blockClearTimer = setTimeout(() => { this._blockedInputKey = null; }, 80);
         event.preventDefault();
         if (isNative) {
           const pos = target.selectionStart ?? target.value.length;
@@ -2125,7 +2126,8 @@ class AvimContentScript {
 
         if (result.transformed) {
           this._blockedInputKey = key;
-          setTimeout(() => { if (this._blockedInputKey === key) this._blockedInputKey = null; }, 50);
+          clearTimeout(this._blockClearTimer);
+          this._blockClearTimer = setTimeout(() => { this._blockedInputKey = null; }, 80);
 
           // Immediately prevent default and stop immediate propagation to prevent race conditions with frameworks (React/Vue/TipTap)
           event.preventDefault();
@@ -2154,7 +2156,8 @@ class AvimContentScript {
 
     // C. Trigger Auto-complete suggestions for in-progress word (e.g. typing 'ngh', 'nghiên', ':ti')
     if (this.settings.autoCompleteEnabled !== false) {
-      setTimeout(() => {
+      clearTimeout(this._acTimer);
+      this._acTimer = setTimeout(() => {
         const wInfo = isNative
           ? this.textReplacer.extractNativeWordBuffer(target)
           : this.textReplacer.extractContentEditableWordBuffer();

@@ -9457,9 +9457,10 @@
         if (this.shouldAutoCapitalize(target)) {
           const upperChar = key.toUpperCase();
           this._blockedInputKey = key;
-          setTimeout(() => {
-            if (this._blockedInputKey === key) this._blockedInputKey = null;
-          }, 50);
+          clearTimeout(this._blockClearTimer);
+          this._blockClearTimer = setTimeout(() => {
+            this._blockedInputKey = null;
+          }, 80);
           event.preventDefault();
           if (isNative) {
             const pos = target.selectionStart ?? target.value.length;
@@ -9495,9 +9496,10 @@
           }
           if (result.transformed) {
             this._blockedInputKey = key;
-            setTimeout(() => {
-              if (this._blockedInputKey === key) this._blockedInputKey = null;
-            }, 50);
+            clearTimeout(this._blockClearTimer);
+            this._blockClearTimer = setTimeout(() => {
+              this._blockedInputKey = null;
+            }, 80);
             event.preventDefault();
             event.stopPropagation();
             if (typeof event.stopImmediatePropagation === "function") {
@@ -9521,7 +9523,8 @@
         }
       }
       if (this.settings.autoCompleteEnabled !== false) {
-        setTimeout(() => {
+        clearTimeout(this._acTimer);
+        this._acTimer = setTimeout(() => {
           const wInfo = isNative ? this.textReplacer.extractNativeWordBuffer(target) : this.textReplacer.extractContentEditableWordBuffer();
           if (wInfo && wInfo.word && wInfo.word.length >= 1) {
             const list = autoCompleteEngine.getSuggestions(wInfo.word, 4);
