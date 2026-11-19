@@ -1068,8 +1068,7 @@ class AvimContentScript {
     // Converts the word/token immediately before caret (or current selection) into Vietnamese or vice-versa
     if (
       this.settings.wordRescue !== false &&
-      ((event.ctrlKey && event.shiftKey && (event.key === 'r' || event.key === 'R')) ||
-       (event.altKey && !event.ctrlKey && !event.metaKey && (event.key === 'r' || event.key === 'R')))
+      this.matchesShortcut(event, this.settings.flipWordShortcut || 'Alt+R')
     ) {
       const target = this.domObserver.getActiveElement();
       if (this.domObserver.isEligibleTarget(target)) {
@@ -2179,6 +2178,27 @@ class AvimContentScript {
         }
       }, 80);
     }
+  }
+
+  matchesShortcut(event, shortcutStr) {
+    if (!shortcutStr || typeof shortcutStr !== 'string') return false;
+    const parts = shortcutStr.split('+').map(p => p.trim().toLowerCase()).filter(Boolean);
+    if (parts.length === 0) return false;
+
+    const mainKey = parts[parts.length - 1];
+    const reqCtrl = parts.includes('ctrl') || parts.includes('control');
+    const reqAlt = parts.includes('alt') || parts.includes('option');
+    const reqShift = parts.includes('shift');
+    const reqMeta = parts.includes('meta') || parts.includes('cmd') || parts.includes('command') || parts.includes('super');
+
+    if (Boolean(event.ctrlKey) !== reqCtrl) return false;
+    if (Boolean(event.altKey) !== reqAlt) return false;
+    if (Boolean(event.shiftKey) !== reqShift) return false;
+    if (Boolean(event.metaKey) !== reqMeta) return false;
+
+    const eventKey = (event.key || '').toLowerCase();
+    const eventCode = (event.code || '').toLowerCase();
+    return eventKey === mainKey || eventCode === `key${mainKey}` || eventCode === `digit${mainKey}`;
   }
 
   toggleMethod() {

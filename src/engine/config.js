@@ -25,6 +25,7 @@ export const DEFAULT_SETTINGS = {
   escRevert: true,
   phonologyRules: true,
   wordRescue: true,
+  flipWordShortcut: 'Alt+R',
   autoCompleteEnabled: true,
   nextWordEnabled: true,
   suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'

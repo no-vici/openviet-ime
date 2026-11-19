@@ -508,6 +508,7 @@
     escRevert: true,
     phonologyRules: true,
     wordRescue: true,
+    flipWordShortcut: "Alt+R",
     autoCompleteEnabled: true,
     nextWordEnabled: true,
     suggestionStyle: "ribbon",
@@ -4952,6 +4953,8 @@ Bạn có muốn ghi đè lên từ này không?`)) {
     const escRevertOption = document.getElementById("escRevertOption");
     const phonologyRulesOption = document.getElementById("phonologyRulesOption");
     const wordRescueOption = document.getElementById("wordRescueOption");
+    const flipWordShortcutInput = document.getElementById("flipWordShortcutInput");
+    const resetFlipWordShortcutBtn = document.getElementById("resetFlipWordShortcutBtn");
     const autoHarmonizeCaseOption = document.getElementById("autoHarmonizeCaseOption");
     const eraseHabitLearningOption = document.getElementById("eraseHabitLearningOption");
     const eraseHabitThresholdInput = document.getElementById("eraseHabitThresholdInput");
@@ -4989,6 +4992,7 @@ Bạn có muốn ghi đè lên từ này không?`)) {
       if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
       if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
       if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
+      if (flipWordShortcutInput) flipWordShortcutInput.value = settings.flipWordShortcut || "Alt+R";
       if (autoHarmonizeCaseOption) autoHarmonizeCaseOption.checked = Boolean(settings.autoHarmonizeCase);
       if (eraseHabitLearningOption) eraseHabitLearningOption.checked = settings.eraseHabitLearning !== false;
       if (eraseHabitThresholdInput) eraseHabitThresholdInput.value = String(settings.eraseHabitThreshold || 3);
@@ -5095,6 +5099,43 @@ Bạn có muốn ghi đè lên từ này không?`)) {
       wordRescueOption.addEventListener("change", async () => {
         settings.wordRescue = wordRescueOption.checked;
         await saveState();
+      });
+    }
+    if (flipWordShortcutInput) {
+      flipWordShortcutInput.addEventListener("keydown", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (["Control", "Alt", "Shift", "Meta", "OS", "Super"].includes(e.key)) {
+          return;
+        }
+        const modifiers = [];
+        if (e.ctrlKey) modifiers.push("Ctrl");
+        if (e.altKey) modifiers.push("Alt");
+        if (e.shiftKey) modifiers.push("Shift");
+        if (e.metaKey) modifiers.push("Meta");
+        if (modifiers.length === 0) {
+          alert("Vui lòng kết hợp ít nhất một phím bổ trợ (Ctrl, Alt, Shift hoặc Meta).");
+          return;
+        }
+        let keyName = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+        if (e.code && e.code.startsWith("Key")) {
+          keyName = e.code.slice(3).toUpperCase();
+        } else if (e.code && e.code.startsWith("Digit")) {
+          keyName = e.code.slice(5);
+        }
+        const combo = [...modifiers, keyName].join("+");
+        flipWordShortcutInput.value = combo;
+        settings.flipWordShortcut = combo;
+        await saveState();
+        showToast(`Đã đặt phím tắt đảo từ thành: ${combo}`);
+      });
+    }
+    if (resetFlipWordShortcutBtn) {
+      resetFlipWordShortcutBtn.addEventListener("click", async () => {
+        settings.flipWordShortcut = "Alt+R";
+        if (flipWordShortcutInput) flipWordShortcutInput.value = "Alt+R";
+        await saveState();
+        showToast("Đã khôi phục phím tắt đảo từ mặc định (Alt+R)");
       });
     }
     if (autoHarmonizeCaseOption) {
