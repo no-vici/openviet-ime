@@ -9487,6 +9487,9 @@
           const currentWord2 = wordInfo2.word || (!isNative ? this.avimEngine.lastTransformed : "") || "";
           this.avimEngine.trackRawKey(key);
           const result = this.avimEngine.processKey(currentWord2, key);
+          if (!result.transformed) {
+            this.avimEngine.lastTransformed = result.result;
+          }
           if (result.transformed) {
             this._blockedInputKey = key;
             setTimeout(() => {
