@@ -240,7 +240,6 @@ class AvimContentScript {
         if (typeof event.stopImmediatePropagation === 'function') {
           event.stopImmediatePropagation();
         }
-        if (isNative) {
         this._blockedInputKey = null;
       }
     }, true);
@@ -1360,10 +1359,6 @@ class AvimContentScript {
       const revert = this.avimEngine.revertCurrentWord(wordInfo.word);
       if (revert.reverted) {
         event.preventDefault();
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === 'function') {
-          event.stopImmediatePropagation();
-        }
         if (isNative) {
           this.textReplacer.replaceInNativeInput(
             target,
@@ -1879,10 +1874,6 @@ class AvimContentScript {
       const snap = this.macroEngine.checkPunctuationSnap(key, textBeforeCaret);
       if (snap.snap) {
         event.preventDefault();
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === 'function') {
-          event.stopImmediatePropagation();
-        }
         if (isNative) {
           const pos = target.selectionStart ?? target.value.length;
           // Delete trailing space and insert punctuation directly + space

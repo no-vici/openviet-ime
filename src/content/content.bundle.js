@@ -9462,6 +9462,10 @@
             this._blockedInputKey = null;
           }, 80);
           event.preventDefault();
+          event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === "function") {
+            event.stopImmediatePropagation();
+          }
           if (isNative) {
             const pos = target.selectionStart ?? target.value.length;
             this.textReplacer.replaceInNativeInput(target, pos, pos, upperChar);
