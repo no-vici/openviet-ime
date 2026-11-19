@@ -2,6 +2,13 @@
 
 All notable changes to OpenViet IME will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Acronym Bypass & Context-Aware Collision Resolution**: Protects 2–5 letter ALL-CAPS acronyms (`IOS`, `VPS`, `FPS`, `AWS`) and short English words (`is`, `as`, `this`, `has`, `see`) when following an English word (`prevWordWasEnglish`).
+- **New Dynamic Macro Variables**: Added `$ISO_DATE` (`YYYY-MM-DD`) and `$WEEKDAY` (Vietnamese weekday name) in `MacroEngine`.
+- **Live Inspector**: Added `AvimEngine.prototype.inspectState()` for debugging engine state.
+
 ## [1.3.0] - 2026-11-18
 
 ### Added

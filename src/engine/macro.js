@@ -385,11 +385,16 @@ export class MacroEngine {
     const minutes = pad(now.getMinutes());
 
     const dateStr = `${day}/${month}/${year}`;
+    const isoDateStr = `${year}-${month}-${day}`;
+    const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const weekdayStr = weekdays[now.getDay()];
     const timeStr = `${hours}:${minutes}`;
     const dateTimeStr = `${dateStr} ${timeStr}`;
 
     let result = value
       .replace(/\$DATETIME\b/g, dateTimeStr)
+      .replace(/\$ISO_DATE\b/g, isoDateStr)
+      .replace(/\$WEEKDAY\b/g, weekdayStr)
       .replace(/\$DATE\b/g, dateStr)
       .replace(/\$TIME\b/g, timeStr)
       .replace(/\$YEAR\b/g, year);

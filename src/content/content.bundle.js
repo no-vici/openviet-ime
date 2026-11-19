@@ -3200,6 +3200,7 @@
       this.lastTransformed = "";
       this.lastToneToggledWord = null;
       this.toneCancelled = false;
+      this.prevWordWasEnglish = false;
     }
     setMethod(method) {
       this.method = method;
@@ -3244,6 +3245,7 @@
       this.lastTransformed = "";
       this.lastToneToggledWord = null;
       this.toneCancelled = false;
+      this.prevWordWasEnglish = false;
     }
     /**
      * Revert current word buffer back to raw keystrokes (Instant ESC Revert - GoNhanh)
@@ -3280,8 +3282,19 @@
         return { restore: false, result: currentWord };
       }
       if (!currentWord || currentWord.length <= 1) {
+        this.prevWordWasEnglish = false;
         this.resetWordSession();
         return { restore: false, result: currentWord };
+      }
+      const rawCandidate = this.currentWordRaw || "";
+      if (rawCandidate && rawCandidate !== currentWord) {
+        const isAllCapsAcronym = /^[A-Z]{2,5}$/.test(rawCandidate);
+        const isShortEnglishAfterEnglish = this.prevWordWasEnglish && /^(is|as|this|has|see|us|its|was)$/i.test(rawCandidate);
+        if ((isAllCapsAcronym || isShortEnglishAfterEnglish) && !userDictionary.has(currentWord.toLowerCase())) {
+          this.prevWordWasEnglish = true;
+          this.resetWordSession();
+          return { restore: true, result: rawCandidate };
+        }
       }
       if (this.phonologyRules) {
         const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(currentWord);
@@ -4826,9 +4839,12 @@
       const hours = pad(now.getHours());
       const minutes = pad(now.getMinutes());
       const dateStr = `${day}/${month}/${year}`;
+      const isoDateStr = `${year}-${month}-${day}`;
+      const weekdays = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+      const weekdayStr = weekdays[now.getDay()];
       const timeStr = `${hours}:${minutes}`;
       const dateTimeStr = `${dateStr} ${timeStr}`;
-      let result = value.replace(/\$DATETIME\b/g, dateTimeStr).replace(/\$DATE\b/g, dateStr).replace(/\$TIME\b/g, timeStr).replace(/\$YEAR\b/g, year);
+      let result = value.replace(/\$DATETIME\b/g, dateTimeStr).replace(/\$ISO_DATE\b/g, isoDateStr).replace(/\$WEEKDAY\b/g, weekdayStr).replace(/\$DATE\b/g, dateStr).replace(/\$TIME\b/g, timeStr).replace(/\$YEAR\b/g, year);
       if (context.clipboardText !== void 0) {
         result = result.replace(/\$CLIPBOARD\b/gi, context.clipboardText);
       }

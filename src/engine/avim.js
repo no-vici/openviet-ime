@@ -135,6 +135,7 @@ export class AvimEngine {
     this.lastTransformed = '';
     this.lastToneToggledWord = null;
     this.toneCancelled = false;
+    this.prevWordWasEnglish = false;
   }
 
   setMethod(method) {
@@ -192,6 +193,7 @@ export class AvimEngine {
     this.lastTransformed = '';
     this.lastToneToggledWord = null;
     this.toneCancelled = false;
+    this.prevWordWasEnglish = false;
   }
 
   /**
@@ -236,8 +238,22 @@ export class AvimEngine {
 
     // 1. Reject empty or single-letter vowels (á, à, ả, ã, ạ, ú, ù, ủ, ĩ, etc.)
     if (!currentWord || currentWord.length <= 1) {
+      this.prevWordWasEnglish = false;
       this.resetWordSession();
       return { restore: false, result: currentWord };
+    }
+
+    // 1b. Acronym Bypass (ALL-CAPS 2-5 ASCII letters like IOS, VPS, FPS, AWS)
+    // and Context-Aware Collision Resolution (prevWordWasEnglish + short English words)
+    const rawCandidate = this.currentWordRaw || '';
+    if (rawCandidate && rawCandidate !== currentWord) {
+      const isAllCapsAcronym = /^[A-Z]{2,5}$/.test(rawCandidate);
+      const isShortEnglishAfterEnglish = this.prevWordWasEnglish && /^(is|as|this|has|see|us|its|was)$/i.test(rawCandidate);
+      if ((isAllCapsAcronym || isShortEnglishAfterEnglish) && !userDictionary.has(currentWord.toLowerCase())) {
+        this.prevWordWasEnglish = true;
+        this.resetWordSession();
+        return { restore: true, result: rawCandidate };
+      }
     }
 
     // 2. Phonological Strictness (Chánh Tả check on word completion - vnchKey architecture):
