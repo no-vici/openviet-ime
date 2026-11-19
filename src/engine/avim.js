@@ -188,6 +188,20 @@ export class AvimEngine {
     }
   }
 
+  /**
+   * Live Inspector: returns a snapshot of the current engine state for debugging/testing.
+   */
+  inspectState() {
+    return {
+      method: this.method,
+      toneStyle: this.toneStyle,
+      currentWordRaw: this.currentWordRaw,
+      lastTransformed: this.lastTransformed,
+      toneCancelled: this.toneCancelled,
+      prevWordWasEnglish: this.prevWordWasEnglish
+    };
+  }
+
   resetWordSession() {
     this.currentWordRaw = '';
     this.lastTransformed = '';
