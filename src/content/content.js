@@ -2116,7 +2116,7 @@ class AvimContentScript {
         : this.textReplacer.extractContentEditableWordBuffer();
 
       if (wordInfo) {
-        const currentWord = wordInfo.word || '';
+        const currentWord = wordInfo.word || (!isNative ? this.avimEngine.lastTransformed : '') || '';
         this.avimEngine.trackRawKey(key);
         const result = this.avimEngine.processKey(currentWord, key);
 

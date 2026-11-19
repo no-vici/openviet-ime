@@ -9484,7 +9484,7 @@
       if (this.settings.method !== IME_METHOD.OFF) {
         const wordInfo2 = isNative ? this.textReplacer.extractNativeWordBuffer(target) : this.textReplacer.extractContentEditableWordBuffer();
         if (wordInfo2) {
-          const currentWord2 = wordInfo2.word || "";
+          const currentWord2 = wordInfo2.word || (!isNative ? this.avimEngine.lastTransformed : "") || "";
           this.avimEngine.trackRawKey(key);
           const result = this.avimEngine.processKey(currentWord2, key);
           if (result.transformed) {
