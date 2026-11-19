@@ -3390,7 +3390,9 @@
         return { restore: false, result: currentWord };
       }
       if (raw && /\d/.test(raw)) {
-        if (/^[a-zA-Z]+\d+[a-zA-Z]+$/.test(raw) && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
+        const hasVnAccent = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(currentWord);
+        const endsWithDigit = /\d$/.test(currentWord);
+        if ((!hasVnAccent || endsWithDigit) && /^[a-zA-Z]+\d+[a-zA-Z]+$/.test(raw) && !getVietnameseWordSet().has(currentWord.toLowerCase())) {
           this.resetWordSession();
           return { restore: true, result: raw };
         }
