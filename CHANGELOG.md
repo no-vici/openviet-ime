@@ -2,7 +2,7 @@
 
 All notable changes to OpenViet IME will be documented in this file.
 
-## [Unreleased]
+## [1.4.0] - 2026-11-19
 
 ### Added
 - **Backtick FSM for Markdown & Code**: Automatically bypasses IME and macro expansion inside inline code (`` `...` ``) and fenced code blocks (```` ```...``` ````).
