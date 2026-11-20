@@ -287,6 +287,15 @@ export class AvimEngine {
       if (isEnglishAnchor) {
         this.inEnglishContext = true;
       }
+
+      // 1c. Explicit User Dictionary English/Custom Word Restore
+      // If user explicitly added the raw ASCII word (e.g. 'test') to their User Dictionary
+      // and did NOT add the Vietnamese accented form ('tét'), restore the raw word on Space.
+      if (userDictionary.has(lowerRaw) && !userDictionary.has(currentWord.toLowerCase())) {
+        this.prevWordWasEnglish = true;
+        this.resetWordSession();
+        return { restore: true, result: rawCandidate };
+      }
     }
 
     // 2. Phonological Strictness (Chánh Tả check on word completion - vnchKey architecture):

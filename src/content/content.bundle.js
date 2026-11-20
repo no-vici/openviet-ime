@@ -3341,6 +3341,11 @@
         if (isEnglishAnchor) {
           this.inEnglishContext = true;
         }
+        if (userDictionary.has(lowerRaw) && !userDictionary.has(currentWord.toLowerCase())) {
+          this.prevWordWasEnglish = true;
+          this.resetWordSession();
+          return { restore: true, result: rawCandidate };
+        }
       }
       if (this.phonologyRules) {
         const hasDiacritics = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(currentWord);
