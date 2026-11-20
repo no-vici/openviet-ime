@@ -22,7 +22,7 @@ async function initPopup() {
   const nextWordToggle = document.getElementById('nextWordToggle');
   const gboardLearningToggle = document.getElementById('gboardLearningToggle');
   const eraseHabitLearningToggle = document.getElementById('eraseHabitLearningToggle');
-  const ghostTextToggle = document.getElementById('ghostTextToggle');
+  const suggestionStyleSelect = document.getElementById('suggestionStyleSelect');
   const openOptionsBtn = document.getElementById('openOptions');
   const appVersionEl = document.getElementById('appVersion');
 
@@ -166,8 +166,8 @@ async function initPopup() {
         eraseSub.textContent = `Xóa từ ${threshold} lần tự lưu vào từ điển riêng`;
       }
     }
-    if (ghostTextToggle) {
-      ghostTextToggle.checked = settings.suggestionStyle === 'ghost_text';
+    if (suggestionStyleSelect) {
+      suggestionStyleSelect.value = settings.suggestionStyle || 'ribbon';
     }
 
     // Update active domain banner
@@ -384,9 +384,9 @@ async function initPopup() {
     });
   }
 
-  if (ghostTextToggle) {
-    ghostTextToggle.addEventListener('change', async () => {
-      settings.suggestionStyle = ghostTextToggle.checked ? 'ghost_text' : 'ribbon';
+  if (suggestionStyleSelect) {
+    suggestionStyleSelect.addEventListener('change', async () => {
+      settings.suggestionStyle = suggestionStyleSelect.value;
       await saveSettings();
     });
   }

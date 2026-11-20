@@ -362,13 +362,14 @@
 
   <div class="toggle-row">
     <div class="toggle-label">
-      <span>Chữ mờ sau con trỏ (Ghost Text)</span>
-      <span class="toggle-sub">Chữ mờ kiểu Smart Compose, nhấn Tab/&rarr; điền</span>
+      <span>Kiểu hiển thị gợi ý</span>
+      <span class="toggle-sub">Popup nổi, chữ mờ Inline, hoặc Tắt hẳn</span>
     </div>
-    <label class="switch">
-      <input type="checkbox" id="ghostTextToggle">
-      <span class="slider"></span>
-    </label>
+    <select id="suggestionStyleSelect" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; padding: 4px 6px; font-size: 11px; cursor: pointer;">
+      <option value="ribbon">Popup</option>
+      <option value="ghost_text">Inline</option>
+      <option value="off">Tắt</option>
+    </select>
   </div>
 
   <div class="footer">
