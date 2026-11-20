@@ -7,7 +7,7 @@
 [![Vietnamese IME](https://img.shields.io/badge/IME-Vietnamese-blue?style=flat-square)](#)
 [![Input Methods](https://img.shields.io/badge/Methods-Auto%20|%20Telex%20|%20VNI-indigo?style=flat-square)](#)
 [![Manifest V3](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-blue?style=flat-square)](#)
-[![Firefox WebExtension](https://img.shields.io/badge/Firefox-WebExtension-orange?style=flat-square)](#)
+[![Firefox WebExtension](https://img.shields.io/badge/Firefox-WebExtension-orange?style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/openviet-ime/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square)](#)
 [![AI-Assisted](https://img.shields.io/badge/AI%20Assisted-Google%20Gemini-8E75C2?logo=google-gemini&logoColor=white)](https://gemini.google.com)
 
@@ -475,6 +475,9 @@ You can either download pre-built release packages from GitHub Releases or build
 6. The OpenViet IME icon will appear in your toolbar with the badge **`AUTO`**.
 
 ### Loading into Mozilla Firefox
+
+- **Direct Install (Recommended):** [Install OpenViet IME from Mozilla Add-ons (AMO)](https://addons.mozilla.org/en-US/firefox/addon/openviet-ime/)
+- **Manual / Developer Load:**
 
 1. Build or download the Firefox package (`npm run build:firefox`).
 2. Open `about:debugging#/runtime/this-firefox` in Firefox.
