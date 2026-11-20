@@ -1374,6 +1374,16 @@ export class AvimEngine {
 
           if (target) {
             const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
+            // If 'ư' was created directly from 'w' (not 'u'+'w'), pressing 'w' again reverts 'ư' -> 'w'
+            if (lowerBase === 'ư' && baseInfo.tone === 0 && this.currentWordRaw &&
+                this.currentWordRaw.toLowerCase().endsWith('w') &&
+                !/u$/i.test(this.currentWordRaw.slice(0, -1))) {
+              const wChar = isUpper ? 'W' : 'w';
+              return {
+                transformed: true,
+                result: word.slice(0, i) + wChar + word.slice(i + 1)
+              };
+            }
             const targetBase = isUpper ? target.toUpperCase() : target.toLowerCase();
             const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
             const appendLetter = ['ă', 'ơ', 'ư'].includes(lowerBase) ? 'w' : '';
@@ -1510,6 +1520,16 @@ export class AvimEngine {
           const target = SHAPE_MAP[baseInfo.base]?.circumflex;
           if (target) {
             const isUpper = char === char.toUpperCase() && char !== char.toLowerCase();
+            // If 'ư' was created directly from 'w' (not 'u'+'w'), pressing 'w' again reverts 'ư' -> 'w'
+            if (lowerBase === 'ư' && baseInfo.tone === 0 && this.currentWordRaw &&
+                this.currentWordRaw.toLowerCase().endsWith('w') &&
+                !/u$/i.test(this.currentWordRaw.slice(0, -1))) {
+              const wChar = isUpper ? 'W' : 'w';
+              return {
+                transformed: true,
+                result: word.slice(0, i) + wChar + word.slice(i + 1)
+              };
+            }
             const targetBase = isUpper ? target.toUpperCase() : target.toLowerCase();
             const newChar = VOWEL_TABLE[targetBase][baseInfo.tone];
             // If already circumflexed ('â', 'ê', 'ô'), retyping '6' removes circumflex AND outputs '6'
