@@ -624,7 +624,12 @@ class AvimContentScript {
     if (!this.suggestionBar) this.initSuggestionHost();
     if (!this.suggestionBar) return;
 
-    // Check suggestion style: Ghost Text vs Floating Ribbon
+    // Check suggestion style: Off vs Ghost Text vs Floating Ribbon
+    if (this.settings.suggestionStyle === 'off') {
+      this.hideSuggestions();
+      return;
+    }
+
     if (this.settings.suggestionStyle === 'ghost_text') {
       if (this.suggestionBar) this.suggestionBar.classList.add('hidden');
       const topCandidate = visibleItems[0]?.word;

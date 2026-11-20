@@ -5052,7 +5052,7 @@
     autoCompleteEnabled: true,
     nextWordEnabled: true,
     suggestionStyle: "ribbon",
-    // 'ribbon' | 'ghost_text'
+    // 'ribbon' | 'ghost_text' | 'off'
     gboardLearningEnabled: true,
     autoHarmonizeCase: false,
     // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được) (Default: false)
@@ -8235,6 +8235,10 @@
       this.currentTarget = target;
       if (!this.suggestionBar) this.initSuggestionHost();
       if (!this.suggestionBar) return;
+      if (this.settings.suggestionStyle === "off") {
+        this.hideSuggestions();
+        return;
+      }
       if (this.settings.suggestionStyle === "ghost_text") {
         if (this.suggestionBar) this.suggestionBar.classList.add("hidden");
         const topCandidate = visibleItems[0]?.word;

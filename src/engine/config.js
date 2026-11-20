@@ -28,7 +28,7 @@ export const DEFAULT_SETTINGS = {
   flipWordShortcut: 'Alt+R',
   autoCompleteEnabled: true,
   nextWordEnabled: true,
-  suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
+  suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text' | 'off'
   gboardLearningEnabled: true,
   autoHarmonizeCase: false,  // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được) (Default: false)
   eraseHabitLearning: true,  // Auto-learn words to user dictionary after erasing accented words >= threshold times

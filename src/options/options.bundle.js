@@ -512,7 +512,7 @@
     autoCompleteEnabled: true,
     nextWordEnabled: true,
     suggestionStyle: "ribbon",
-    // 'ribbon' | 'ghost_text'
+    // 'ribbon' | 'ghost_text' | 'off'
     gboardLearningEnabled: true,
     autoHarmonizeCase: false,
     // Harmonize mixed Shift/CapsLock casing (ĐƯợc -> Được) (Default: false)

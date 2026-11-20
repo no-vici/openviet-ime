@@ -27,7 +27,7 @@ const DEFAULT_SETTINGS = {
   flipWordShortcut: 'Alt+R',
   autoCompleteEnabled: true,
   nextWordEnabled: true,
-  suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text'
+  suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text' | 'off'
   gboardLearningEnabled: true,
   autoHarmonizeCase: false,
   eraseHabitLearning: true,
