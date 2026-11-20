@@ -8499,10 +8499,17 @@
           }
         }
       }
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && (this._inInlineCode || this._inFencedCode)) {
         this._inInlineCode = false;
         this._inFencedCode = false;
         this._consecutiveBackticks = 0;
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") {
+          event.stopImmediatePropagation();
+        }
+        this.showHudToast("Đã thoát chế độ gõ Code (Bật lại Tiếng Việt)", true);
+        return;
       }
       if (this.settings.markdownCodeLock === true) {
         if (event.key === "`" && !event.ctrlKey && !event.altKey && !event.metaKey) {

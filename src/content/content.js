@@ -902,11 +902,18 @@ class AvimContentScript {
       }
     }
 
-    // Escape always resets Markdown backtick bypass state
-    if (event.key === 'Escape') {
+    // Escape resets Markdown backtick bypass state WITHOUT kicking user out of the input box
+    if (event.key === 'Escape' && (this._inInlineCode || this._inFencedCode)) {
       this._inInlineCode = false;
       this._inFencedCode = false;
       this._consecutiveBackticks = 0;
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') {
+        event.stopImmediatePropagation();
+      }
+      this.showHudToast('Đã thoát chế độ gõ Code (Bật lại Tiếng Việt)', true);
+      return;
     }
 
     // Backtick FSM for Markdown & Code blocks (`...` and ```...```)
