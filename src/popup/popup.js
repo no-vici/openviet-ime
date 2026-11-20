@@ -70,9 +70,9 @@ async function initPopup() {
     autoRestoreEnglish: true,
     escRevert: true,
     phonologyRules: true,
-    autoCompleteEnabled: true,
-    nextWordEnabled: true,
-    suggestionStyle: 'ribbon',
+    autoCompleteEnabled: false,
+    nextWordEnabled: false,
+    suggestionStyle: 'off',
     gboardLearningEnabled: true
   };
 

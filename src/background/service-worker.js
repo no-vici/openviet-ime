@@ -26,9 +26,9 @@ const DEFAULT_SETTINGS = {
   phonologyRules: true,
   wordRescue: true,
   flipWordShortcut: 'Alt+R',
-  autoCompleteEnabled: true,
-  nextWordEnabled: true,
-  suggestionStyle: 'ribbon', // 'ribbon' | 'ghost_text' | 'off'
+  autoCompleteEnabled: false,
+  nextWordEnabled: false,
+  suggestionStyle: 'off', // 'ribbon' | 'ghost_text' | 'off'
   gboardLearningEnabled: true,
   autoHarmonizeCase: false,
   eraseHabitLearning: true,

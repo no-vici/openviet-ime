@@ -510,9 +510,9 @@
     phonologyRules: true,
     wordRescue: true,
     flipWordShortcut: "Alt+R",
-    autoCompleteEnabled: true,
-    nextWordEnabled: true,
-    suggestionStyle: "ribbon",
+    autoCompleteEnabled: false,
+    nextWordEnabled: false,
+    suggestionStyle: "off",
     // 'ribbon' | 'ghost_text' | 'off'
     gboardLearningEnabled: true,
     autoHarmonizeCase: false,
