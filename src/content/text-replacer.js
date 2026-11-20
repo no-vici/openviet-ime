@@ -154,7 +154,8 @@ export class TextReplacer {
       const rawBeforeCursor = rawText.slice(0, offset);
       const textBeforeCursor = rawBeforeCursor.normalize('NFC');
       if (textBeforeCursor.endsWith(nfcOldText)) {
-        const replaceStart = Math.max(0, offset - (rawBeforeCursor.length - textBeforeCursor.slice(0, -nfcOldText.length).length));
+        const nfdDelta = rawBeforeCursor.length - textBeforeCursor.length;
+        const replaceStart = Math.max(0, offset - nfcOldText.length - nfdDelta);
         const newContent = (rawText.slice(0, replaceStart) + nfcNewText + rawText.slice(offset)).normalize('NFC');
 
         const replaceRange = document.createRange();

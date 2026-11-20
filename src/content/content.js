@@ -902,25 +902,38 @@ class AvimContentScript {
       }
     }
 
-    // Backtick FSM for Markdown & Code blocks (`...` and ```...```)
-    if (event.key === '`' && !event.ctrlKey && !event.altKey && !event.metaKey) {
-      this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
-      if (this._consecutiveBackticks === 3) {
-        this._inFencedCode = !this._inFencedCode;
-        this._inInlineCode = false;
-        this._consecutiveBackticks = 0;
-      } else {
-        this._inInlineCode = !this._inInlineCode;
-      }
-      this.avimEngine.resetWordSession();
-      return;
-    }
-    this._consecutiveBackticks = 0;
-    if (event.key === 'Enter') {
+    // Escape always resets Markdown backtick bypass state
+    if (event.key === 'Escape') {
       this._inInlineCode = false;
+      this._inFencedCode = false;
+      this._consecutiveBackticks = 0;
     }
-    if (this._inInlineCode || this._inFencedCode) {
-      return;
+
+    // Backtick FSM for Markdown & Code blocks (`...` and ```...```)
+    if (this.settings.markdownCodeLock !== false) {
+      if (event.key === '`' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
+        if (this._consecutiveBackticks === 3) {
+          this._inFencedCode = !this._inFencedCode;
+          this._inInlineCode = false;
+          this._consecutiveBackticks = 0;
+        } else {
+          this._inInlineCode = !this._inInlineCode;
+        }
+        this.avimEngine.resetWordSession();
+        return;
+      }
+      this._consecutiveBackticks = 0;
+      if (event.key === 'Enter') {
+        this._inInlineCode = false;
+      }
+      if (this._inInlineCode || this._inFencedCode) {
+        return;
+      }
+    } else {
+      this._inInlineCode = false;
+      this._inFencedCode = false;
+      this._consecutiveBackticks = 0;
     }
 
     // 0. Double-Ctrl Toggle Detection (Classic AVIM Feature)

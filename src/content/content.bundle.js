@@ -5046,6 +5046,7 @@
     domainMethods: {},
     autoRestoreEnglish: true,
     escRevert: true,
+    markdownCodeLock: true,
     phonologyRules: true,
     wordRescue: true,
     flipWordShortcut: "Alt+R",
@@ -5269,7 +5270,8 @@
         const rawBeforeCursor = rawText.slice(0, offset);
         const textBeforeCursor = rawBeforeCursor.normalize("NFC");
         if (textBeforeCursor.endsWith(nfcOldText)) {
-          const replaceStart = Math.max(0, offset - (rawBeforeCursor.length - textBeforeCursor.slice(0, -nfcOldText.length).length));
+          const nfdDelta = rawBeforeCursor.length - textBeforeCursor.length;
+          const replaceStart = Math.max(0, offset - nfcOldText.length - nfdDelta);
           const newContent = (rawText.slice(0, replaceStart) + nfcNewText + rawText.slice(offset)).normalize("NFC");
           const replaceRange = document.createRange();
           replaceRange.setStart(node, replaceStart);
@@ -8463,24 +8465,35 @@
           }
         }
       }
-      if (event.key === "`" && !event.ctrlKey && !event.altKey && !event.metaKey) {
-        this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
-        if (this._consecutiveBackticks === 3) {
-          this._inFencedCode = !this._inFencedCode;
-          this._inInlineCode = false;
-          this._consecutiveBackticks = 0;
-        } else {
-          this._inInlineCode = !this._inInlineCode;
-        }
-        this.avimEngine.resetWordSession();
-        return;
-      }
-      this._consecutiveBackticks = 0;
-      if (event.key === "Enter") {
+      if (event.key === "Escape") {
         this._inInlineCode = false;
+        this._inFencedCode = false;
+        this._consecutiveBackticks = 0;
       }
-      if (this._inInlineCode || this._inFencedCode) {
-        return;
+      if (this.settings.markdownCodeLock !== false) {
+        if (event.key === "`" && !event.ctrlKey && !event.altKey && !event.metaKey) {
+          this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
+          if (this._consecutiveBackticks === 3) {
+            this._inFencedCode = !this._inFencedCode;
+            this._inInlineCode = false;
+            this._consecutiveBackticks = 0;
+          } else {
+            this._inInlineCode = !this._inInlineCode;
+          }
+          this.avimEngine.resetWordSession();
+          return;
+        }
+        this._consecutiveBackticks = 0;
+        if (event.key === "Enter") {
+          this._inInlineCode = false;
+        }
+        if (this._inInlineCode || this._inFencedCode) {
+          return;
+        }
+      } else {
+        this._inInlineCode = false;
+        this._inFencedCode = false;
+        this._consecutiveBackticks = 0;
       }
       if (event.key === "Control") {
         if (event.repeat) return;

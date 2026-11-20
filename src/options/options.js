@@ -575,6 +575,7 @@ function initPreferences() {
   const ctrlToggleOption = document.getElementById('ctrlToggleOption');
   const autoRestoreEnglishOption = document.getElementById('autoRestoreEnglishOption');
   const escRevertOption = document.getElementById('escRevertOption');
+  const markdownCodeLockOption = document.getElementById('markdownCodeLockOption');
   const phonologyRulesOption = document.getElementById('phonologyRulesOption');
   const wordRescueOption = document.getElementById('wordRescueOption');
   const flipWordShortcutInput = document.getElementById('flipWordShortcutInput');
@@ -619,6 +620,7 @@ function initPreferences() {
     if (autoUndoOption) autoUndoOption.checked = Boolean(settings.autoUndo);
     if (autoRestoreEnglishOption) autoRestoreEnglishOption.checked = settings.autoRestoreEnglish !== false;
     if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
+    if (markdownCodeLockOption) markdownCodeLockOption.checked = settings.markdownCodeLock !== false;
     if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
     if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
     if (flipWordShortcutInput) flipWordShortcutInput.value = settings.flipWordShortcut || 'Alt+R';
@@ -734,6 +736,13 @@ function initPreferences() {
   if (escRevertOption) {
     escRevertOption.addEventListener('change', async () => {
       settings.escRevert = escRevertOption.checked;
+      await saveState();
+    });
+  }
+
+  if (markdownCodeLockOption) {
+    markdownCodeLockOption.addEventListener('change', async () => {
+      settings.markdownCodeLock = markdownCodeLockOption.checked;
       await saveState();
     });
   }
