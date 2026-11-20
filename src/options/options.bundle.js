@@ -506,7 +506,7 @@
     domainMethods: {},
     autoRestoreEnglish: true,
     escRevert: true,
-    markdownCodeLock: true,
+    markdownCodeLock: false,
     phonologyRules: true,
     wordRescue: true,
     flipWordShortcut: "Alt+R",
@@ -4992,7 +4992,7 @@ Bạn có muốn ghi đè lên từ này không?`)) {
       if (autoUndoOption) autoUndoOption.checked = Boolean(settings.autoUndo);
       if (autoRestoreEnglishOption) autoRestoreEnglishOption.checked = settings.autoRestoreEnglish !== false;
       if (escRevertOption) escRevertOption.checked = settings.escRevert !== false;
-      if (markdownCodeLockOption) markdownCodeLockOption.checked = settings.markdownCodeLock !== false;
+      if (markdownCodeLockOption) markdownCodeLockOption.checked = settings.markdownCodeLock === true;
       if (phonologyRulesOption) phonologyRulesOption.checked = settings.phonologyRules !== false;
       if (wordRescueOption) wordRescueOption.checked = settings.wordRescue !== false;
       if (flipWordShortcutInput) flipWordShortcutInput.value = settings.flipWordShortcut || "Alt+R";

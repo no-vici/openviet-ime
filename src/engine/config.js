@@ -23,7 +23,7 @@ export const DEFAULT_SETTINGS = {
   domainMethods: {},
   autoRestoreEnglish: true,
   escRevert: true,
-  markdownCodeLock: true,
+  markdownCodeLock: false,
   phonologyRules: true,
   wordRescue: true,
   flipWordShortcut: 'Alt+R',

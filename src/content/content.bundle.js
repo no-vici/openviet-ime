@@ -5046,7 +5046,7 @@
     domainMethods: {},
     autoRestoreEnglish: true,
     escRevert: true,
-    markdownCodeLock: true,
+    markdownCodeLock: false,
     phonologyRules: true,
     wordRescue: true,
     flipWordShortcut: "Alt+R",
@@ -8470,7 +8470,7 @@
         this._inFencedCode = false;
         this._consecutiveBackticks = 0;
       }
-      if (this.settings.markdownCodeLock !== false) {
+      if (this.settings.markdownCodeLock === true) {
         if (event.key === "`" && !event.ctrlKey && !event.altKey && !event.metaKey) {
           this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
           if (this._consecutiveBackticks === 3) {

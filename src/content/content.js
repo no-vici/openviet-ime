@@ -910,7 +910,7 @@ class AvimContentScript {
     }
 
     // Backtick FSM for Markdown & Code blocks (`...` and ```...```)
-    if (this.settings.markdownCodeLock !== false) {
+    if (this.settings.markdownCodeLock === true) {
       if (event.key === '`' && !event.ctrlKey && !event.altKey && !event.metaKey) {
         this._consecutiveBackticks = (this._consecutiveBackticks || 0) + 1;
         if (this._consecutiveBackticks === 3) {
