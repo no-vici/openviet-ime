@@ -288,10 +288,10 @@ export class AvimEngine {
         this.inEnglishContext = true;
       }
 
-      // 1c. Explicit User Dictionary English/Custom Word Restore
-      // If user explicitly added the raw ASCII word (e.g. 'test') to their User Dictionary
-      // and did NOT add the Vietnamese accented form ('tét'), restore the raw word on Space.
-      if (userDictionary.has(lowerRaw) && !userDictionary.has(currentWord.toLowerCase())) {
+      // 1c. Explicit User Dictionary & Common English Technical Word Restore
+      // If the raw ASCII word is in User Dictionary or COMMON_ENGLISH_WORDS (e.g. 'test', 'rest', 'must')
+      // and the accented form ('tét') is NOT explicitly in User Dictionary, restore the raw word on Space.
+      if ((userDictionary.has(lowerRaw) || COMMON_ENGLISH_WORDS.has(lowerRaw)) && !userDictionary.has(currentWord.toLowerCase())) {
         this.prevWordWasEnglish = true;
         this.resetWordSession();
         return { restore: true, result: rawCandidate };

@@ -3341,7 +3341,7 @@
         if (isEnglishAnchor) {
           this.inEnglishContext = true;
         }
-        if (userDictionary.has(lowerRaw) && !userDictionary.has(currentWord.toLowerCase())) {
+        if ((userDictionary.has(lowerRaw) || COMMON_ENGLISH_WORDS.has(lowerRaw)) && !userDictionary.has(currentWord.toLowerCase())) {
           this.prevWordWasEnglish = true;
           this.resetWordSession();
           return { restore: true, result: rawCandidate };
