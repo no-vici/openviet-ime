@@ -46,14 +46,14 @@ npm install
 ### Step 2: Build & Package the Firefox Add-on
 Run the automated build script:
 ```bash
-npm run bundle:firefox
+npm run build:firefox
 ```
 
 #### What this script executes behind the scenes:
-1. **Bundles Content Script & Options Page**:
+1. **Bundles Content Script & Options Page** (`npm run bundle:extension`):
    ```bash
-   esbuild src/content/content.js --bundle --outfile=src/content/content.bundle.js --format=iife
-   esbuild src/options/options.js --bundle --outfile=src/options/options.bundle.js --format=iife
+   esbuild src/content/content.js --bundle --outfile=src/content/content.bundle.js --format=iife --charset=utf8
+   esbuild src/options/options.js --bundle --outfile=src/options/options.bundle.js --format=iife --charset=utf8
    ```
    *(Uses `esbuild` to package ES modules into an IIFE bundle without minification or obfuscation).*
 2. **Applies Firefox WebExtensions Manifest**:
@@ -70,7 +70,7 @@ npm run bundle:firefox
 
 ## 4. Output Location & Verification
 
-After running `npm run bundle:firefox`, the final add-on package will be generated at:
+After running `npm run build:firefox`, the final add-on package will be generated at:
 ```
 web-ext-artifacts/openviet_ime-firefox-1.4.3.zip
 ```

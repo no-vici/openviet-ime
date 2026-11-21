@@ -247,6 +247,7 @@ export class AvimEngine {
    */
   checkAutoRestore(currentWord) {
     if (!this.autoRestoreEnglish) {
+      this.resetWordSession();
       return { restore: false, result: currentWord };
     }
 
@@ -258,7 +259,7 @@ export class AvimEngine {
     }
 
     // 1b. Acronym Bypass (ALL-CAPS 2-5 ASCII letters like IOS, VPS, FPS, AWS)
-    // and Context-Aware Collision Resolution (Sentence Momentum & Math Context)
+    // and explicit user/common-English word restore.
     const rawCandidate = this.currentWordRaw || '';
     if (rawCandidate && rawCandidate !== currentWord) {
       const lowerRaw = rawCandidate.toLowerCase();
@@ -390,7 +391,7 @@ export class AvimEngine {
       ) {
         reversed = matchCasing(currentWord, reversed);
         this.resetWordSession();
-        return { restore: true, result: restored };
+        return { restore: true, result: reversed };
       }
     }
 

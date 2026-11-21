@@ -612,14 +612,15 @@ class AvimContentScript {
     this.activeWordPrefix = query;
     this.currentTarget = target;
 
-    if (!this.suggestionBar) this.initSuggestionHost();
-    if (!this.suggestionBar) return;
-
-    // Check suggestion style: Off vs Ghost Text vs Floating Ribbon
+    // Check suggestion style before mounting the lazy host: with suggestions off,
+    // no shadow DOM / caret mirror should be injected into the page at all.
     if (this.settings.suggestionStyle === 'off') {
       this.hideSuggestions();
       return;
     }
+
+    if (!this.suggestionBar) this.initSuggestionHost();
+    if (!this.suggestionBar) return;
 
     if (this.settings.suggestionStyle === 'ghost_text') {
       if (this.suggestionBar) this.suggestionBar.classList.add('hidden');

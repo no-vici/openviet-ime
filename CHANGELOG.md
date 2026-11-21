@@ -18,6 +18,9 @@ All notable changes to OpenViet IME will be documented in this file.
 - Fixed stale beforeinput guards blocking repeated keys (VNI digits, Telex tone keys).
 - Fixed stale contenteditable word extraction corrupting the previous word.
 - Fixed rich editor delimiter handling to recover lost accents from the last IME transform.
+- Fixed a `ReferenceError` in the auto-restore reverse fallback that could crash on trap words.
+- Reset the word session when auto-restore is disabled to prevent unbounded raw-buffer growth.
+- Avoid mounting the lazy suggestion host when the suggestion style is `off`.
 - Restored Firefox `browser_specific_settings` in `manifest.json` after accidental overwrite.
 
 ## [1.4.2] - 2026-11-20
