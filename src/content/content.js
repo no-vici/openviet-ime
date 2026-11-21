@@ -11,7 +11,7 @@ import { MacroEngine, DEFAULT_MACROS } from '../engine/macro.js';
 import { DEFAULT_SETTINGS } from '../engine/config.js';
 import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode, isDeveloperCheatContext } from '../engine/key-codes.js';
 import { DomObserver } from './dom-observer.js';
-import { TextReplacer } from './text-replacer.js';
+import { TextReplacer, ZERO_WIDTH_TRAILING_RE } from './text-replacer.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
 import { userDictionary, reverseVietnameseWord } from '../engine/dictionary.js';
 import { getVietnameseWordSet } from '../engine/vietnamese-words.js';
@@ -1212,7 +1212,7 @@ class AvimContentScript {
       if (!textBefore) return false;
 
       // Match trailing whitespace + word boundary
-      const match = textBefore.match(/(\s*[\p{L}\p{N}_.:-]+|\s+|[^\s\p{L}\p{N}]+)$/u);
+      const match = textBefore.match(/(\s*[\p{L}\p{M}\p{N}_.:-]+|\s+|[^\s\p{L}\p{M}\p{N}]+)$/u);
       if (match) {
         event.preventDefault();
         const deleteLen = match[0].length;
@@ -1236,7 +1236,7 @@ class AvimContentScript {
           const text = node.textContent || '';
           const pos = range.startOffset;
           const textBefore = text.slice(0, pos);
-          const match = textBefore.match(/(\s*[\p{L}\p{N}_.:-]+|\s+|[^\s\p{L}\p{N}]+)$/u);
+          const match = textBefore.match(/(\s*[\p{L}\p{M}\p{N}_.:-]+|\s+|[^\s\p{L}\p{M}\p{N}]+)$/u);
           if (match) {
             event.preventDefault();
             const deleteLen = match[0].length;
@@ -1357,7 +1357,7 @@ class AvimContentScript {
     const match = context.match(/([.!?])(\s+)$/);
     if (match) {
       const trimmed = context.slice(0, -match[0].length).trim().toLowerCase();
-      const lastWordMatch = trimmed.match(/([\p{L}\p{N}_.]+)$/iu);
+      const lastWordMatch = trimmed.replace(ZERO_WIDTH_TRAILING_RE, '').match(/([\p{L}\p{M}\p{N}_.]+)$/iu);
       if (lastWordMatch) {
         const lastWord = lastWordMatch[1];
         const ABBRS = new Set([
@@ -1841,7 +1841,7 @@ class AvimContentScript {
     // Check if backspacing exactly one space following a word
     if (textBefore && textBefore.endsWith(' ')) {
       const trimmed = textBefore.slice(0, -1);
-      const match = trimmed.match(/([\p{L}\p{M}]+)$/u);
+      const match = trimmed.replace(ZERO_WIDTH_TRAILING_RE, '').match(/([\p{L}\p{M}]+)$/u);
       if (match) {
         const adopted = match[1];
         this.avimEngine.currentWordRaw = reverseVietnameseWord(adopted) || adopted;
@@ -2121,7 +2121,7 @@ class AvimContentScript {
         !this._inInlineCode &&
         !this._inFencedCode &&
         textBeforeCaret.length > 0 &&
-        /\p{L}/u.test(textBeforeCaret.slice(-1))
+        /[\p{L}\p{M}]/u.test(textBeforeCaret.replace(ZERO_WIDTH_TRAILING_RE, '').slice(-1))
       ) {
         event.preventDefault();
         if (isNative) {

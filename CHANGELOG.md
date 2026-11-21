@@ -7,6 +7,7 @@ All notable changes to OpenViet IME will be documented in this file.
 ### Added
 - Regression tests for VNI tone removal, macro variables, URL/code guards, macro/autocomplete edge cases, and Telex `w` revert.
 - Lazy-loaded suggestion host and deferred autocomplete model loading to reduce per-page overhead.
+- Prefix-bucketed autocomplete indexes with lazy construction; scoring is computed only for matching words.
 
 ### Changed
 - Autosuggest and next-word prediction are debounced (150ms) to avoid typing lag.
@@ -18,6 +19,7 @@ All notable changes to OpenViet IME will be documented in this file.
 - Fixed stale beforeinput guards blocking repeated keys (VNI digits, Telex tone keys).
 - Fixed stale contenteditable word extraction corrupting the previous word.
 - Fixed rich editor delimiter handling to recover lost accents from the last IME transform.
+- Fixed word-boundary extraction for NFD combining marks and editor-injected zero-width markers.
 - Fixed a `ReferenceError` in the auto-restore reverse fallback that could crash on trap words.
 - Reset the word session when auto-restore is disabled to prevent unbounded raw-buffer growth.
 - Avoid mounting the lazy suggestion host when the suggestion style is `off`.

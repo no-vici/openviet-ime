@@ -6,6 +6,36 @@
  * @license Apache-2.0
  */
 
+/**
+ * Editors such as ProseMirror / Telegram may insert zero-width markers around
+ * inline nodes. They must not break Vietnamese word extraction, and combining
+ * marks (NFD tone marks) must be treated as part of the word.
+ */
+export const ZERO_WIDTH_TRAILING_RE = /[\u200B\u200C\u200D\u2060\uFEFF]+$/u;
+const WORD_TAIL_RE = /([\p{L}\p{N}\p{M}'’]+)[\u200B\u200C\u200D\u2060\uFEFF]*$/u;
+
+/**
+ * Extract the trailing word from `text` before `offset`, ignoring any trailing
+ * zero-width editor markers. `endIndex` stops before those markers so they are
+ * left untouched by replacements.
+ */
+export function extractWordBeforeOffset(text, offset) {
+  const textBefore = (text || '').slice(0, offset);
+  const match = textBefore.match(WORD_TAIL_RE);
+  if (!match) return { word: '', startIndex: offset, endIndex: offset };
+
+  let word = match[1];
+  let startIndex = offset - match[0].length;
+
+  // Opening quotes are preserved: only "M'Đrắk"-style internal apostrophes are part of the word.
+  if (/^['’]/.test(word) && !/^[A-Za-z]['’]/.test(word)) {
+    word = word.slice(1);
+    startIndex += 1;
+  }
+
+  return { word, startIndex, endIndex: startIndex + word.length };
+}
+
 export class TextReplacer {
   /**
    * Detect if the current page/editor is Microsoft Teams Web (RoosterJS / CKEditor)
@@ -298,30 +328,7 @@ export class TextReplacer {
    */
   extractNativeWordBuffer(el) {
     const pos = el.selectionStart ?? el.value.length;
-    const value = el.value || '';
-    const textBefore = value.slice(0, pos);
-
-    // Find the word boundary before pos (allow apostrophe ' and ’ for Central Highlands names like M'Đrắk, Ea H'leo, Cư M'gar)
-    const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
-    if (match) {
-      let word = match[1];
-      let startIndex = pos - word.length;
-
-      // If word starts with an opening quote mark (single quote ' or curly ’)
-      // and is NOT a Central Highlands apostrophe name (e.g. 'chào vs M'Đrắk, Ea H'leo):
-      // strip the leading quotation mark from the active word buffer so quotes are preserved untouched.
-      if (/^['’]/.test(word) && !/^[A-Za-z]['’]/.test(word)) {
-        word = word.slice(1);
-        startIndex += 1;
-      }
-
-      return {
-        word,
-        startIndex,
-        endIndex: pos
-      };
-    }
-    return { word: '', startIndex: pos, endIndex: pos };
+    return extractWordBeforeOffset(el.value || '', pos);
   }
 
   /**
@@ -359,25 +366,11 @@ export class TextReplacer {
     }
 
     if (node && node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent || '';
-      const textBefore = text.slice(0, offset);
-      const match = textBefore.match(/([\p{L}\p{N}'’]+)$/u);
-      if (match) {
-        let word = match[1];
-        let startIndex = offset - word.length;
-
-        // If word starts with an opening quote mark (single quote ' or curly ’)
-        // and is NOT a Central Highlands apostrophe name:
-        if (/^['’]/.test(word) && !/^[A-Za-z]['’]/.test(word)) {
-          word = word.slice(1);
-          startIndex += 1;
-        }
-
+      const extracted = extractWordBeforeOffset(node.textContent || '', offset);
+      if (extracted.word) {
         return {
-          word,
-          textNode: node,
-          startIndex,
-          endIndex: offset
+          ...extracted,
+          textNode: node
         };
       }
     }
