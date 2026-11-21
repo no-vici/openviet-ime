@@ -1830,6 +1830,9 @@ class AvimContentScript {
   }
 
   handleCharacterInput(target, key, event) {
+    // Clear stale beforeinput guards for this key from previous keystrokes so rapid
+    // repeated keys (e.g. VNI "11", Telex "ss") are not swallowed.
+    this._blockedKeys.delete(key);
     const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
 
     // Read full context before caret for smart contextual guards
@@ -2110,7 +2113,7 @@ class AvimContentScript {
             if (idx !== -1) arr.splice(idx, 1);
             if (arr.length === 0) this._blockedKeys.delete(key);
           }
-        }, 0);
+        }, 80);
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === 'function') {
@@ -2168,7 +2171,7 @@ class AvimContentScript {
               if (idx !== -1) arr.splice(idx, 1);
               if (arr.length === 0) this._blockedKeys.delete(key);
             }
-          }, 0);
+          }, 80);
 
           // Immediately prevent default and stop immediate propagation to prevent race conditions with frameworks (React/Vue/TipTap)
           event.preventDefault();
