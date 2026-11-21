@@ -221,22 +221,18 @@ class AvimContentScript {
     document.addEventListener('keydown', this.handleKeyDown.bind(this), true);
     
     // Guard against Chromium / macOS beforeinput leak when keydown was prevented by IME transformation
-    this._blockedKeys = new Map(); // char -> array of pending block ids
-    this._blockId = 0;
+    this._blockedKeys = new Map(); // char -> timestamp
     document.addEventListener('beforeinput', (event) => {
       if (event.data && this._blockedKeys && this._blockedKeys.has(event.data)) {
-        const pending = this._blockedKeys.get(event.data);
-        if (pending && pending.length > 0) {
+        const ts = this._blockedKeys.get(event.data);
+        if (ts && (Date.now() - ts) < 80) {
           event.preventDefault();
           event.stopPropagation();
           if (typeof event.stopImmediatePropagation === 'function') {
             event.stopImmediatePropagation();
           }
-          pending.shift();
-          if (pending.length === 0) {
-            this._blockedKeys.delete(event.data);
-          }
         }
+        this._blockedKeys.delete(event.data);
       }
     }, true);
 
@@ -2103,17 +2099,7 @@ class AvimContentScript {
     if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= 'a' && key <= 'z') {
       if (this.shouldAutoCapitalize(target)) {
         const upperChar = key.toUpperCase();
-        if (!this._blockedKeys.has(key)) this._blockedKeys.set(key, []);
-        const capId = ++this._blockId;
-        this._blockedKeys.get(key).push(capId);
-        setTimeout(() => {
-          const arr = this._blockedKeys.get(key);
-          if (arr) {
-            const idx = arr.indexOf(capId);
-            if (idx !== -1) arr.splice(idx, 1);
-            if (arr.length === 0) this._blockedKeys.delete(key);
-          }
-        }, 80);
+        this._blockedKeys.set(key, Date.now());
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === 'function') {
@@ -2161,17 +2147,7 @@ class AvimContentScript {
         }
 
         if (result.transformed) {
-          if (!this._blockedKeys.has(key)) this._blockedKeys.set(key, []);
-          const imeId = ++this._blockId;
-          this._blockedKeys.get(key).push(imeId);
-          setTimeout(() => {
-            const arr = this._blockedKeys.get(key);
-            if (arr) {
-              const idx = arr.indexOf(imeId);
-              if (idx !== -1) arr.splice(idx, 1);
-              if (arr.length === 0) this._blockedKeys.delete(key);
-            }
-          }, 80);
+          this._blockedKeys.set(key, Date.now());
 
           // Immediately prevent default and stop immediate propagation to prevent race conditions with frameworks (React/Vue/TipTap)
           event.preventDefault();
