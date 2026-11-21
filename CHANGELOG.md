@@ -2,6 +2,35 @@
 
 All notable changes to OpenViet IME will be documented in this file.
 
+## [1.4.3] - 2026-11-21
+
+### Added
+- Regression tests for VNI tone removal, macro variables, URL/code guards, macro/autocomplete edge cases, and Telex `w` revert.
+- Lazy-loaded suggestion host and deferred autocomplete model loading to reduce per-page overhead.
+
+### Changed
+- Autosuggest and next-word prediction are debounced (150ms) to avoid typing lag.
+- Removed "Sentence Momentum & Math Context" tracking to improve IME stability.
+- Generated artifacts (`manifest.json`, `*.bundle.js`) are now gitignored.
+
+### Fixed
+- Fixed characters/diacritics being swallowed when typing quickly in rich text editors (Telegram, StackEdit, ProseMirror/TipTap).
+- Fixed stale beforeinput guards blocking repeated keys (VNI digits, Telex tone keys).
+- Fixed stale contenteditable word extraction corrupting the previous word.
+- Fixed rich editor delimiter handling to recover lost accents from the last IME transform.
+- Restored Firefox `browser_specific_settings` in `manifest.json` after accidental overwrite.
+
+## [1.4.2] - 2026-11-20
+
+### Changed
+- Disabled auto-complete, next-word prediction, and suggestion ribbon by default (`autoCompleteEnabled`, `nextWordEnabled`, `suggestionStyle: 'off'`).
+- Defaulted `markdownCodeLock` to `false`.
+
+### Fixed
+- Fixed Escape leaking to web apps when exiting backtick code mode.
+- Fixed NFD offset delta in contenteditable replacement.
+- Fixed VNI `đ` regression and duplicate beforeinput handling.
+
 ## [1.4.1] - 2026-11-19
 
 ### Fixed
