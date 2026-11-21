@@ -2153,7 +2153,7 @@ class AvimContentScript {
         : this.textReplacer.extractContentEditableWordBuffer();
 
       if (wordInfo) {
-        const currentWord = wordInfo.word || (!isNative ? this.avimEngine.lastTransformed : '') || '';
+        const currentWord = wordInfo.word || '';
         this.avimEngine.trackRawKey(key);
         const result = this.avimEngine.processKey(currentWord, key);
           if (!result.transformed) {
