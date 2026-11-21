@@ -7810,17 +7810,6 @@
       this.bindEvents();
       this.listenMessages();
       this.loadSettings();
-      if (typeof document !== "undefined" && typeof window !== "undefined" && window.location) {
-        const host = (window.location.hostname || "").toLowerCase();
-        const isTeams = host === "teams.microsoft.com" || host.endsWith(".teams.microsoft.com") || host === "teams.live.com" || host.endsWith(".teams.live.com") || host === "teams.cloud.microsoft" || host.endsWith(".teams.cloud.microsoft");
-        if (!isTeams) {
-          if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", () => this.initSuggestionHost(), { once: true });
-          } else {
-            this.initSuggestionHost();
-          }
-        }
-      }
     }
     async loadSettings() {
       if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {

@@ -79,21 +79,8 @@ class AvimContentScript {
     this.listenMessages();
     this.loadSettings();
 
-    // Only mount suggestion host eagerly if not on Teams / heavy rich editor domains
-    // and when document body is ready. For special domains or lazy mode, it is mounted on-demand.
-    if (typeof document !== 'undefined' && typeof window !== 'undefined' && window.location) {
-      const host = (window.location.hostname || '').toLowerCase();
-      const isTeams = host === 'teams.microsoft.com' || host.endsWith('.teams.microsoft.com') ||
-                      host === 'teams.live.com' || host.endsWith('.teams.live.com') ||
-                      host === 'teams.cloud.microsoft' || host.endsWith('.teams.cloud.microsoft');
-      if (!isTeams) {
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', () => this.initSuggestionHost(), { once: true });
-        } else {
-          this.initSuggestionHost();
-        }
-      }
-    }
+    // Lazy-load: do not mount the Shadow DOM suggestion host until suggestions are actually needed.
+    // This avoids injecting UI into every page and prevents unnecessary MutationObserver/DOM work.
   }
 
   async loadSettings() {
