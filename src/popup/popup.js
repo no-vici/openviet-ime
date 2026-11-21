@@ -130,7 +130,7 @@ async function initPopup() {
       emojiShortcutsToggle.checked = settings.emojiShortcuts !== false;
     }
     if (autoCapitalizeToggle) {
-      autoCapitalizeToggle.checked = settings.autoCapitalize !== false;
+      autoCapitalizeToggle.checked = settings.autoCapitalize === true;
     }
     if (perDomainMemoryToggle) {
       perDomainMemoryToggle.checked = settings.perDomainMemory !== false;

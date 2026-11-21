@@ -10,7 +10,7 @@ export const DEFAULT_SETTINGS = {
   lastMethod: 3,         // Memory of last non-off method (for toggle restore)
   toneStyle: 'classic',  // Kiểu truyền thống / cổ điển: hòa, hóa, thủy, khỏe
   macroEnabled: true,
-  spellCheck: true,      // Standardized default across all components
+  spellCheck: false,     // Standardized default across all components
   autoUndo: true,
   ctrlToggleEnabled: true,
   quickConsonants: false,
@@ -18,7 +18,7 @@ export const DEFAULT_SETTINGS = {
   typeW2U: true,         // vnchKey TypeW2U (Non-Start): 'w' acts as 'ư' after consonants / 'uw' / 'uow', but standalone initial 'w' stays English
   smartHorn: true,       // vnchKey SmartHorn: intelligent horn placement on uo/uu/trio exception pairs
   emojiShortcuts: true,
-  autoCapitalize: true,
+  autoCapitalize: false,
   autoSpaceAfterPunctuation: false,
   autoCapitalizeProperNouns: false,
   properNounsList: [],

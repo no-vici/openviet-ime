@@ -1130,6 +1130,7 @@ class AvimContentScript {
       // Backspace by Syllable: delete the entire active syllable buffer if enabled
       if (
         this.settings.backspaceBySyllable === true &&
+        this._allowBackspaceBySyllable === true &&
         !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey &&
         this.avimEngine.currentWordRaw && this.avimEngine.currentWordRaw.length > 0
       ) {
@@ -1146,6 +1147,7 @@ class AvimContentScript {
             this.textReplacer.replaceInContentEditable(target, wordInfo.word, '');
           }
           this.avimEngine.resetWordSession();
+          this._allowBackspaceBySyllable = false;
           this._backspaceSession = null;
           this._consecutiveBackspaces = 0;
           return;
@@ -1846,6 +1848,7 @@ class AvimContentScript {
         const adopted = match[1];
         this.avimEngine.currentWordRaw = reverseVietnameseWord(adopted) || adopted;
         this.avimEngine.lastTransformed = adopted;
+        this._allowBackspaceBySyllable = false;
         this.lastWordBeforeDelimiter = '';
       this.secondLastWordBeforeDelimiter = '';
       }
@@ -1856,6 +1859,7 @@ class AvimContentScript {
     // Clear stale beforeinput guards for this key from previous keystrokes so rapid
     // repeated keys (e.g. VNI "11", Telex "ss") are not swallowed.
     this._blockedKeys.delete(key);
+    this._allowBackspaceBySyllable = true;
     const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
 
     // Read full context before caret for smart contextual guards
@@ -2189,7 +2193,7 @@ class AvimContentScript {
 
     // A3. Auto-Capitalization at beginning of sentence (. ! ? followed by space or line start)
     // Only active when IME is enabled (method !== IME_METHOD.OFF)
-    if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= 'a' && key <= 'z') {
+    if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize === true && key.length === 1 && key >= 'a' && key <= 'z') {
       if (this.shouldAutoCapitalize(target)) {
         const upperChar = key.toUpperCase();
         this._blockedKeys.set(key, Date.now());

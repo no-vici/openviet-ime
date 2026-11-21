@@ -11,13 +11,13 @@ const DEFAULT_SETTINGS = {
   lastMethod: 3,      // memory of last non-off method (for toggle restore)
   toneStyle: 'classic', // Kiểu truyền thống / cổ điển: hòa, hóa, thủy, khỏe (đẹp, cân đối, hài hòa)
   macroEnabled: true,
-  spellCheck: true,
+  spellCheck: false,
   autoUndo: true,
   ctrlToggleEnabled: true,
   quickConsonants: false,
   quickTelex: true,
   emojiShortcuts: true,
-  autoCapitalize: true,
+  autoCapitalize: false,
   autoSpaceAfterPunctuation: false,
   autoCapitalizeProperNouns: false,
   properNounsList: [],

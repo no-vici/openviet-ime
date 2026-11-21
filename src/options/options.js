@@ -618,7 +618,7 @@ function initPreferences() {
     if (typeW2UOption) typeW2UOption.checked = settings.typeW2U !== false;
     if (smartHornOption) smartHornOption.checked = settings.smartHorn !== false;
     if (emojiShortcutsOption) emojiShortcutsOption.checked = settings.emojiShortcuts !== false;
-    if (autoCapitalizeOption) autoCapitalizeOption.checked = settings.autoCapitalize !== false;
+    if (autoCapitalizeOption) autoCapitalizeOption.checked = settings.autoCapitalize === true;
     if (autoSpaceAfterPunctuationOption) autoSpaceAfterPunctuationOption.checked = settings.autoSpaceAfterPunctuation === true;
     if (autoCapitalizeProperNounsOption) autoCapitalizeProperNounsOption.checked = settings.autoCapitalizeProperNouns === true;
     if (properNounsTextarea) properNounsTextarea.value = Array.isArray(settings.properNounsList) ? settings.properNounsList.join(', ') : '';
