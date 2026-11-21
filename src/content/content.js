@@ -221,15 +221,22 @@ class AvimContentScript {
     document.addEventListener('keydown', this.handleKeyDown.bind(this), true);
     
     // Guard against Chromium / macOS beforeinput leak when keydown was prevented by IME transformation
-    this._blockedKeys = new Set();
+    this._blockedKeys = new Map(); // char -> array of pending block ids
+    this._blockId = 0;
     document.addEventListener('beforeinput', (event) => {
       if (event.data && this._blockedKeys && this._blockedKeys.has(event.data)) {
-        event.preventDefault();
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === 'function') {
-          event.stopImmediatePropagation();
+        const pending = this._blockedKeys.get(event.data);
+        if (pending && pending.length > 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === 'function') {
+            event.stopImmediatePropagation();
+          }
+          pending.shift();
+          if (pending.length === 0) {
+            this._blockedKeys.delete(event.data);
+          }
         }
-        this._blockedKeys.delete(event.data);
       }
     }, true);
 
@@ -2093,8 +2100,17 @@ class AvimContentScript {
     if (this.settings.method !== IME_METHOD.OFF && this.settings.autoCapitalize !== false && key.length === 1 && key >= 'a' && key <= 'z') {
       if (this.shouldAutoCapitalize(target)) {
         const upperChar = key.toUpperCase();
-        this._blockedKeys.add(key);
-        setTimeout(() => { this._blockedKeys.delete(key); }, 80);
+        if (!this._blockedKeys.has(key)) this._blockedKeys.set(key, []);
+        const capId = ++this._blockId;
+        this._blockedKeys.get(key).push(capId);
+        setTimeout(() => {
+          const arr = this._blockedKeys.get(key);
+          if (arr) {
+            const idx = arr.indexOf(capId);
+            if (idx !== -1) arr.splice(idx, 1);
+            if (arr.length === 0) this._blockedKeys.delete(key);
+          }
+        }, 0);
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === 'function') {
@@ -2121,7 +2137,7 @@ class AvimContentScript {
                 this.hideSuggestions();
               }
             }
-          }, 80);
+        }, 80);
         }
         return;
       }
@@ -2137,13 +2153,22 @@ class AvimContentScript {
         const currentWord = wordInfo.word || (!isNative ? this.avimEngine.lastTransformed : '') || '';
         this.avimEngine.trackRawKey(key);
         const result = this.avimEngine.processKey(currentWord, key);
-        if (!result.transformed) {
+          if (!result.transformed) {
           this.avimEngine.lastTransformed = result.result;
         }
 
         if (result.transformed) {
-          this._blockedKeys.add(key);
-          setTimeout(() => { this._blockedKeys.delete(key); }, 80);
+          if (!this._blockedKeys.has(key)) this._blockedKeys.set(key, []);
+          const imeId = ++this._blockId;
+          this._blockedKeys.get(key).push(imeId);
+          setTimeout(() => {
+            const arr = this._blockedKeys.get(key);
+            if (arr) {
+              const idx = arr.indexOf(imeId);
+              if (idx !== -1) arr.splice(idx, 1);
+              if (arr.length === 0) this._blockedKeys.delete(key);
+            }
+          }, 0);
 
           // Immediately prevent default and stop immediate propagation to prevent race conditions with frameworks (React/Vue/TipTap)
           event.preventDefault();
