@@ -1915,6 +1915,16 @@ class AvimContentScript {
 
     // A. Check Word Delimiter Actions: Auto-Restore English (GoNhanh) & Macro Trigger & Emoji & Gboard Next-Word
     if (isDelimiter(key)) {
+      // Recovery for rich editors: if extraction returned an ASCII word but the last IME
+      // transform produced a Vietnamese word, restore the accent before the delimiter.
+      if (!isNative && wordInfo && wordInfo.word && /^[a-zA-Z]+$/.test(wordInfo.word) &&
+          this.avimEngine.lastTransformed && /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(this.avimEngine.lastTransformed)) {
+        event.preventDefault();
+        this.textReplacer.replaceInContentEditable(target, wordInfo.word, this.avimEngine.lastTransformed + key);
+        this.hideSuggestions();
+        this.avimEngine.resetWordSession();
+        return;
+      }
       if (wordInfo && wordInfo.word) {
         // Emoji Shorthand Expansion on Delimiter (e.g. ":tim:" or ":tim" + Space -> "❤️ ")
         if (this.settings.emojiShortcuts !== false && currentWord.startsWith(':')) {
