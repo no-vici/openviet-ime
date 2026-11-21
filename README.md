@@ -537,10 +537,10 @@ Execute the complete automated test suite covering AVIM character combinations, 
 npm test
 ```
 
-To run TypeScript verification:
+To run a quick syntax check of the source modules:
 
 ```bash
-npm run lint
+for f in src/engine/*.js src/content/*.js src/options/*.js src/popup/*.js src/background/*.js; do node --check "$f"; done
 ```
 
 ---
