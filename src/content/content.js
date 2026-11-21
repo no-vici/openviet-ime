@@ -2149,7 +2149,16 @@ class AvimContentScript {
         : this.textReplacer.extractContentEditableWordBuffer();
 
       if (wordInfo) {
-        const currentWord = wordInfo.word || '';
+        let currentWord = wordInfo.word || '';
+        // Rich editor recovery: if extraction returned a stale/ASCII prefix but the last IME
+        // transform produced a longer Vietnamese word, prefer the transformed word.
+        if (!isNative && currentWord && this.avimEngine.lastTransformed &&
+            /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(this.avimEngine.lastTransformed)) {
+          const strippedLast = this.avimEngine.lastTransformed.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+          if (strippedLast === currentWord.toLowerCase() || strippedLast.startsWith(currentWord.toLowerCase())) {
+            currentWord = this.avimEngine.lastTransformed;
+          }
+        }
         this.avimEngine.trackRawKey(key);
         const result = this.avimEngine.processKey(currentWord, key);
           if (!result.transformed) {
