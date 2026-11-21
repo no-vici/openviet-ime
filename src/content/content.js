@@ -112,11 +112,12 @@ class AvimContentScript {
     // Load shared on-device habit model, user custom dictionary & persistent habit counts
     try {
       await Promise.all([
-        autoCompleteEngine.loadFromStorage(),
         userDictionary.loadFromStorage(),
         this.loadHabitCountsFromStorage()
       ]);
     } catch {}
+    // Lazy-load autocomplete learned model in the background to avoid blocking initial settings load
+    try { autoCompleteEngine.loadFromStorage?.().catch?.(() => {}); } catch {}
     this.applySettings();
   }
 
