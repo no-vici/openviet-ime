@@ -48,3 +48,7 @@ generate_openviet-ime_codebase_text.py
 
 # Generated build artifact
 manifest.json
+
+# Generated bundle artifacts
+src/content/*.bundle.js
+src/options/*.bundle.js
