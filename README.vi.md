@@ -465,7 +465,7 @@ Bạn có thể tải gói cài đặt sẵn từ mục GitHub Releases hoặc t
 
 ### Cài Đặt Vào Trình Duyệt Chromium (Chrome, Edge, Brave, Opera, Arc)
 
-1. Tải về hoặc tự tạo file đóng gói extension (`openviet_ime-chrome-1.4.1.zip` hoặc `openviet_ime-edge-1.4.1.zip`).
+1. Tải về hoặc tự tạo file đóng gói extension (`openviet_ime-chrome-1.4.3.zip` hoặc `openviet_ime-edge-1.4.3.zip`).
 2. Giải nén file `.zip` vào một thư mục (hoặc dùng trực tiếp thư mục repo sau khi chạy lệnh `npm run build:chrome`).
 3. Mở trang quản lý tiện ích trên trình duyệt:
    - Chrome / Brave: `chrome://extensions`
@@ -508,12 +508,12 @@ npm run build:edge
 Để tạo các gói cài đặt `.zip` hoàn chỉnh (lưu tại thư mục `web-ext-artifacts/`):
 
 ```bash
-# Đóng gói cho Chrome -> web-ext-artifacts/openviet_ime-chrome-1.4.1.zip
+# Đóng gói cho Chrome -> web-ext-artifacts/openviet_ime-chrome-1.4.3.zip
 npm run bundle:chrome
 
-# Đóng gói cho Firefox -> web-ext-artifacts/openviet_ime-firefox-1.4.1.zip
+# Đóng gói cho Firefox -> web-ext-artifacts/openviet_ime-firefox-1.4.3.zip
 
-# Đóng gói cho Edge -> web-ext-artifacts/openviet_ime-edge-1.4.1.zip
+# Đóng gói cho Edge -> web-ext-artifacts/openviet_ime-edge-1.4.3.zip
 ```
 
 #### 4. Chế độ lập trình (Development)
