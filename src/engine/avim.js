@@ -136,8 +136,6 @@ export class AvimEngine {
     this.lastToneToggledWord = null;
     this.toneCancelled = false;
     this.prevWordWasEnglish = false;
-    this.inEnglishContext = false;
-    this.mathContextWordsRemaining = 0;
   }
 
   setMethod(method) {
@@ -210,8 +208,6 @@ export class AvimEngine {
     this.lastToneToggledWord = null;
     this.toneCancelled = false;
     this.prevWordWasEnglish = false;
-    this.inEnglishContext = false;
-    this.mathContextWordsRemaining = 0;
   }
 
   /**
@@ -267,25 +263,12 @@ export class AvimEngine {
     if (rawCandidate && rawCandidate !== currentWord) {
       const lowerRaw = rawCandidate.toLowerCase();
       const isAllCapsAcronym = /^[A-Z]{2,5}$/.test(rawCandidate);
-      const isMathKeyword = /^(sin|cos|tan|cot|log|ln)$/i.test(lowerRaw);
-      const isEnglishAnchor = /^(the|that|a|an|he|she|there|this|it|we|they|you)$/i.test(lowerRaw);
-      const isCollisionWord = /^(is|as|this|has|see|us|its|was|tree|cos|must|room|and|or|plus|minus)$/i.test(lowerRaw);
 
-      if (isMathKeyword) {
-        this.mathContextWordsRemaining = 4;
-      }
-
-      const inContext = this.prevWordWasEnglish || this.inEnglishContext || this.mathContextWordsRemaining > 0;
-      if ((isAllCapsAcronym || (inContext && isCollisionWord)) && !userDictionary.has(currentWord.toLowerCase())) {
+      // Acronym Bypass (ALL-CAPS 2-5 ASCII letters like IOS, VPS, FPS, AWS)
+      if (isAllCapsAcronym && !userDictionary.has(currentWord.toLowerCase())) {
         this.prevWordWasEnglish = true;
-        this.inEnglishContext = true;
-        if (this.mathContextWordsRemaining > 0) this.mathContextWordsRemaining--;
         this.resetWordSession();
         return { restore: true, result: rawCandidate };
-      }
-
-      if (isEnglishAnchor) {
-        this.inEnglishContext = true;
       }
 
       // 1c. Explicit User Dictionary & Common English Technical Word Restore
