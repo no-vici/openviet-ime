@@ -1970,7 +1970,7 @@ class AvimContentScript {
             } else {
               this.hideSuggestions();
             }
-          }, 10);
+          }, 150);
         }
 
         // 1. Auto-Restore English Words (GoNhanh) on space / delimiter (e.g. 'têt' -> 'text', 'úẻ' -> 'user', 'púh' -> 'push')
@@ -2126,7 +2126,7 @@ class AvimContentScript {
                 this.hideSuggestions();
               }
             }
-        }, 80);
+        }, 150);
         }
         return;
       }
@@ -2192,7 +2192,7 @@ class AvimContentScript {
         } else {
           this.hideSuggestions();
         }
-      }, 80);
+      }, 150);
     }
   }
 
