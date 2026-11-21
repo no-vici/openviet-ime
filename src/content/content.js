@@ -1125,6 +1125,32 @@ class AvimContentScript {
     // 2. Backspace: check Macro Backtracking / Undo & Word Adoption
     if (key === 'Backspace') {
       this.hideSuggestions();
+
+      // Backspace by Syllable: delete the entire active syllable buffer if enabled
+      if (
+        this.settings.backspaceBySyllable === true &&
+        !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey &&
+        this.avimEngine.currentWordRaw && this.avimEngine.currentWordRaw.length > 0
+      ) {
+        const isNative = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+        const wordInfo = isNative
+          ? this.textReplacer.extractNativeWordBuffer(target)
+          : this.textReplacer.extractContentEditableWordBuffer();
+        if (wordInfo && wordInfo.word && wordInfo.word.length > 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (isNative) {
+            this.textReplacer.replaceInNativeInput(target, wordInfo.startIndex, wordInfo.endIndex, '');
+          } else {
+            this.textReplacer.replaceInContentEditable(target, wordInfo.word, '');
+          }
+          this.avimEngine.resetWordSession();
+          this._backspaceSession = null;
+          this._consecutiveBackspaces = 0;
+          return;
+        }
+      }
+
       this._consecutiveBackspaces = (this._consecutiveBackspaces || 0) + 1;
 
       if (!this._backspaceSession) {
@@ -2012,6 +2038,37 @@ class AvimContentScript {
           }
         }
 
+        // 1B. Auto-Capitalize Proper Nouns (vnchKey)
+        if (
+          this.settings.autoCapitalizeProperNouns === true &&
+          Array.isArray(this.settings.properNounsList) &&
+          this.settings.properNounsList.length > 0
+        ) {
+          const lowerWord = currentWord.toLowerCase();
+          const matched = this.settings.properNounsList.some((noun) => noun.toLowerCase() === lowerWord);
+          if (matched) {
+            const capitalized = currentWord.charAt(0).toUpperCase() + currentWord.slice(1);
+            if (capitalized !== currentWord) {
+              event.preventDefault();
+              const suffix = (
+                this.settings.autoSpaceAfterPunctuation === true &&
+                ['.', '?', '!'].includes(key) &&
+                !this._inInlineCode &&
+                !this._inFencedCode
+              ) ? (key + ' ') : key;
+              const fullReplacement = capitalized + suffix;
+              if (isNative) {
+                this.textReplacer.replaceInNativeInput(target, wordInfo.startIndex, wordInfo.endIndex, fullReplacement);
+              } else {
+                this.textReplacer.replaceInContentEditable(target, currentWord, fullReplacement);
+              }
+              this.hideSuggestions();
+              this.avimEngine.resetWordSession();
+              return;
+            }
+          }
+        }
+
         // 2. Check Macro Expansion (skip if adjacent to technical delimiters like . / \ @ : ( ) [ ] = & ?)
         const charBeforeWord = textBeforeCaret.slice(0, Math.max(0, textBeforeCaret.length - currentWord.length)).slice(-1);
         const isTechAdjacent = /[./\\@:()[\]=&?]/.test(key) || /[./\\@:(=&?]/.test(charBeforeWord);
@@ -2054,6 +2111,27 @@ class AvimContentScript {
             return;
           }
         }
+      }
+
+      // Auto-Space After Punctuation (vnchKey): insert space after . ? ! when preceded by a letter
+      if (
+        this.settings.autoSpaceAfterPunctuation === true &&
+        ['.', '?', '!'].includes(key) &&
+        !this._inInlineCode &&
+        !this._inFencedCode &&
+        textBeforeCaret.length > 0 &&
+        /\p{L}/u.test(textBeforeCaret.slice(-1))
+      ) {
+        event.preventDefault();
+        if (isNative) {
+          const pos = target.selectionStart ?? target.value.length;
+          this.textReplacer.replaceInNativeInput(target, pos, pos, key + ' ');
+        } else {
+          this.textReplacer.replaceInContentEditable(target, '', key + ' ');
+        }
+        this.hideSuggestions();
+        this.avimEngine.resetWordSession();
+        return;
       }
 
       this.macroEngine.clearUndo();

@@ -569,6 +569,10 @@ function initPreferences() {
   const smartHornOption = document.getElementById('smartHornOption');
   const emojiShortcutsOption = document.getElementById('emojiShortcutsOption');
   const autoCapitalizeOption = document.getElementById('autoCapitalizeOption');
+  const autoSpaceAfterPunctuationOption = document.getElementById('autoSpaceAfterPunctuationOption');
+  const autoCapitalizeProperNounsOption = document.getElementById('autoCapitalizeProperNounsOption');
+  const properNounsTextarea = document.getElementById('properNounsTextarea');
+  const backspaceBySyllableOption = document.getElementById('backspaceBySyllableOption');
   const perDomainMemoryOption = document.getElementById('perDomainMemoryOption');
   const quickConsonantsOption = document.getElementById('quickConsonantsOption');
   const autoUndoOption = document.getElementById('autoUndoOption');
@@ -615,6 +619,10 @@ function initPreferences() {
     if (smartHornOption) smartHornOption.checked = settings.smartHorn !== false;
     if (emojiShortcutsOption) emojiShortcutsOption.checked = settings.emojiShortcuts !== false;
     if (autoCapitalizeOption) autoCapitalizeOption.checked = settings.autoCapitalize !== false;
+    if (autoSpaceAfterPunctuationOption) autoSpaceAfterPunctuationOption.checked = settings.autoSpaceAfterPunctuation === true;
+    if (autoCapitalizeProperNounsOption) autoCapitalizeProperNounsOption.checked = settings.autoCapitalizeProperNouns === true;
+    if (properNounsTextarea) properNounsTextarea.value = Array.isArray(settings.properNounsList) ? settings.properNounsList.join(', ') : '';
+    if (backspaceBySyllableOption) backspaceBySyllableOption.checked = settings.backspaceBySyllable === true;
     if (perDomainMemoryOption) perDomainMemoryOption.checked = settings.perDomainMemory !== false;
     if (quickConsonantsOption) quickConsonantsOption.checked = Boolean(settings.quickConsonants);
     if (autoUndoOption) autoUndoOption.checked = Boolean(settings.autoUndo);
@@ -703,6 +711,37 @@ function initPreferences() {
   if (autoCapitalizeOption) {
     autoCapitalizeOption.addEventListener('change', async () => {
       settings.autoCapitalize = autoCapitalizeOption.checked;
+      await saveState();
+    });
+  }
+
+  if (autoSpaceAfterPunctuationOption) {
+    autoSpaceAfterPunctuationOption.addEventListener('change', async () => {
+      settings.autoSpaceAfterPunctuation = autoSpaceAfterPunctuationOption.checked;
+      await saveState();
+    });
+  }
+
+  if (autoCapitalizeProperNounsOption) {
+    autoCapitalizeProperNounsOption.addEventListener('change', async () => {
+      settings.autoCapitalizeProperNouns = autoCapitalizeProperNounsOption.checked;
+      await saveState();
+    });
+  }
+
+  if (properNounsTextarea) {
+    properNounsTextarea.addEventListener('change', async () => {
+      settings.properNounsList = properNounsTextarea.value
+        .split(/[\n,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await saveState();
+    });
+  }
+
+  if (backspaceBySyllableOption) {
+    backspaceBySyllableOption.addEventListener('change', async () => {
+      settings.backspaceBySyllable = backspaceBySyllableOption.checked;
       await saveState();
     });
   }

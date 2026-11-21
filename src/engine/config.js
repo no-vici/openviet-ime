@@ -19,6 +19,10 @@ export const DEFAULT_SETTINGS = {
   smartHorn: true,       // vnchKey SmartHorn: intelligent horn placement on uo/uu/trio exception pairs
   emojiShortcuts: true,
   autoCapitalize: true,
+  autoSpaceAfterPunctuation: false,
+  autoCapitalizeProperNouns: false,
+  properNounsList: [],
+  backspaceBySyllable: false,
   perDomainMemory: true,
   domainMethods: {},
   autoRestoreEnglish: true,

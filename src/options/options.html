@@ -471,6 +471,31 @@
           </label>
 
           <label class="checkbox-row">
+            <input type="checkbox" id="autoSpaceAfterPunctuationOption">
+            <div>
+              <strong>Tự thêm khoảng trắng sau dấu câu (Auto-Space After Punctuation)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động chèn thêm một khoảng trắng sau <code>.</code>, <code>?</code>, <code>!</code> khi ký tự trước đó là chữ cái (không kích hoạt trong code/backtick bypass).</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="autoCapitalizeProperNounsOption">
+            <div>
+              <strong>Tự viết hoa danh từ riêng (Auto-Capitalize Proper Nouns)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Tự động viết hoa ký tự đầu của từ khi khớp danh sách danh từ riêng do bạn định nghĩa bên dưới (danh sách rỗng = không tự viết hoa từ nào).</div>
+              <textarea id="properNounsTextarea" rows="2" style="width: 100%; margin-top: 6px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 12px;" placeholder="Nhập danh từ riêng, cách nhau bằng dấu phẩy hoặc xuống dòng (vd: việt nam, hà nội, sài gòn)"></textarea>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="backspaceBySyllableOption">
+            <div>
+              <strong>Backspace xóa cả âm tiết (Backspace by Syllable)</strong>
+              <div style="font-size: 12px; color: var(--text-muted);">Khi đang gõ dở một âm tiết, nhấn <code>Backspace</code> sẽ xóa toàn bộ âm tiết trong buffer thay vì xóa từng ký tự.</div>
+            </div>
+          </label>
+
+          <label class="checkbox-row">
             <input type="checkbox" id="quickConsonantsOption">
             <div>
               <strong>Bật gõ nhanh phụ âm (XKey)</strong>
