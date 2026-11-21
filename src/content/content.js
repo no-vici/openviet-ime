@@ -1915,15 +1915,19 @@ class AvimContentScript {
 
     // A. Check Word Delimiter Actions: Auto-Restore English (GoNhanh) & Macro Trigger & Emoji & Gboard Next-Word
     if (isDelimiter(key)) {
-      // Recovery for rich editors: if extraction returned an ASCII word but the last IME
+      // Recovery for rich editors: if extraction is stale (ASCII or digit-containing) but the last IME
       // transform produced a Vietnamese word, restore the accent before the delimiter.
-      if (!isNative && wordInfo && wordInfo.word && /^[a-zA-Z]+$/.test(wordInfo.word) &&
-          this.avimEngine.lastTransformed && /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(this.avimEngine.lastTransformed)) {
-        event.preventDefault();
-        this.textReplacer.replaceInContentEditable(target, wordInfo.word, this.avimEngine.lastTransformed + key);
-        this.hideSuggestions();
-        this.avimEngine.resetWordSession();
-        return;
+      if (!isNative && wordInfo && wordInfo.word && this.avimEngine.lastTransformed &&
+          /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(this.avimEngine.lastTransformed)) {
+        const extractedBase = wordInfo.word.toLowerCase().replace(/\d+/g, '');
+        const strippedLast = this.avimEngine.lastTransformed.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+        if (extractedBase && (strippedLast === extractedBase || strippedLast.startsWith(extractedBase))) {
+          event.preventDefault();
+          this.textReplacer.replaceInContentEditable(target, wordInfo.word, this.avimEngine.lastTransformed + key);
+          this.hideSuggestions();
+          this.avimEngine.resetWordSession();
+          return;
+        }
       }
       if (wordInfo && wordInfo.word) {
         // Emoji Shorthand Expansion on Delimiter (e.g. ":tim:" or ":tim" + Space -> "❤️ ")
@@ -2155,7 +2159,8 @@ class AvimContentScript {
         if (!isNative && currentWord && this.avimEngine.lastTransformed &&
             /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i.test(this.avimEngine.lastTransformed)) {
           const strippedLast = this.avimEngine.lastTransformed.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
-          if (strippedLast === currentWord.toLowerCase() || strippedLast.startsWith(currentWord.toLowerCase())) {
+          const extractedBase = currentWord.toLowerCase().replace(/\d+/g, '');
+          if (strippedLast === extractedBase || strippedLast.startsWith(extractedBase)) {
             currentWord = this.avimEngine.lastTransformed;
           }
         }
