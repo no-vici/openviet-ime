@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, beforeEach } from 'node:test';
+import assert from 'node:assert/strict';
 import { AvimEngine } from '../src/engine/avim.js';
 import { IME_METHOD, TONE_STYLE, isUrlOrEmailOrCode } from '../src/engine/key-codes.js';
 
@@ -38,217 +39,217 @@ describe('OpenViet IME - Engine Edge Cases Suite', () => {
   describe('1. Tone Placement & Dynamic Shifting', () => {
     it('places tones correctly in CLASSIC style (default)', () => {
       engine.setToneStyle(TONE_STYLE.CLASSIC);
-      expect(typeWord(engine, 'hoaf')).toBe('hòa');
+      assert.strictEqual(typeWord(engine, 'hoaf'), 'hòa');
       engine.resetWordSession();
-      expect(typeWord(engine, 'hoas')).toBe('hóa');
+      assert.strictEqual(typeWord(engine, 'hoas'), 'hóa');
       engine.resetWordSession();
-      expect(typeWord(engine, 'thuyr')).toBe('thủy');
+      assert.strictEqual(typeWord(engine, 'thuyr'), 'thủy');
       engine.resetWordSession();
-      expect(typeWord(engine, 'khoer')).toBe('khỏe');
+      assert.strictEqual(typeWord(engine, 'khoer'), 'khỏe');
     });
 
     it('places tones correctly in MODERN style', () => {
       engine.setToneStyle(TONE_STYLE.MODERN);
-      expect(typeWord(engine, 'hoaf')).toBe('hoà');
+      assert.strictEqual(typeWord(engine, 'hoaf'), 'hoà');
       engine.resetWordSession();
-      expect(typeWord(engine, 'hoas')).toBe('hoá');
+      assert.strictEqual(typeWord(engine, 'hoas'), 'hoá');
       engine.resetWordSession();
-      expect(typeWord(engine, 'thuyr')).toBe('thuỷ');
+      assert.strictEqual(typeWord(engine, 'thuyr'), 'thuỷ');
       engine.resetWordSession();
-      expect(typeWord(engine, 'khoer')).toBe('khoẻ');
+      assert.strictEqual(typeWord(engine, 'khoer'), 'khoẻ');
     });
 
     it('dynamically shifts tone when appending coda or vowel (tóa + n -> toán)', () => {
       engine.setToneStyle(TONE_STYLE.CLASSIC);
-      expect(typeWord(engine, 'toas')).toBe('tóa');
+      assert.strictEqual(typeWord(engine, 'toas'), 'tóa');
       const shifted = engine.processKey('tóa', 'n');
-      expect(shifted.transformed).toBe(true);
-      expect(shifted.result).toBe('toán');
+      assert.strictEqual(shifted.transformed, true);
+      assert.strictEqual(shifted.result, 'toán');
     });
 
     it('handles delayed horn/breve modifiers accurately (dduocjw -> được, cuuw -> cưu)', () => {
-      expect(typeWord(engine, 'dduocjw')).toBe('được');
+      assert.strictEqual(typeWord(engine, 'dduocjw'), 'được');
       engine.resetWordSession();
-      expect(typeWord(engine, 'cuuw')).toBe('cưu');
+      assert.strictEqual(typeWord(engine, 'cuuw'), 'cưu');
       engine.resetWordSession();
-      expect(typeWord(engine, 'cuuws')).toBe('cứu');
+      assert.strictEqual(typeWord(engine, 'cuuws'), 'cứu');
     });
 
     it('supports shape modifier swapping while preserving tone (ấm + w -> ắm)', () => {
       const step1 = typeWord(engine, 'aams');
-      expect(step1).toBe('ấm');
+      assert.strictEqual(step1, 'ấm');
       const swapped = engine.processKey(step1, 'w');
-      expect(swapped.transformed).toBe(true);
-      expect(swapped.result).toBe('ắm');
+      assert.strictEqual(swapped.transformed, true);
+      assert.strictEqual(swapped.result, 'ắm');
     });
   });
 
   describe('2. Special Linguistic Exceptions & Double-Key Cancellation', () => {
     it('handles the uơ trio exceptions (thuở, quơ, quởn, huơ)', () => {
-      expect(typeWord(engine, 'thuowr')).toBe('thuở');
+      assert.strictEqual(typeWord(engine, 'thuowr'), 'thuở');
       engine.resetWordSession();
-      expect(typeWord(engine, 'quow')).toBe('quơ');
+      assert.strictEqual(typeWord(engine, 'quow'), 'quơ');
       engine.resetWordSession();
-      expect(typeWord(engine, 'quowrn')).toBe('quởn');
+      assert.strictEqual(typeWord(engine, 'quowrn'), 'quởn');
       engine.resetWordSession();
-      expect(typeWord(engine, 'huow')).toBe('huơ');
+      assert.strictEqual(typeWord(engine, 'huow'), 'huơ');
     });
 
     it('handles French double-o loanwords ending in -ng (xooong -> xoong, booong -> boong)', () => {
-      expect(typeWord(engine, 'xooong')).toBe('xoong');
+      assert.strictEqual(typeWord(engine, 'xooong'), 'xoong');
       engine.resetWordSession();
-      expect(typeWord(engine, 'xooofng')).toBe('xoòng');
+      assert.strictEqual(typeWord(engine, 'xooofng'), 'xoòng');
       engine.resetWordSession();
-      expect(typeWord(engine, 'booong')).toBe('boong');
+      assert.strictEqual(typeWord(engine, 'booong'), 'boong');
     });
 
     it('cancels tone on double keystroke and passes literal on 3rd keystroke (dóc + s -> docs + s -> docss)', () => {
       const w1 = typeWord(engine, 'docs');
-      expect(w1).toBe('dóc');
+      assert.strictEqual(w1, 'dóc');
 
       const w2 = engine.processKey(w1, 's');
-      expect(w2.transformed).toBe(true);
-      expect(w2.result).toBe('docs');
+      assert.strictEqual(w2.transformed, true);
+      assert.strictEqual(w2.result, 'docs');
 
       const w3 = engine.processKey(w2.result, 's');
-      expect(w3.transformed).toBe(false);
-      expect(w3.result).toBe('docss');
+      assert.strictEqual(w3.transformed, false);
+      assert.strictEqual(w3.result, 'docss');
     });
   });
 
   describe('3. Vietnamese Phonology & Stop Finals Rules', () => {
     it('blocks invalid tones (grave, hook, tilde) on stop finals (-c, -ch, -p, -t)', () => {
-      expect(typeWord(engine, 'bacf')).toBe('bacf');
+      assert.strictEqual(typeWord(engine, 'bacf'), 'bacf');
       engine.resetWordSession();
-      expect(typeWord(engine, 'thichr')).toBe('thichr');
+      assert.strictEqual(typeWord(engine, 'thichr'), 'thichr');
       engine.resetWordSession();
-      expect(typeWord(engine, 'bepx')).toBe('bepx');
+      assert.strictEqual(typeWord(engine, 'bepx'), 'bepx');
       engine.resetWordSession();
-      expect(typeWord(engine, 'bacs')).toBe('bác');
+      assert.strictEqual(typeWord(engine, 'bacs'), 'bác');
       engine.resetWordSession();
-      expect(typeWord(engine, 'bacj')).toBe('bạc');
+      assert.strictEqual(typeWord(engine, 'bacj'), 'bạc');
     });
 
     it('protects invalid initial consonant clusters (ce, ci, ge, nge)', () => {
-      expect(typeWord(engine, 'center')).toBe('center');
+      assert.strictEqual(typeWord(engine, 'center'), 'center');
       engine.resetWordSession();
-      expect(typeWord(engine, 'city')).toBe('city');
+      assert.strictEqual(typeWord(engine, 'city'), 'city');
       engine.resetWordSession();
-      expect(typeWord(engine, 'get')).toBe('get');
+      assert.strictEqual(typeWord(engine, 'get'), 'get');
       engine.resetWordSession();
-      expect(typeWord(engine, 'danger')).toBe('danger');
+      assert.strictEqual(typeWord(engine, 'danger'), 'danger');
     });
   });
 
   describe('4. Bilingual Auto-Restore, Developer Syntax & Ethnic Toponyms', () => {
     it('auto-restores English Telex trap words on Space commit', () => {
-      expect(typeWordAndCommit(engine, 'text')).toBe('text ');
-      expect(typeWordAndCommit(engine, 'user')).toBe('user ');
-      expect(typeWordAndCommit(engine, 'push')).toBe('push ');
-      expect(typeWordAndCommit(engine, 'window')).toBe('window ');
-      expect(typeWordAndCommit(engine, 'fcitx')).toBe('fcitx ');
+      assert.strictEqual(typeWordAndCommit(engine, 'text'), 'text ');
+      assert.strictEqual(typeWordAndCommit(engine, 'user'), 'user ');
+      assert.strictEqual(typeWordAndCommit(engine, 'push'), 'push ');
+      assert.strictEqual(typeWordAndCommit(engine, 'window'), 'window ');
+      assert.strictEqual(typeWordAndCommit(engine, 'fcitx'), 'fcitx ');
     });
 
     it('reverts current accented word back to raw keys on ESC', () => {
       const typed = typeWord(engine, 'toans');
-      expect(typed).toBe('toán');
+      assert.strictEqual(typed, 'toán');
       const reverted = engine.revertCurrentWord(typed);
-      expect(reverted.reverted).toBe(true);
-      expect(reverted.result).toBe('toans');
+      assert.strictEqual(reverted.reverted, true);
+      assert.strictEqual(reverted.result, 'toans');
     });
 
     it('un-accents prefix and suspends IME when typing camelCase or PascalCase', () => {
-      expect(typeWord(engine, 'isReady')).toBe('isReady');
+      assert.strictEqual(typeWord(engine, 'isReady'), 'isReady');
       engine.resetWordSession();
-      expect(typeWord(engine, 'useState')).toBe('useState');
+      assert.strictEqual(typeWord(engine, 'useState'), 'useState');
       engine.resetWordSession();
-      expect(typeWord(engine, 'UserController')).toBe('UserController');
+      assert.strictEqual(typeWord(engine, 'UserController'), 'UserController');
     });
 
     it('detects URLs, emails, and file paths via isUrlOrEmailOrCode guard', () => {
-      expect(isUrlOrEmailOrCode('https://github.com/no-vici', 'no-vici')).toBe(true);
-      expect(isUrlOrEmailOrCode('contact@openviet.vn', 'contact@openviet.vn')).toBe(true);
-      expect(isUrlOrEmailOrCode('/usr/local/bin', 'bin')).toBe(true);
-      expect(isUrlOrEmailOrCode('user_id', 'user_id')).toBe(true);
+      assert.strictEqual(isUrlOrEmailOrCode('https://github.com/no-vici', 'no-vici'), true);
+      assert.strictEqual(isUrlOrEmailOrCode('contact@openviet.vn', 'contact@openviet.vn'), true);
+      assert.strictEqual(isUrlOrEmailOrCode('/usr/local/bin', 'bin'), true);
+      assert.strictEqual(isUrlOrEmailOrCode('user_id', 'user_id'), true);
     });
 
     it('supports Central Highlands & ethnic toponyms accurately', () => {
-      expect(typeWord(engine, "M'Ddrakw")).toBe("M'Đrăk");
+      assert.strictEqual(typeWord(engine, "M'Ddrakw"), "M'Đrăk");
       engine.resetWordSession();
-      expect(typeWord(engine, "M'Ddrakws")).toBe("M'Đrắk");
+      assert.strictEqual(typeWord(engine, "M'Ddrakws"), "M'Đrắk");
       engine.resetWordSession();
-      expect(typeWord(engine, "Ea H'leo")).toBe("Ea H'leo");
+      assert.strictEqual(typeWord(engine, "Ea H'leo"), "Ea H'leo");
       engine.resetWordSession();
-      expect(typeWord(engine, 'Kroong')).toBe('Krông');
+      assert.strictEqual(typeWord(engine, 'Kroong'), 'Krông');
     });
   });
 
   describe('5. VNI Number Modifiers & Adaptive AUTO Mode', () => {
     it('applies VNI tones (1-5) and removes tone (0) accurately', () => {
       engine.setMethod(IME_METHOD.VNI);
-      expect(typeWord(engine, 'toan1')).toBe('toán');
+      assert.strictEqual(typeWord(engine, 'toan1'), 'toán');
       engine.resetWordSession();
-      expect(typeWord(engine, 'toan2')).toBe('toàn');
+      assert.strictEqual(typeWord(engine, 'toan2'), 'toàn');
       engine.resetWordSession();
-      expect(typeWord(engine, 'toan3')).toBe('toản');
+      assert.strictEqual(typeWord(engine, 'toan3'), 'toản');
       engine.resetWordSession();
-      expect(typeWord(engine, 'toan4')).toBe('toãn');
+      assert.strictEqual(typeWord(engine, 'toan4'), 'toãn');
       engine.resetWordSession();
-      expect(typeWord(engine, 'toan5')).toBe('toạn');
+      assert.strictEqual(typeWord(engine, 'toan5'), 'toạn');
       engine.resetWordSession();
-      expect(typeWord(engine, 'toan10')).toBe('toan');
+      assert.strictEqual(typeWord(engine, 'toan10'), 'toan');
     });
 
     it('applies VNI vowel shapes (6: circumflex, 7: horn, 8: breve) and bar-d (9)', () => {
       engine.setMethod(IME_METHOD.VNI);
-      expect(typeWord(engine, 'can6')).toBe('cân');
+      assert.strictEqual(typeWord(engine, 'can6'), 'cân');
       engine.resetWordSession();
-      expect(typeWord(engine, 'duoc975')).toBe('được');
+      assert.strictEqual(typeWord(engine, 'duoc975'), 'được');
       engine.resetWordSession();
-      expect(typeWord(engine, 'trang81')).toBe('trắng');
+      assert.strictEqual(typeWord(engine, 'trang81'), 'trắng');
       engine.resetWordSession();
-      expect(typeWord(engine, 'cuu71')).toBe('cứu');
+      assert.strictEqual(typeWord(engine, 'cuu71'), 'cứu');
     });
 
     it('swaps VNI shape modifiers while preserving existing tones (tấ + 8 -> tắ, bốn + 7 -> bớn)', () => {
       engine.setMethod(IME_METHOD.VNI);
       const circumflexToned = typeWord(engine, 'ta61');
-      expect(circumflexToned).toBe('tấ');
+      assert.strictEqual(circumflexToned, 'tấ');
       const swappedBreve = engine.processKey(circumflexToned, '8');
-      expect(swappedBreve.transformed).toBe(true);
-      expect(swappedBreve.result).toBe('tắ');
+      assert.strictEqual(swappedBreve.transformed, true);
+      assert.strictEqual(swappedBreve.result, 'tắ');
 
       engine.resetWordSession();
       const circumflexO = typeWord(engine, 'bon61');
-      expect(circumflexO).toBe('bốn');
+      assert.strictEqual(circumflexO, 'bốn');
       const swappedHorn = engine.processKey(circumflexO, '7');
-      expect(swappedHorn.transformed).toBe(true);
-      expect(swappedHorn.result).toBe('bớn');
+      assert.strictEqual(swappedHorn.transformed, true);
+      assert.strictEqual(swappedHorn.result, 'bớn');
     });
 
     it('cancels VNI modifier on double-digit press to type literal numbers (icon66 -> icon6)', () => {
       engine.setMethod(IME_METHOD.VNI);
       const step1 = typeWord(engine, 'icon6');
-      expect(step1).toBe('icôn');
+      assert.strictEqual(step1, 'icôn');
 
       const step2 = engine.processKey(step1, '6');
-      expect(step2.transformed).toBe(true);
-      expect(step2.result).toBe('icon6');
+      assert.strictEqual(step2.transformed, true);
+      assert.strictEqual(step2.result, 'icon6');
 
       const step3 = engine.processKey(step2.result, '4');
-      expect(step3.transformed).toBe(false);
-      expect(step3.result).toBe('icon64');
+      assert.strictEqual(step3.transformed, false);
+      assert.strictEqual(step3.result, 'icon64');
     });
 
     it('protects alphanumeric identifiers containing digits (mp3, h2o, f88, fcitx5)', () => {
       engine.setMethod(IME_METHOD.AUTO);
-      expect(typeWord(engine, 'mp3')).toBe('mp3');
+      assert.strictEqual(typeWord(engine, 'mp3'), 'mp3');
       engine.resetWordSession();
-      expect(typeWord(engine, 'h2o')).toBe('h2o');
+      assert.strictEqual(typeWord(engine, 'h2o'), 'h2o');
       engine.resetWordSession();
-      expect(typeWord(engine, 'f88')).toBe('f88');
+      assert.strictEqual(typeWord(engine, 'f88'), 'f88');
       engine.resetWordSession();
-      expect(typeWord(engine, 'fcitx5')).toBe('fcitx5');
+      assert.strictEqual(typeWord(engine, 'fcitx5'), 'fcitx5');
     });
   });
 });

@@ -38,9 +38,9 @@ All source files in this repository (under `src/` and `test/`) are written in st
 ## 3. Step-by-Step Build Instructions
 
 ### Step 1: Install Dependencies
-From the root directory of the extracted source code package, install the exact dependencies declared in `package.json`:
+From the root directory of the extracted source code package, install the exact dependency tree from the committed `package-lock.json` (`esbuild`, `playwright`, `web-ext` and `@resvg/resvg-js` are pinned):
 ```bash
-npm install
+npm ci
 ```
 
 ### Step 2: Build & Package the Firefox Add-on

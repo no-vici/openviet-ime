@@ -3,6 +3,11 @@
 
 *Tài liệu kỹ thuật lưu trữ để tra cứu và theo dõi lâu dài quy trình kiểm thử trình duyệt thực tế của OpenViet IME.*
 
+> **Cập nhật v1.4.4:** Bảng `9/9 PASS` ở mục 2 là kết quả **lịch sử** của `test/playwright-e2e.js`.
+> Suite `test/playwright-rich-editors.test.js` (mock Teams/Lexical) hiện có baseline
+> **12 passed / 12 failed** và chỉ dùng để chẩn đoán rich-editor — **không phải submission gate**.
+> Gate xác nhận cho AMO là `npm test` (xem `BUILD.md` mục 5).
+
 ---
 
 ## 1. Tổng quan Kiến Trúc Kiểm Thử E2E
@@ -20,7 +25,7 @@
 
 ---
 
-## 2. Kết Quả Kiểm Thử Thực Tế (9/9 Test Cases PASS)
+## 2. Kết Quả Lịch Sử — `playwright-e2e.js` (9/9 Test Cases PASS)
 
 Chạy thực tế với lệnh `npm run test:e2e`:
 

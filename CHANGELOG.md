@@ -2,6 +2,14 @@
 
 All notable changes to OpenViet IME will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- Pinned `web-ext` in `devDependencies`, committed `package-lock.json`, and switched build docs to `npm ci` for reproducible AMO reviewer builds.
+- Popup now imports the shared `DEFAULT_SETTINGS` instead of keeping a divergent local copy; added a parity test against the service-worker defaults.
+- Converted `test/ime-edge-cases.test.mjs` from Vitest to `node:test` and wired it into `npm test` (98 tests total); removed the unused `vitest` dependency/script.
+- Clarified the Playwright E2E guide: the 9/9 table is historical and the rich-editor suite is diagnostic, not a submission gate.
+
 ## [1.4.4] - 2026-11-23
 
 ### Added

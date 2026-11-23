@@ -1,3 +1,5 @@
+import { DEFAULT_SETTINGS } from '../engine/config.js';
+
 const browserApi = typeof browser !== 'undefined' ? browser : (typeof chrome !== 'undefined' ? chrome : {});
 const storageArea = (browserApi.storage && browserApi.storage.sync)
   ? browserApi.storage.sync
@@ -54,30 +56,8 @@ async function initPopup() {
     } catch (_) {}
   }
 
-  // Load current settings
-  let settings = {
-    method: 3,
-    toneStyle: 'classic',
-    macroEnabled: true,
-    spellCheck: true,
-    ctrlToggleEnabled: true,
-    quickConsonants: false,
-    quickTelex: true,
-    typeW2U: true,
-    wToUEnabled: true,
-    smartHorn: true,
-    emojiShortcuts: true,
-    autoCapitalize: true,
-    perDomainMemory: true,
-    domainMethods: {},
-    autoRestoreEnglish: true,
-    escRevert: true,
-    phonologyRules: true,
-    autoCompleteEnabled: false,
-    nextWordEnabled: false,
-    suggestionStyle: 'off',
-    gboardLearningEnabled: true
-  };
+  // Load current settings from the single shared source of truth.
+  let settings = { ...DEFAULT_SETTINGS };
 
   if (storageArea) {
     try {
@@ -406,8 +386,11 @@ async function initPopup() {
   updateUI();
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPopup);
-} else {
-  initPopup();
+// Guard allows this module to be imported by Node-based parity tests without a DOM.
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPopup);
+  } else {
+    initPopup();
+  }
 }

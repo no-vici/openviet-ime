@@ -489,7 +489,7 @@ You can either download pre-built release packages from GitHub Releases or build
 
 #### 1. Install dependencies
 ```bash
-npm install
+npm ci
 ```
 
 #### 2. Build for a specific browser

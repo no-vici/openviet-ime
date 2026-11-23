@@ -487,7 +487,7 @@ Bạn có thể tải gói cài đặt sẵn từ mục GitHub Releases hoặc t
 
 #### 1. Cài đặt thư viện phụ thuộc
 ```bash
-npm install
+npm ci
 ```
 
 #### 2. Biên dịch theo từng trình duyệt cụ thể
