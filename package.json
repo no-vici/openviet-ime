@@ -1,7 +1,7 @@
 {
   "name": "openviet-ime",
   "private": true,
-  "version": "1.4.4",
+  "version": "1.4.5",
   "type": "module",
   "scripts": {
     "bundle:extension": "esbuild src/content/content.js --bundle --outfile=src/content/content.bundle.js --format=iife --charset=utf8 && esbuild src/options/options.js --bundle --outfile=src/options/options.bundle.js --format=iife --charset=utf8",

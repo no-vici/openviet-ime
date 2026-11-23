@@ -2,7 +2,7 @@
 
 All notable changes to OpenViet IME will be documented in this file.
 
-## [Unreleased]
+## [1.4.5] - 2026-11-23
 
 ### Changed
 - Pinned `web-ext` in `devDependencies`, committed `package-lock.json`, and switched build docs to `npm ci` for reproducible AMO reviewer builds.

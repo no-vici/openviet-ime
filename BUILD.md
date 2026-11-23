@@ -1,6 +1,6 @@
 # BUILD INSTRUCTIONS FOR MOZILLA ADD-ONS REVIEWERS
 
-This document outlines the step-by-step instructions to reproduce the exact binary distribution of **OpenViet IME (v1.4.4)** from this source code package, as required by the [Mozilla Add-on Source Code Policy](https://extensionworkshop.com/documentation/publish/source-code-submission/).
+This document outlines the step-by-step instructions to reproduce the exact binary distribution of **OpenViet IME (v1.4.5)** from this source code package, as required by the [Mozilla Add-on Source Code Policy](https://extensionworkshop.com/documentation/publish/source-code-submission/).
 
 ---
 
@@ -75,7 +75,7 @@ npm run build:firefox
 
 After running `npm run build:firefox`, the final add-on package will be generated at:
 ```
-web-ext-artifacts/openviet_ime-firefox-1.4.4.zip
+web-ext-artifacts/openviet_ime-firefox-1.4.5.zip
 ```
 This `.zip` file is the Firefox package submitted to Mozilla Add-ons (AMO). A
 reviewer rebuild is functionally equivalent; ZIP byte checksums may differ because
@@ -89,7 +89,7 @@ The deterministic submission gate is the Node test suite. Reviewers can verify t
 ```bash
 npm test
 ```
-Expected result on `main` after the hygiene pass: **98 tests, 98 passed, 0 failed**.
+Expected result for v1.4.5: **98 tests, 98 passed, 0 failed**.
 (The frozen v1.4.4 submission used 76/76.)
 
 An additional browser-based suite is available but is **not** a submission gate and requires Playwright browsers to be installed first:

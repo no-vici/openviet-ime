@@ -3,7 +3,7 @@
 
 *Tài liệu kỹ thuật lưu trữ để tra cứu và theo dõi lâu dài quy trình kiểm thử trình duyệt thực tế của OpenViet IME.*
 
-> **Cập nhật sau hygiene pass:** Cả hai suite E2E hiện đã **xanh ở chế độ headful lẫn headless**:
+> **Cập nhật v1.4.5:** Cả hai suite E2E hiện đã **xanh ở chế độ headful lẫn headless**:
 > `test/playwright-e2e.js` → **11/11**, `test/playwright-rich-editors.test.js` → **24/24**.
 > Bảng `9/9 PASS` ở mục 2 là kết quả lịch sử. Baseline `12 passed / 12 failed` trước đó
 > **không phải lỗi engine**: headful dùng `page.setContent()` trên `about:blank` (content script
