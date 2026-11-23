@@ -58,6 +58,7 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'will', 'would', 'without', 'within', 'website', 'wifi', 'watch', 'warm', 'wall', 'wave', 'wide',
   'wife', 'wild', 'wind', 'wine', 'wing', 'wire', 'wise', 'wish', 'wood', 'wool', 'wrap', 'warn',
   'wash', 'waste', 'west', 'worth', 'worthy', 'wheel', 'whale', 'wheat', 'whip', 'whisper',
+  'sway',
 
   // Telex trap: words with 'f' (huyền)
   'of', 'if', 'off', 'life', 'safe', 'file', 'find', 'first', 'from', 'form', 'fast', 'fact',
@@ -92,7 +93,7 @@ export const COMMON_ENGLISH_WORDS = new Set([
   'screen', 'system', 'branch', 'merge', 'rebase', 'clone', 'fetch', 'diff', 'stash', 'release',
   'deploy', 'debug', 'lint', 'bundle', 'minify', 'source', 'assets', 'public', 'dist', 'node_modules',
   'license', 'readme', 'env', 'yaml', 'toml', 'xml', 'scss', 'less', 'ts', 'jsx', 'tsx', 'sh',
-  'kubernetes', 'k8s', 'tailwind', 'typescript', 'postgres', 'postgresql', 'redis', 'graphql',
+  'kubernetes', 'k8s', 'manjaro', 'tailwind', 'typescript', 'postgres', 'postgresql', 'redis', 'graphql',
   'webhook', 'endpoint', 'devops', 'staging', 'production', 'frontend', 'backend', 'microservice',
   'payload', 'auth', 'oauth', 'middleware', 'handler', 'schema', 'query', 'mutation', 'resolver',
   'prisma', 'supabase', 'nextjs', 'nuxt', 'vue', 'angular', 'svelte', 'electron', 'tauri', 'rust',

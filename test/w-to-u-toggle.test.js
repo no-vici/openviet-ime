@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { AvimEngine } from '../src/engine/avim.js';
 import { IME_METHOD } from '../src/engine/key-codes.js';
 import { DEFAULT_SETTINGS } from '../src/engine/config.js';
+import { userDictionary } from '../src/engine/dictionary.js';
 
 function typeSequence(engine, sequence) {
   let word = '';
@@ -43,4 +44,16 @@ test('setWToUEnabled(false) can be toggled at runtime', () => {
 
   engine.setWToUEnabled(true);
   assert.equal(engine.processKey('th', 'w').result, 'thư');
+});
+
+test('sway and manjaro are default English traps restored on delimiter', () => {
+  assert.equal(userDictionary.has('sway'), true);
+  assert.equal(userDictionary.has('manjaro'), true);
+
+  for (const [sequence, transformed] of [['sway', 'sưay'], ['manjaro', 'mẩno']]) {
+    const engine = new AvimEngine({ method: IME_METHOD.TELEX, autoRestoreEnglish: true });
+    const result = typeSequence(engine, sequence);
+    assert.equal(result, transformed);
+    assert.deepEqual(engine.checkAutoRestore(result), { restore: true, result: sequence });
+  }
 });

@@ -9,6 +9,7 @@ All notable changes to OpenViet IME will be documented in this file.
 - Lazy-loaded suggestion host and deferred autocomplete model loading to reduce per-page overhead.
 - Prefix-bucketed autocomplete indexes with lazy construction; scoring is computed only for matching words.
 - User-facing `wToUEnabled` switch in popup and Options: ON keeps Non-Start Telex (`thw -> thư`, but `web/wifi` stay Latin); OFF keeps every `w` literal so `sway` no longer becomes `sưay`.
+- Added `sway` and `manjaro` to the default English trap dictionary so they auto-restore on delimiter.
 
 ### Changed
 - Autosuggest and next-word prediction are debounced (150ms) to avoid typing lag.
