@@ -44,7 +44,8 @@ metadata.json
 # misc
 openviet_ime_codebase.txt
 google-suggestions.md
-generate_openviet-ime_codebase_text.py
+generate_openviet_ime_codebase_text.py
+docs/references/
 
 # Generated build artifact
 manifest.json

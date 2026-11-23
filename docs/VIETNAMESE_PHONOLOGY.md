@@ -23,6 +23,12 @@ Tài liệu này là phần tiếp theo của [`ARCHITECTURE.md`](./ARCHITECTURE
 11. [Mười ca gõ đi dây](#11-mười-ca-gõ-đi-dây)
 12. [Bản đồ mã nguồn](#12-bản-đồ-mã-nguồn)
 13. [Tóm tắt thuật ngữ](#13-tóm-tắt-thuật-ngữ)
+14. [Học lại từ số không: bốn lớp của một chữ](#14-học-lại-từ-số-không-bốn-lớp-của-một-chữ)
+15. [Cổng kiểm tra: vì sao không tin vào danh sách từ khác](#15-cổng-kiểm-tra-vì-sao-không-tin-vào-danh-sách-từ-khác)
+16. [Dấu được tính toán, không được lưu cứng](#16-dấu-được-tính-toán-không-được-lưu-cứng)
+17. [Khi miệng nói một đằng, bàn phím gõ một nẻo](#17-khi-miệng-nói-một-đằng-bàn-phím-gõ-một-nẻo)
+18. [OpenViet và Dokey: mượn ý, không mượn code](#18-openviet-và-dokey-mượn-ý-không-mượn-code)
+19. [Tài liệu tham khảo trong docs/references](#19-tài-liệu-tham-khảo-trong-docsreferences)
 
 ---
 
@@ -837,6 +843,321 @@ Word Rescue: t i e e n g s
 | **Bẫy Telex** | Từ Tiếng Anh bị Telex biến thành dạng có dấu (`text → têt`) |
 | **Auto-restore** | Trả lại chữ Latin gốc khi bấm delimiter |
 | **Word Rescue** | Chuyển cả chuỗi thô sang có dấu khi bật/tắt IME |
+
+---
+
+## 14. Học lại từ số không: bốn lớp của một chữ
+
+> Nếu bạn đọc đến đây mà thấy các từ *onset, nucleus, coda* vẫn còn xa lạ, đọc kỹ mục này trước. Mục này không thêm quy tắc mới; nó chỉ xếp lại những quy tắc bạn đã đọc thành bốn cái hộp dễ nhớ.
+
+### 14.1. Bốn lớp chồng lên nhau
+
+Một chữ hiện ra trên màn hình đi qua **bốn lớp**. Nhầm lẫn giữa chúng là nguồn của rất nhiều bug và cũng là lý do người mới thấy tài liệu ngữ âm \"khó hiểu\".
+
+| Lớp | Câu hỏi lớp đó trả lời | Ví dụ | Ai quan tâm |
+|---|---|---|---|
+| 1. Âm thanh | Miệng phát ra cái gì? | `c` và `k` cùng phát âm /k/ | Nhà ngữ âm học |
+| 2. Chữ viết | Viết bằng chữ cái nào? | `ca` nhưng `kê` — cùng /k/, khác chữ | Người viết chánh tả |
+| 3. Mã hoá | Máy tính lưu số nào? | `ế` là U+1EBF, hoặc `e` + U+0302 + U+0301 | Lập trình viên Unicode |
+| 4. Phím gõ | Ngón tay bấm phím nào? | Telex `ee` → `ê`; VNI `6` → `â/ê/ô` | Người làm IME |
+
+**Bốn lớp này không trùng nhau.** Đây là câu quan trọng nhất của mục 14.
+
+Ví dụ đi bộ qua bốn lớp:
+
+```text
+Bạn bấm:  t o a n s ␣          (lớp 4: phím)
+Engine hiểu: onset t, nucleus oa, coda n, tone Sắc   (lớp 2 + cấu trúc)
+Máy lưu:  t o á n              (lớp 3: NFC, "á" là U+00E1)
+Miệng đọc: /toán/ với cao độ rising                  (lớp 1)
+```
+
+Bộ gõ của chúng ta làm việc chủ yếu ở **lớp 2 và 4**. Nó phải \"giả vờ\" biết lớp 1 để quyết định chuỗi nào đáng tin, và phải xuất ra lớp 3 đúng chuẩn để trình duyệt không hiển thị dấu lệch.
+
+### 14.2. Một chi tiết Unicode đáng nhớ: `đ` khác với các chữ có dấu
+
+Chạy thử trong Node hoặc trình duyệt:
+
+```js
+'ế'.normalize('NFD') // 'e' + ◌̂ + ◌́  → 3 code point
+'ă'.normalize('NFD') // 'a' + ◌̆       → 2 code point
+'đ'.normalize('NFD') // 'đ'            → vẫn 1 code point
+```
+
+Giải thích:
+
+- `ế`, `ă`, `ơ` có dạng **tách dấu** (NFD). Dấu mũ, dấu trăng, dấu móc là các code point riêng.
+- `đ` là **một chữ cái riêng** (U+0111), không phải `d` cộng với một dấu gạch ngang. Normalize không tách được nó.
+
+Hệ quả trong code:
+
+- `word-boundary.test.js` phải đếm cả combining mark khi lùi con trỏ, nếu không Backspace sẽ cắn mất nửa chữ `ế`.
+- `d` và `đ` là hai chữ khác nhau, nên `dd → đ` là phép **đổi chữ**, không phải \"thêm dấu\". Đó là lý do `d9` trong VNI hoạt động còn `d` + dấu mũ thì không.
+
+### 14.3. Dấu thanh không phải \"dấu phụ âm\"
+
+Nhiều người mới nghĩ `má` là `ma` cộng thêm một dấu giống như `ă` là `a` cộng thêm dấu. Nghĩ vậy sẽ dẫn đến bug.
+
+| | Dấu phụ âm / dấu hình chữ (mark) | Dấu thanh (tone) |
+|---|---|---|
+| Đổi cái gì? | Chính **chữ cái** | Cái **cao độ của cả âm tiết** |
+| Ví dụ | `a → ă`, `o → ô`, `d → đ` | `ma → má`, `ma → mà` |
+| Có bao nhiêu? | 4 loại: mũ, trăng, móc, gạch ngang | 6 thanh (1 không dấu + 5 có dấu) |
+| Nằm ở đâu? | Dính vào chữ cái | Dính vào âm tiết, nhưng **ký hiệu** đặt trên một nguyên âm |
+| Trong engine | `Mark` trong `Letter` | `Tone` trong `Word` |
+
+Ngo Như Bình (2006, mục 3.4.2) định nghĩa Tiếng Việt là ngôn ngữ có thanh điệu: sự đổi cao độ làm đổi nghĩa. Kirby (2011) bổ sung rằng ở Hà Nội, cao độ không phải là tín hiệu duy nhất — **chất giọng** (glottalization ở `ngã`/`nặng`, hơi thở ở `huyền`/`hỏi`) cũng quan trọng. Đây là lý do tài liệu này luôn nói \"dấu thanh thuộc âm tiết\", chứ không phải \"dấu thanh thuộc nguyên âm\".
+
+### 14.4. Vì sao có 5 dấu mà tài liệu nói 8 thanh?
+
+Không mâu thuẫn. Đây là hai cách đếm:
+
+- **Cách viết (chúng ta dùng):** 6 thanh = ngang (không dấu) + sắc + huyền + hỏi + ngã + nặng. Engine lưu `tone` từ 0 đến 5.
+- **Cách phân tích của Kirby (2011) cho Hà Nội:** **8 thanh** = 6 thanh ở âm tiết mở/âm tiết kết bằng âm vang + 2 thanh \"khép\" chỉ xuất hiện trước âm tắc cuối không thoát hơi (`p/t/k`).
+
+| Âm tiết mở / cuối mũi | Tương đương khép | Dấu viết |
+|---|---|---|
+| `ma` (ngang) | — | không dấu |
+| `mà` (huyền) | — | huyền |
+| `má` (sắc) | `mát` (sắc khép) | sắc |
+| `mạ` (nặng) | `mạt` (nặng khép) | nặng |
+| `mả` (hỏi) | — | hỏi |
+| `mã` (ngã) | — | ngã |
+
+Bảng trên giải thích **luật âm khép** bạn đã đọc ở mục 3.2: `c/ch/p/t` chỉ nhận Sắc hoặc Nặng. Không phải bộ gõ \"kiêng kỵ\" dấu Huyền — mà vì trong hệ thống thanh học, âm khép **chỉ có** hai thanh đó. Engine chỉ viết lại sự thật đó thành một điều kiện `if`.
+
+### 14.5. Ngắn/dài: tại sao `ă` và `â` cần âm cuối
+
+Haudricourt (1952) mô tả hệ thống nguyên âm gồm:
+
+- **Hai nguyên âm ngắn**: `ă` [ă] và `â` [ɤ̆].
+- **Mười hai nguyên âm \"đầy\" (dài)**, xếp theo ba cột trước / giữa / sau của bảng gốc: `i, iê, ê, e` · `ư, ươ, ơ, a` · `u, uô, ô, o`.
+
+Điểm then chốt ông nêu: **nguyên âm ngắn không đứng riêng ở cuối âm tiết**; nó bị \"gắn chặt\" vào phụ âm đi sau. Nghĩa là:
+
+```text
+đúng:  ăng, âm, ăc        (có coda đi sau)
+không chuẩn: *ă, *â đứng một mình ở cuối từ
+```
+
+Đây chính là nguồn gốc của rule trong `syllable-parser.js` mà bạn đã thấy ở mục 3.3: `ă/â` bị từ chối khi âm tiết hoàn tất mà không có coda. Bộ gõ không \"từ chối người dùng\" — nó đang phản chiếu một đặc trưng ngữ âm có thật từ năm 1952.
+
+> ⚠ Đừng suy diễn ngược: \"có coda thì `ă` chắc chắn hợp lệ\". Vẫn còn các điều kiện khác (ân đầu đi được với `ă` không, tổ hợp có nằm trong whitelist không...). Ngữ âm là tập điều kiện, không phải một câu.
+
+### 14.6. Tám âm cuối thật, nhiều hơn tám cách viết
+
+Kirby (2011) đếm **8 âm cuối** trong tiếng Hà Nội:
+
+```text
+3 âm tắc không thoát hơi: /p/ /t/ /k/
+3 âm mũi:                /m/ /n/ /ŋ/
+2 âm trượt:              /j/ /w/
+```
+
+Trong khi đó bảng coda của engine (`§3.1`) có tới 9 mục viết: `''`, `c`, `ch`, `m`, `n`, `ng`, `nh`, `p`, `t`. Lý do: **một âm có thể có nhiều cách viết**.
+
+| Âm (m miệng) | Cách viết thường gặp | Ghi chú |
+|---|---|---|
+| /ŋ/ | `ng`, `nh` | Haudricourt chỉ ra `nh` chỉ thật sự khác `ng` trong vài vần như `inh`, `ênh`, `anh` |
+| /j/ | `i`, `y` cuối từ | `tai`, `tay` cùng âm cuối |
+| /w/ | `u`, `o` cuối từ | `tâu`, `tào` cùng âm cuối |
+| /t/, /k/ | `t`/`ch`, `c`/`k` | Phụ thuộc vần và vùng phương ngữ |
+
+Kết luận thực tế: khi bạn thấy engine chấp nhận cả `ng` lẫn `nh`, đừng tưởng nó \"buông rule\". Nó đang dùng **bảng chánh tả**, vốn rộng hơn bảng âm thanh.
+
+---
+
+## 15. Cổng kiểm tra: vì sao không tin vào danh sách từ khác
+
+### 15.1. Ba cách xử lý va chạm phím
+
+Sách *Dokey: Engineering a Vietnamese Input Method* (chương 5) đặt vấn đề rất sáng tỏ: nếu bộ gõ cứ áp dấu mọi lúc, thì `windows` — chữ có `w`, `s`, `o+w` — sẽ bị biến thành dấu Tiếng Việt. Tác giả nêu ba cách xử lý (chúng ta chỉ paraphrase ý, không chép lại văn bản):
+
+| Cách | Làm gì | Điểm yếu |
+|---|---|---|
+| Tắt bộ gõ thủ công | Người dùng tự bấm nút | Đổ công việc cho người dùng |
+| Giữ danh sách từ khác | Gặp `windows` thì thôi | Chỉ đúng những từ có trong danh sách; hỏng với tên riêng, mã nguồn |
+| **Cổng kiểm tra ngược** | Chỉ tạo dấu nếu chuỗi **có thể là âm tiết Tiếng Việt** | Vẫn bỏ sót ca mà phím gõ trùng âm tiết Việt |
+
+OpenViet dùng **cả ba**, xếp theo lớp:
+
+```text
+1. Cổng Tiếng Việt  → phonologyRules + syllable-parser.isValid()   (chính)
+2. Danh sách bẫy    → COMMON_ENGLISH_WORDS + userDictionary        (bổ sung)
+3. Thoát nhanh      → OFF / blacklistedDomains / code guard        (cuối cùng)
+```
+
+Lớp 1 là ý của Dokey. Lớp 2 là vì môi trường trình duyệt không cho ta biết đang gõ ở ô nào (xem §15.3). Lớp 3 là nút bấm \"đừng can thiệp nữa\".
+
+### 15.2. Prefix \"khớp chính xác\" và prefix \"có thể trở thành\"
+
+Đây là chi tiết hay nhất của chương 5.3 trong sách Dokey, và nó giải thích một hành vi bạn từng thấy: **gõ dấu trước, hình dáng chữ cái đến sau vẫn được nhận**.
+
+| Khái niệm | Nghĩa đơn giản | Ví dụ |
+|---|---|---|
+| Khớp chính xác | Chuỗi hiện tại đã là một âm tiết/đầu âm tiết hợp lệ | `đuoc` → không khớp; `đươc` → khớp |
+| Có thể trở thành | Nếu thêm dấu móc vào `o`, chuỗi sẽ hợp lệ | `đuoc` → có thể trở thành `đươc` |
+
+Áp dụng vào ca `dduocjw`:
+
+```text
+dd u o c    → đang là "đuoc" (chưa hợp lệ vì thiếu móc)
+j           → dấu Nặng đến TRƯỚC chữ w
+              engine hỏi: "đuoc + dấu nặng có thể trở thành âm tiết không?"
+              có → đuoc + Nặng, tạm thời
+w           → vếo o thành ơ → "được", dấu Nặng tự ngồi đúng chỗ
+```
+
+Nếu engine chỉ biết \"khớp chính xác\", ca này sẽ bị từ chối và bạn phải gõ lại theo đúng thứ tự. Rule \"có thể trở thành\" chính là tinh thần của `checkDynamicToneShift()` trong `avim.js`.
+
+### 15.3. Điểm khác biệt giữa Dokey và OpenViet
+
+Dokey chạy trên macOS/Windows và biết ứng dụng nào đang nhận phím. OpenViet là content script, chạy trong trang web. Nó không biết bạn đang gõ ở ô tìm kiếm GitHub hay ô chat Telegram — trừ khi bạn cấu hình domain.
+
+Hệ quả:
+
+| Tình huống | Dokey (theo sách) | OpenViet |
+|---|---|---|
+| `test` | Cổng từ chối vì `tét` là âm tiết được phép → gõ ra `tét` | Nhận ra `test` là bẫy quen thuộc → trả `test` khi bấm Space |
+| Tên riêng lạ | Giữ nguyên (không phải âm tiết) | Giữ nguyên; nếu lỡ dính, thêm vào từ điển riêng |
+| Đang gõ code | Cấu hình theo ứng dụng | `isUrlOrEmailOrCode`, camelCase guard, `blacklistedDomains` |
+
+Sách Dokey thừa nhận cổng \"không cứu được\" khoảng 74 từ Tiếng Anh có phím trùng âm tiết Việt (con số đo trên corpus của riêng họ). OpenViet giải quyết phần đó bằng danh sách bẫy. **Hai cách không mâu thuẫn; chúng chạy ở hai lớp khác nhau.**
+
+### 15.4. Cổng không làm được gì
+
+Ghi nhớ ba dòng này để khỏi đổ lỗi sai chỗ khi có bug:
+
+1. Cổng không biết **ý định** của bạn. `this` có thể là `thí`; chỉ bạn mới biết.
+2. Cổng không thay thế **từ điển riêng**. Tên công ty, mã màu, mã giảm giá — thêm vào user dictionary.
+3. Cổng không chạy khi bạn tắt `phonologyRules`. Lúc đó chỉ còn bẫy + code guard; bạn sẽ thấy `center → cênter` trở lại.
+
+---
+
+## 16. Dấu được tính toán, không được lưu cứng
+
+### 16.1. Hai cách lưu một từ
+
+Chương 4 và 6 của sách Dokey phân biệt rõ:
+
+| Cách | Làm gì | Hậu quả |
+|---|---|---|
+| Dán dấu vào chữ cái ngay khi bấm phím | `hoaf` → chữ `o` mang dấu huyền | Sau đó gõ `n`, phải **dời** dấu từ `o` sang `a`. Mỗi rule đổi nguyên âm lại phải nhớ dời. |
+| Lưu một `Tone` cho cả từ, tính vị trí khi hiển thị | `hoaf` → Word{chữ:`hoa`, tone:Huyền} | Gõ `n` → render lại từ đầu → dấu tự đứng ở `a`. **Không có gì phải dời.** |
+
+OpenViet chọn cách thứ hai. Hàm `getTargetVowelIndex()` trong `src/engine/avim.js` được gọi lại mỗi lần render, chứ không phải một lần khi bấm phím dấu.
+
+### 16.2. Tự tay trace một ca
+
+Gõ `toans` trong Telex, theo dõi trạng thái `Word`:
+
+```text
+t        Word{ t,                tone: none }
+o        Word{ to,               tone: none }
+a        Word{ toa,              tone: none }
+n        Word{ toan,             tone: none }
+s        Word{ toan,             tone: ACUTE }
+         render() → có coda 'n' → dấu vào nguyên âm cuối trước coda = 'a'
+         → "toán"
+```
+
+Bây giờ thử thêm `g`:
+
+```text
+g        Word{ toang,            tone: ACUTE }
+         render() lại từ đầu → coda mới là 'ng' → vẫn chọn 'a'
+         → "toáng"
+```
+
+Không có dòng code nào \"kéo dấu từ chữ cũ sang chữ mới\". Chỉ có một hàm được gọi với một từ mới. Đây là lý do các ca `tóa + n → toán` (dời dấu động) và Backspace rồi gõ lại đều xanh cùng một lúc.
+
+### 16.3. Cũ hay mới đều đúng — chỉ là hai quy ước
+
+Sách Dokey chọn **modern làm mặc định** và cũng đưa ra traditional như tuỳ chọn. OpenViet chọn ngược lại: **classic làm mặc định** (`DEFAULT_SETTINGS.toneStyle = 'classic'`).
+
+| Cặp | classic (OpenViet mặc định) | modern (tuỳ chọn) |
+|---|---|---|
+| `hoa` + Huyền | `hòa` | `hoà` |
+| `khoe` + Hỏi | `khỏe` | `khoẻ` |
+| `thuy` + Hỏi | `thủy` | `thuỷ` |
+
+Đây là **khác biệt về sản phẩm**, không phải khác biệt về ngữ âm. Cả hai đều là chữ Tiếng Việt đúng. Khi đọc sách Dokey và thấy họ viết `hoà`, đừng sửa tài liệu của chúng ta — chỉ cần nhớ hai dự án chọn hai mặc định khác nhau.
+
+---
+
+## 17. Khi miệng nói một đằng, bàn phím gõ một nẻo
+
+### 17.1. Bộ gõ viết chánh tả, không ghi âm thanh
+
+Kirby (2011) ghi nhận ở Hà Nội hiện đại:
+
+- `tr` và `ch` **đã nhập vào cùng một âm** /c/ (âm tắc vòm) với nhiều người nói trẻ.
+- Có hiện tượng nhầm/lẫn `l` và `n` trong một số cộng đồng, mang sắc thái xã hội.
+- `r` thường phát âm như /z/; một số từ mượn có /p/ riêng.
+
+Ngo Như Bình (2006) thì nhấn mạnh tài liệu giảng dạy ở Mỹ từng dựa trên **giọng Hà Nội**, rồi giọng Sài Gòn trở thành chuẩn khác; hai giọng này khác nhau ở cách hiện thực hoá thanh `hỏi`/`ngã` và nhiều phụ âm.
+
+OpenViet **không quan tâm** những khác biệt đó khi quyết định có bỏ dấu hay không. Lý do: bàn phím gõ `tr` hay `ch` là chuyện **chánh tả**; miệng đọc hai chữ đó giống nhau là chuyện **ngữ âm**. Nếu engine cố \"sửa theo phát âm\", nó sẽ phá vỡ văn bản viết.
+
+### 17.2. Bảng \"đừng nhầm\" dành cho người mới
+
+| Bạn thấy | Đừng nghĩ | Hãy nghĩ |
+|---|---|---|
+| `x` và `s` đọc gần giống nhau | Engine nên gộp lại | Chúng là hai chữ viết khác nhau |
+| `hỏi` và `ngã` nhập âm ở miền Nam | Engine nên bỏ một dấu | Dấu vẫn là hai chữ khác nhau |
+| `ng` và `nh` cuối từ nghe gần như nhau | Rule `ng/ngh` là thừa | Rule đó là quy tắc **viết**, vẫn cần cho chánh tả |
+| `ă` là `a` có mũ ngược | Nó là dấu thanh | Nó là **chữ cái khác**, còn dấu thanh là thứ khác nữa |
+
+Muốn đọc thêm phần này, xem mục **19** — có chỉ đúng chương/trang của từng PDF.
+
+---
+
+## 18. OpenViet và Dokey: mượn ý, không mượn code
+
+`docs/references/dokey-book.pdf` là sách có bản quyền, mô tả một engine **khác** (Dokey 0.5.4, chạy macOS/Windows, viết C++). Chúng ta chỉ đọc để hiểu *vì sao* thiết kế, không chép code hay văn bản.
+
+| Ý tưởng | Sách Dokey nói gì | OpenViet làm gì |
+|---|---|---|
+| Cổng kiểm tra | Chỉ sinh dấu nếu chuỗi có thể là âm tiết | `phonologyRules` + parser |
+| Dấu tính khi render | Không lưu vị trí dấu trong từ | `getTargetVowelIndex()` mỗi lần render |
+| Prefix tương thích | Nhận dấu đến trước cả khi chữ cái hình dáng chưa tới | Dynamic tone shift |
+| Sửa đổi tối thiểu | Thay đúng đoạn chữ, đừng gõ lại cả ô | 4 adapter trong `text-replacer.js` |
+| Mặc định kiểu dấu | modern | classic |
+| Nền tảng | event tap / low-level hook + C API | Chrome/Firefox content script |
+
+Kết luận: **đọc sách để hiểu nguyên lý, rồi đối chiếu với source của mình**. Đừng copy bảng hay đoạn văn vào repo.
+
+---
+
+## 19. Tài liệu tham khảo trong docs/references
+
+Bốn file PDF nằm trong `docs/references/`. Đây là danh mục có chú thích, kèm \"đọc mục nào khi bạn đang hỏi cái gì\".
+
+| File | Tác giả / nguồn | Đọc khi bạn hỏi |
+|---|---|---|
+| `dokey-book.pdf` | Do Huy Toan, *Dokey: Engineering a Vietnamese Input Method*, first edition 2026, DOI `10.5281/zenodo.24015181`. **Có bản quyền; chỉ tham khảo.** | \"Vì sao phải rebuild cả từ?\", \"Cổng kiểm tra hoạt động ra sao?\", \"Sửa text vào editor thì hỏng ở đâu?\" → chương 2, 4, 5, 6, 8 |
+| `Haudricourt1952_ShortVowels.pdf` | André-Georges Haudricourt, \"The short vowels of Vietnamese\" (1952), bản dịch Alexis Michaud 2017, HAL `halshs-01631474` | \"Sao `ă`/`â` cần âm cuối?\", \"Sao `nh` và `ng` vừa giống vừa khác?\" → phần đầu, bảng 2 |
+| `S0025100311000181a.pdf` | James P. Kirby, \"Vietnamese (Hanoi Vietnamese)\", *JIPA* 41(3), 2011, DOI `10.1017/S0025100311000181` | \"Có bao nhiêu nguyên âm/âm cuối/thanh?\", \"Tone là cao độ hay chất giọng?\" → mục Consonants, Vowels, Tones |
+| `VN LLF Part I.pdf` | Binh N. Ngo (Ngô Như Bình), *The Vietnamese Language Learning Framework*, Part One, 2006 | \"Âm tiết gồm mấy phần?\", \"Tiếng Việt với Tiếng Anh khác nhau chỗ nào?\" → mục 3.4, 4.1 |
+
+### 19.1. Cách đọc tài liệu học thuật mà không sợ
+
+1. **Đọc bảng trước, đọc chữ sau.** Bảng 1 của Haudricourt, bảng Consonants/Vowels/Tones của Kirby chứa 80% giá trị.
+2. **Bỏ qua ký hiệu IPA lần đầu.** Bạn không cần đọc được [ɤ̆] để hiểu \"đây là nguyên âm ngắn\". Đọc chữ `â` trong ngoặc là được.
+3. **Tìm chữ \"however / but / except\".** Đó là chỗ tài liệu nói về ngoại lệ — và ngoại lệ là thứ hay gây bug.
+4. **Đối chiếu ngay với code.** Đọc xong \"short vowels never in absolute final position\", mở `syllable-parser.js` tìm `isValid()` xem rule đó nằm ở dòng nào.
+5. **Ghi lại khác biệt, không ghi chép lại nguyên văn.** Ví dụ: \"Sách dùng modern, mình dùng classic\". Đó là kiểu ghi chú có ích.
+
+### 19.2. Bài tập tự kiểm tra chéo
+
+| Câu hỏi | Tài liệu | Đối chiếu vào |
+|---|---|---|
+| \"Có mấy âm cuối trong Hà Nội?\" | Kirby, mục Finals | Bảng coda §3.1 — giải thích được vì sao số \"8\" và \"9\" cùng đúng |
+| \"`ă` đứng một mình được không?\" | Haudricourt, đầu bài | `short vowel needs coda` trong parser |
+| \"Dấu có được lưu trên chữ không?\" | Dokey chương 6 | `getTargetVowelIndex()` |
+| \"Vì sao `centre`/`center` không dính dấu?\" | Dokey chương 5 + Ngo mục 3.4 | `hasCkPhonologyViolation()` |
+
+Nếu trả lời được bốn dòng trên bằng lời của bạn (không cần đúng từng chữ), bạn đã hiểu hơn một nửa tài liệu ngữ âm này.
 
 ---
 

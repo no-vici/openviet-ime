@@ -16,6 +16,9 @@
 | 10 phút, cần nhớ thao tác | [Phần 0 — Thẻ nhớ nhanh](#phần-0--thẻ-nhớ-nhanh-in-ra-dán-tường) | 10 phút |
 | 1 giờ, muốn hiểu hệ thống | [Phần 0](#phần-0--thẻ-nhớ-nhanh-in-ra-dán-tường) → [Phần 2](#phần-2--cẩm-nang-gõ-phím-thẻ-tra-cứu) → [Phần 4.1–4.3](#phần-4--cẩm-nang-kỹ-sư) | 60 phút |
 | Đang có bug trên tay | [Phần 3](#phần-3--cẩm-nang-khắc-phục-sự-cố-cookbook) → [Phần 4.5](#45-bảng-settings-đầy-đủ) → [Phần 4.9](#49-bản-đồ-test-98-cases) | Tuỳ ca |
+| **Chưa biết gì cả, đừng ném thuật ngữ vào mặt tôi** | [Phần 7](#phần-7--nhập-môn-tuyệt-đối-đọc-chậm-thôi) → [Phần 8](#phần-8--lộ-trình-tự-học-7-ngày) | 2 giờ + 7 ngày |
+| Cần đọc 4 file PDF trong `docs/references/` | [Phần 9](#phần-9--đọc-4-file-pdf-trong-docsreferences-không-sợ) | 45 phút |
+| Đang phân vân \"đây là bug engine hay harness?\" | [Phần 10](#phần-10--cây-quyết-định-chẩn-đoán) | 5 phút |
 
 ### Quy ước ký hiệu
 
@@ -38,13 +41,17 @@
 | Gõ `w` có ra `ư` không? | [2.1](#21-bảng-telex), [4.5](#45-bảng-settings-đầy-đủ) `wToUEnabled` |
 | Tại sao `hòa` và `hoà` đều được? | [2.4](#24-bảng-dấu-thanh-và-ngoại-lệ), [VIETNAMESE_PHONOLOGY §6](../VIETNAMESE_PHONOLOGY.md) |
 | `sway` bị thành `sưay`? | [3.7](#37-ca-7--swaymanjaro-bị-biến-dạng), [2.6](#26-bảng-từ-bẫy-theo-nhóm) |
-| Dấu bị rụng trong Telegram | [3.2](#32-ca-2--mất-dấu-trong-telegramgitteamtiptap), [ARCHITECTURE §5](../ARCHITECTURE.md) |
+| Dấu bị rụng trong Telegram | [3.2](#32-ca-2--mất-dấu-trong-telegramgithubteams), [ARCHITECTURE §5](../ARCHITECTURE.md) |
 | E2E đỏ nhưng unit xanh | [4.10](#410-giải-phẫu-e2e-harness) |
 | Build ra zip khác checksum | [4.11](#411-giải-phẫu-build-và-artifact) |
 | Cần force tag + source zip | [4.12](#412-release-playbook-copy--paste) |
 | Cần submit AMO / GitHub Release | [4.13](#413-amo--github-release-checklist) |
 | Quên mất `ucs` viết tắt cái gì | [1.3](#13-macro-mặc-định--preset) |
 | Cần grep nhanh một rule trong code | [4.1](#41-bản-đồ-file-mở-khi-nào) |
+| \"Extension là cái gì vậy?\" | [7.1](#71-extension-là-gì-giải-thích-bằng-hình-ảnh) |
+| \"Tôi bấm một phím thì chuyện gì xảy ra?\" | [7.2](#72-một-phím-đi-qua-sáu-trạm-kiểm-soát) |
+| \"Học theo lịch trình được không?\" | [Phần 8](#phần-8--lộ-trình-tự-học-7-ngày) |
+| \"Tài liệu ngữ âm nói gì, đọc chỗ nào?\" | [Phần 9](#phần-9--đọc-4-file-pdf-trong-docsreferences-không-sợ) |
 
 ---
 
@@ -982,7 +989,7 @@ xoong boong goòng            (loanword oo)
 [ ] npm test                       → 98/98
 [ ] npm run test:e2e               → 11/11 + 24/24
 [ ] canary toans → toán xanh ở cả 2 suite
-[ ] grep thuật ngữ cũ              → 0
+[ ] npm run check:terms            → 0 lỗi
 [ ] manifest.json đúng bản đang build
 [ ] 3 zip extension + source zip regenerate
 [ ] SHA256SUMS.txt cập nhật
@@ -991,6 +998,393 @@ xoong boong goòng            (loanword oo)
 [ ] CHANGELOG + BUILD + READMEs khớp code
 [ ] tag v1.4.5 force-move + push (nếu phát hành)
 ```
+
+---
+
+## Phần 7 — Nhập môn tuyệt đối: đọc chậm thôi
+
+> Phần này dành cho người chưa từng làm extension, chưa biết DOM là gì, và đang thấy sợ khi mở `avim.js`. Nếu bạn đã quen, nhảy sang [Phần 8](#phần-8--lộ-trình-tự-học-7-ngày). Không có gì phải chứng tỏ ở đây: đọc chậm là đọc đúng.
+
+### 7.1 Extension là gì? Giải thích bằng hình ảnh
+
+Hãy tưởng trình duyệt là **một tòa nhà văn phòng**:
+
+| Thành phần | Hình ảnh đời thường | Tên trong code |
+|---|---|---|
+| Trang web (`example.com`) | Phòng làm việc, có bàn và giấy | DOM, `document` |
+| Ô nhập liệu | Tờ giấy đang đặt trước mặt bạn | `<input>`, `<textarea>`, `contenteditable` |
+| Content script | Nhân viên đứng ngay cạnh bàn, thấy mọi phím bạn bấm | `src/content/content.js` |
+| Background service worker | Tổng đài ở tầng hầm, giữ cấu hình và đổi biểu tượng | `src/background/service-worker.js` |
+| Popup | Bảng điều khiển nhỏ gắn trên thanh công cụ | `src/popup/` |
+| Options | Phòng cài đặt, nơi chỉnh mọi thứ | `src/options/` |
+| Manifest | Giấy tờ xác nhận \"nhân viên này được phép vào tòa nhà\" | `manifest.firefox.json` / `manifest.chrome.json` |
+
+Ba sự thật cần nhớ:
+
+1. **Content script không thấy trang khác.** Nó chỉ chạy trong tab đang mở. Đó là lý do `about:blank` trong E2E làm content script \"chết\" — xem [3.4](#34-ca-4--e2e-headful-đỏ-headless-xanh).
+2. **Background không đọc được giấy của bạn.** Nó chỉ giữ setting và đổi badge `TE/VNI/AUTO/OFF`. Muốn đổi chữ trên trang, phải nhờ content script.
+3. **Trang web có thể tự gõ lại chữ.** React, Vue, TipTap, Lexical... có listener riêng. Vì vậy content script phải chạy ở chế độ `capture = true` và gọi `stopImmediatePropagation()`.
+
+### 7.2 Một phím đi qua sáu trạm kiểm soát
+
+Bạn bấm chữ `s` để gõ `toás`. Trước khi chữ `s` kịp hiện ra, nó đi qua sáu trạm:
+
+```text
+[1] Shortcut?        Ctrl+Shift+U? Double Ctrl? Esc?  → xử lý rồi dừng
+         │ không
+         ▼
+[2] Đang OFF?        method === 0 → thả phím, kết thúc
+         │ không
+         ▼
+[3] Có phải ô nhập?  DomObserver: input/textarea/contenteditable?
+         │ có
+         ▼
+[4] Có phải code?    URL, email, snake_case, camelCase, backtick?
+         │ không
+         ▼
+[5] Engine quyết định  AvimEngine.processKey('s')
+         │  "toan" + Sắc → "toán"
+         ▼
+[6] Ghi vào trang    TextReplacer thay đúng đoạn, giữ nguyên phần còn lại
+```
+
+Nếu dấu không hiện, hãy hỏi **theo thứ tự**: trạm 1 có nuốt phím không? trạm 2 có đang OFF không? trạm 3 có tìm thấy ô nhập không? trạm 4 có tưởng nhầm là code không? trạm 5 có từ chối vì chánh tả không? trạm 6 có ghi nhầm chỗ không?
+
+Đây là câu hỏi đầu tiên trong [10.1](#101-dấu-không-hiện--đi-từng-trạm).
+
+### 7.3 Thử nghiệm 5 phút, không cần đọc code
+
+Bạn có thể tự kiểm tra engine đang sống hay không mà không cần mở file nào:
+
+| Bước | Việc cần làm | Kỳ vọng |
+|---|---|---|
+| 1 | Mở popup, nhìn badge | `TE`, `VNI`, `AUTO` hoặc `OFF` |
+| 2 | Gõ `toans` rồi bấm Cách | `toán ` |
+| 3 | Gõ `text` rồi bấm Cách | `text ` (không phải `tẽt`) |
+| 4 | Gõ `web` rồi bấm Cách | `web ` (chữ `w` đầu từ giữ nguyên) |
+| 5 | Gõ `thw` rồi bấm Cách | `thư ` |
+| 6 | Gõ `sway` rồi bấm Cách | `sway ` |
+
+**Canary** là bước 2. Nếu bước 2 sai mà bước 3 đúng, bạn đang ở trong trường hợp \"pass giả\": content script không chạy, nên từ bẫy không bị đổi và tưởng là engine giỏi. Đây chính là lỗi E2E 12 ca đã từng xảy ra.
+
+### 7.4 Từ điển 60 chữ hay gặp
+
+| Chữ | Nghĩa cực ngắn |
+|---|---|
+| `IME` | Bộ gõ: biến phím Latin thành chữ có dấu |
+| `Telex` | Kiểu gõ dùng `s f r x j` làm dấu, `w` làm móc |
+| `VNI` | Kiểu gõ dùng số `1–9` làm dấu/hình chữ |
+| `Auto` | Tự chọn Telex cho chữ, VNI cho số |
+| `engine` | Bộ não quyết định chữ gì ra sao |
+| `state` | Trạng thái tạm: đang gõ dở chữ gì, dấu gì |
+| `setting` | Cấu hình người dùng bật/tắt |
+| `default` | Giá trị khi chưa ai chỉnh |
+| `parser` | Bóc chuỗi thành từng phần |
+| `syllable` | Âm tiết — một nhịp của chữ Tiếng Việt |
+| `onset` | Âm đầu (`tr` trong `trong`) |
+| `glide` | Âm đệm (`u` trong `quán`) |
+| `nucleus` | Âm chính, nơi dấu thường đứng (`a` trong `toán`) |
+| `coda` | Âm cuối (`n` trong `toán`) |
+| `tone` | Dấu thanh của cả âm tiết |
+| `mark` | Dấu hình chữ: mũ, trăng, móc, gạch `đ` |
+| `NFC` | Unicode dạng ghép sẵn (`ế` là 1 ký tự) |
+| `NFD` | Unicode dạng tách dấu (`e` + 2 dấu) |
+| `DOM` | Cây các thẻ HTML của trang |
+| `caret` | Con trỏ nhấp nháy |
+| `selection` | Vùng đang bôi đen |
+| `Range` | Đoạn văn bản giữa hai điểm trong DOM |
+| `contenteditable` | Thẻ cho phép gõ trực tiếp, ví dụ ô Soạn thảo |
+| `capture` | Nghe sự kiện **trước** trang web |
+| `preventDefault` | \"Phím này tôi xử lý rồi, trang đừng gõ thêm\" |
+| `stopPropagation` | \"Các listener khác đừng chạy nữa\" |
+| `beforeinput` | Sự kiện báo \"sắp chèn/xoá chữ\" |
+| `guard` | Cửa chặn tạm thời chống sự kiện rò rỉ |
+| `delimiter` | Phím kết thúc từ: Cách, Enter, dấu câu |
+| `auto-restore` | Trả chữ gốc khi bấm delimiter |
+| `trap word` | Từ dễ bị Telex biến dạng (`text`, `user`, `sway`) |
+| `word rescue` | Đổi cả chuỗi thô ↔ có dấu |
+| `macro` | Gõ tắt: `vn` → `Việt Nam` |
+| `prefix bucket` | Nhóm từ gợi ý theo chữ cái đầu để tìm nhanh |
+| `habit` | Thói quen gõ học được trên máy bạn |
+| `domain lock` | Neo trọng số từ kỹ thuật theo tên miền |
+| `canary` | Ca test nhỏ báo \"content script còn sống\" |
+| `harness` | Bộ khung chạy test (Playwright, origin giả...) |
+| `unit test` | Test từng hàm, không cần browser |
+| `E2E` | Test chạy thật trên browser |
+| `headful` | Chạy browser có cửa sổ nhìn thấy |
+| `headless` | Chạy browser không cửa sổ |
+| `bundle` | File JS gộp do esbuild tạo ra |
+| `manifest` | File khai báo của extension |
+| `badge` | Chữ `TE/VNI/AUTO/OFF` trên biểu tượng |
+| `broadcast` | Báo các tab \"setting đổi rồi\" |
+| `storage.sync` | Bộ nhớ đồng bộ qua tài khoản browser |
+| `whitelist` | Danh sách được phép, ví dụ địa danh Tây Nguyên |
+| `blacklist` | Danh sách bị chặn, ví dụ domain tắt IME |
+| `phonology` | Nghiên cứu âm thanh ngôn ngữ |
+| `orthography` | Quy tắc viết chánh tả |
+| `checked syllable` | Âm khép `c/ch/p/t`, chỉ Sắc/Nặng |
+| `classic` | Kiểu dấu `hòa, khỏe, thủy` |
+| `modern` | Kiểu dấu `hoà, khoẻ, thuỷ` |
+| `chánh tả` | Viết đúng quy ước Tiếng Việt |
+| `gởi` | Từ dùng thống nhất trong tài liệu này |
+| `nhất quán` | Dùng cùng một cách ở mọi nơi |
+| `regression` | Test để lỗi cũ không trở lại |
+| `artifact` | File zip đóng gói để phát hành |
+| `reproducible` | Build lại ra kết quả tương đương |
+| `force tag` | Dán lại nhãn phiên bản vào commit mới |
+
+### 7.5 Mười hai cặp dễ nhầm
+
+| Đừng nhầm | Với | Nhớ bằng |
+|---|---|---|
+| Dấu hình chữ (`ă`) | Dấu thanh (`á`) | `ă` đổi chữ, `á` đổi cao độ |
+| Phím `w` | Chữ `w` | `w` là phím gõ, không phải chữ cái Tiếng Việt |
+| `đ` | `d` + dấu | `đ` là chữ riêng, NFD không tách được |
+| `hòa` | `hoà` | Cùng nghĩa, khác quy ước đặt dấu |
+| Telex | VNI | Chữ cái vs chữ số |
+| `autoRestoreEnglish` | `phonologyRules` | Một bên đoán từ khác, một bên đoán âm Việt |
+| `spellCheck` | `phonologyRules` | Tra cứu từ vs kiểm tra cấu trúc |
+| `suggestion` | `macro` | Gợi ý sau khi gõ vs bung ngay khi gõ xong trigger |
+| Badge | Popup | Hiển thị trạng thái vs nơi đổi trạng thái |
+| Unit test | E2E | Hàm thuần vs trình duyệt thật |
+| `manifest.json` | `manifest.firefox.json` | File sinh ra (gitignore) vs file nguồn |
+| Tag | Commit | Tag là nhãn dán, commit là nội dung |
+
+---
+
+## Phần 8 — Lộ trình tự học 7 ngày
+
+> Mỗi ngày có một mục tiêu nhỏ, một lệnh chạy được, và một câu hỏi tự kiểm tra. Làm đủ 7 ngày là bạn đọc được hầu hết `avim.js` mà không sợ.
+
+### Ngày 1 — Chạy được, đừng hiểu vội
+
+- [ ] `node -v && npm -v`
+- [ ] `npm ci`
+- [ ] `npm test` → 98/98
+- [ ] Mở extension, gõ 6 ca trong [7.3](#73-thử-nghiệm-5-phút-không-cần-đọc-code)
+
+**Tự hỏi:** ca nào trong 6 ca làm tôi ngạc nhiên nhất? Tại sao?
+
+### Ngày 2 — Học bảng phím bằng tay, không bằng mắt
+
+- [ ] Đọc [0.1](#01-thẻ-telex-một-trang), rồi **giấu đi**
+- [ ] Gõ lại 20 ca đầu trong [2.7](#27-bài-tập-tự-kiểm-tra-40-ca-có-đáp-án)
+- [ ] Đọc [0.2](#02-thẻ-vni-một-trang), gõ lại 10 ca bằng VNI (đổi method trong popup)
+
+**Tự hỏi:** gõ `dduocw` khác `d9o5` chỗ nào?
+
+### Ngày 3 — Âm tiết là LEGO
+
+- [ ] Đọc [`VIETNAMESE_PHONOLOGY.md` §1](../VIETNAMESE_PHONOLOGY.md#1-âm-tiết-là-gì) và [§14](../VIETNAMESE_PHONOLOGY.md#14-học-lại-từ-số-không-bốn-lớp-của-một-chữ)
+- [ ] Với 5 từ `toán, người, tiếng, được, nước`, tự bóc thành Onset/Glide/Nucleus/Coda/Tone
+- [ ] Mở `syllable-parser.js`, tìm `isValid()`
+
+**Tự hỏi:** tại sao `ă` không đứng một mình?
+
+### Ngày 4 — Dấu: cũ, mới, và dời dấu
+
+- [ ] Đọc [§6](../VIETNAMESE_PHONOLOGY.md#6-quy-tắc-đặt-dấu-cũ-mới-và-lý-do-lịch-sử) và [§16](../VIETNAMESE_PHONOLOGY.md#16-dấu-được-tính-toán-không-được-lưu-cứng)
+- [ ] Đổi `toneStyle` sang modern, gõ lại `hòa, khỏe, thủy`
+- [ ] Gõ `toans`, rồi tiếp `g` → `toáng`; giải thích bằng \"render lại\" chứ không phải \"dời dấu\"
+
+**Tự hỏi:** nếu dấu được lưu cứng trên chữ `o`, ca `hoaf + n` hỏng ở đâu?
+
+### Ngày 5 — Bẫy và cổng kiểm tra
+
+- [ ] Đọc [§15](../VIETNAMESE_PHONOLOGY.md#15-cổng-kiểm-tra-vì-sao-không-tin-vào-danh-sách-từ-khác)
+- [ ] Gõ 10 từ bẫy trong [2.6](#26-bảng-từ-bẫy-theo-nhóm)
+- [ ] Tắt `wToUEnabled`, gõ `sway`, `web`; bật lại
+- [ ] Thêm một từ lạ vào user dictionary và kiểm tra nó không bị dính dấu
+
+**Tự hỏi:** cổng Tiếng Việt và danh sách bẫy, cái nào chạy trước?
+
+### Ngày 6 — Rich editor và E2E
+
+- [ ] Đọc [Phần 3 ca 1–4](#phần-3--cẩm-nang-khắc-phục-sự-cố-cookbook)
+- [ ] `npx playwright install chromium` (nếu chưa có)
+- [ ] `npm run test:e2e` → 11/11 + 24/24
+- [ ] Tìm dòng canary `toans` trong `test/playwright-rich-editors.test.js`
+
+**Tự hỏi:** nếu canary đỏ mà trap word xanh, tại sao không được tin?
+
+### Ngày 7 — Build, tag, viết lại tài liệu
+
+- [ ] Đọc [4.11](#411-giải-phẫu-build-và-artifact) → [4.12](#412-release-playbook-copy--paste)
+- [ ] `npm run build:firefox` rồi `unzip -p web-ext-artifacts/openviet_ime-firefox-1.4.5.zip manifest.json | head`
+- [ ] `npm run check:terms` → 0 lỗi
+- [ ] Sửa một câu trong docs rồi tự kiểm tra `git diff`
+
+**Tự hỏi:** vì sao source zip làm bằng `git archive`, không phải `web-ext build`?
+
+---
+
+## Phần 9 — Đọc 4 file PDF trong docs/references không sợ
+
+### 9.1 Bốn cuốn, bốn câu hỏi
+
+| File | Câu hỏi nó trả lời | Đọc mục nào trước | Lưu ý |
+|---|---|---|---|
+| `dokey-book.pdf` | \"Thiết kế engine vì sao lại rebuild cả từ?\" | Chương 2 → 5 → 6 → 8 | **Có bản quyền.** Chỉ tham khảo ý; không chép code/đoạn văn vào repo |
+| `Haudricourt1952_ShortVowels.pdf` | \"Sao `ă`/`â` cần âm cuối?\" | Đầu bài + Bảng 2 | Bài 1952, bản dịch 2017; ký hiệu IPA cũ |
+| `S0025100311000181a.pdf` | \"Hà Nội có bao nhiêu âm/thanh?\" | Consonants → Vowels → Tones | Bài JIPA 2011 của Kirby; bảng bị lỗi font khi copy text, hãy nhìn PDF |
+| `VN LLF Part I.pdf` | \"Âm tiết gồm mấy phần? Tiếng Việt khác Tiếng Anh chỗ nào?\" | 3.4 → 4.1 | Tài liệu giảng dạy 2006, dễ đọc nhất trong 4 file |
+
+### 9.2 Thứ tự đọc khuyên dùng
+
+```text
+Người mới          → VN LLF Part I (3.4)
+                   → VIETNAMESE_PHONOLOGY §14 trong repo này
+Muốn hiểu rule     → Haudricourt (bài ngắn)
+                   → Kirby (Vowels + Tones)
+Muốn hiểu engine   → Dokey chương 5 → 6 → 4 → 8
+Muốn hiểu E2E      → Dokey chương 8 + docs/PLAYWRIGHT_E2E_GUIDE.md
+```
+
+**Đừng đọc Dokey từ trang 1 đến 222.** Đây là sách kỹ thuật dày; đọc có mục đích thì 20 phút đủ, đọc tràn lan thì 3 ngày vẫn chưa xong.
+
+### 9.3 Bài tập đối chiếu
+
+| Đọc được trong PDF | Mở file repo | Tìm |
+|---|---|---|
+| \"short vowel never in absolute final position\" | `src/engine/syllable-parser.js` | nhánh từ chối `ă/â` cuối từ |
+| \"tone is computed at render\" | `src/engine/avim.js` | `getTargetVowelIndex()` |
+| \"checked syllables take only two tones\" | `src/engine/syllable-parser.js` | `TONE_STYLE` + coda check |
+| \"editors ignore synthetic Backspace\" | `src/content/text-replacer.js` | `replaceInContentEditable()` |
+| \"syllable = tone + initial + labialization + nucleus + final\" | `src/engine/syllable-parser.js` | 5 trường của `ParsedSyllable` |
+
+> 📌 Khi bạn đối chiếu được 3 dòng đầu, bạn đã hiểu tại sao `docs/VIETNAMESE_PHONOLOGY.md` viết những điều tưởng như \"quá chi tiết\". Chi tiết đó có nguồn.
+
+---
+
+## Phần 10 — Cây quyết định chẩn đoán
+
+### 10.1 Dấu không hiện — đi từng trạm
+
+```text
+Gõ "toans" không ra "toán"
+│
+├─ Badge có đang OFF? ───────── có → bật lại method
+│
+├─ Gõ "text" có bị thành "tẽt" không?
+│   ├─ có → engine đang chạy; nghi rule chánh tả → §3.8
+│   └─ không → nghi content script chết → tiếp
+│
+├─ Origin có phải http(s) thật? (about:blank / file:// → chết)
+│
+├─ Trang có chặn listener không? (thử tab khác)
+│
+└─ Mở debug log: có keydown tới content.js không?
+    ├─ có → lỗi ở engine/ghi DOM
+    └─ không → lỗi ở manifest / injection
+```
+
+### 10.2 Dấu hiện sai chỗ
+
+```text
+"toán" thành "tóan" hoặc "thoà" thay vì "hòa"
+│
+├─ Có coda tắc c/ch/p/t + dấu Huyền/Hỏi/Ngã? → bị chặn là đúng (§3.2)
+│
+├─ toneStyle là gì? classic hay modern? → đổi thử (§2.4)
+│
+├─ Có "qu" hoặc "gi" ở đầu không? → u/i ở đây không nhận dấu
+│
+└─ Vẫn sai → getTargetVowelIndex() bị sửa → §4.1 + phonology §16
+```
+
+### 10.3 E2E đỏ / unit xanh
+
+```text
+npm test xanh, npm run test:e2e đỏ
+│
+├─ Canary "toans → toán" đỏ?
+│   ├─ có → content script không attach. Kiểm tra origin + manifest (§3.4)
+│   └─ không → tiếp
+│
+├─ Chỉ headful đỏ? → kiểm tra --load-extension + thư mục manifest.chrome tạm
+│
+├─ Chỉ rich-editor đỏ? → adapter contenteditable / beforeinput guard (§3.1)
+│
+└─ Cả hai đỏ nhưng unit xanh → harness sai, KHÔNG sửa engine vội
+```
+
+### 10.4 Build lạ
+
+```text
+Zip khác checksum / reviewer rebuild khác
+│
+├─ Quên npm ci? → cài lại từ package-lock.json
+│
+├─ manifest.json đang là bản Chrome? → npm run manifest:firefox
+│
+├─ Source zip thiếu docs/? → dùng git archive, không dùng web-ext build
+│
+├─ SHA256SUMS cũ? → regenerate sau khi archive
+│
+└─ Vẫn khác → so sánh functional, đừng so sánh byte (BUILD.md đã ghi)
+```
+
+---
+
+## Phần 11 — Bài học vận hành mượn từ tài liệu tham khảo
+
+> Toàn bộ phần này là **paraphrase ý tưởng** từ chương 8 của sách *Dokey: Engineering a Vietnamese Input Method* (có bản quyền), rồi dịch sang bối cảnh extension trên browser. Không có đoạn văn hay code nào được chép lại.
+
+### 11.1 Bốn cách giao phím bị hỏng
+
+| Lỗi kinh điển | Triệu chứng | Cách sửa trong Dokey (paraphrase) | OpenViet làm gì |
+|---|---|---|---|
+| Sự kiện bị xáo thứ tự | Chữ cái bị đảo/double trong app đa tiến trình | Gom sửa lỗi lại trước phím tiếp theo | `capture=true` + `preventDefault` ngay trong `keydown` |
+| Editor bỏ qua Backspace giả | `Haxy` thành `Hayãy` (chữ cũ nằm lại, chữ mới chèn sau) | Chọn đoạn cũ rồi gõ đè thay vì bấm Backspace | `Range` + `deleteContents()` rồi chèn text mới |
+| Phím đang giữ bị hiểu là auto-repeat | Chữ bị mất (`Haxy → Hy`) | Truyền text với mã phím đang nhả | Không tạo synthetic key; ta sửa DOM trực tiếp |
+| Mỗi app một kiểu nhận text | Cùng engine, ô này đúng ô kia sai | Chia profile theo ứng dụng | 4 adapter + `domainMethods` + `blacklistedDomains` |
+
+**Bài học:** lỗi \"gõ sai\" không phải lúc nào cũng lỗi engine. Đôi khi engine tính đúng nhưng **cách đưa chữ vào trang** sai.
+
+### 11.2 Năm nguyên tắc vàng
+
+1. **Một nguồn sự thật.** Default chỉ sống ở `DEFAULT_SETTINGS`; mọi nơi khác import. (`settings-parity.test.js` canh cửa.)
+2. **Tính, đừng lưu.** Dấu không được dán cứng vào chữ cái; tính lại khi render.
+3. **Cổng trước, dấu sau.** Kiểm tra âm tiết trước khi áp phím dấu.
+4. **Sửa ít nhất.** Thay đúng đoạn đang gõ, đừng `innerHTML` cả ô.
+5. **Canary trước khi tin.** `toans → toán` xanh thì mới đọc kết quả các ca khác.
+
+### 11.3 Áp ngay vào công việc hôm nay
+
+| Bạn đang làm | Nguyên tắc áp dụng |
+|---|---|
+| Thêm rule `w` mới | (3) cổng trước, (2) tính lại dấu |
+| Sửa `text-replacer.js` | (4) sửa ít nhất + chạy lại 24 E2E |
+| Thêm setting | (1) một nguồn sự thật + parity test |
+| Review AMO artifact | (5) clean-source build + canary + checksum |
+| Đọc PDF | (2) hiểu nguyên lý, đừng chép nguyên văn |
+
+---
+
+## Phần 12 — Hai mươi ca nâng cao (31–50)
+
+| # | Tình huống | Cách xử lý nhanh |
+|---|---|---|
+| 31 | `hoaf` rồi bấm `n` thành `hoàn` | Đúng: render lại, dấu ở `a`. Không sửa |
+| 32 | `hoaf` rồi Backspace vẫn `hòa` | Engine giữ `lastTransformed`; kiểm tra `escRevert`/undo |
+| 33 | `dduocjw` ra `được` dù dấu đến trước | Prefix \"có thể trở thành\" — đúng thiết kế |
+| 34 | `xoong` vẫn là `xoong` | Loanword `oo` đã whitelist |
+| 35 | `Pleiku` không bị chặn dù có `pl` | Ngoại lệ địa danh Tây Nguyên |
+| 36 | `m'đrắk` mất dấu nháy | `word-boundary` phải giữ apostrophe nội bộ |
+| 37 | `ế` bị cắn nửa khi Backspace | NFD combining mark; chạy `word-boundary.test.js` |
+| 38 | `useState` bị thành `úeState` | camelCase guard hỏng; kiểm tra early return |
+| 39 | `fcitx5` bị dính dấu | Alphanumeric guard; xem `url-code-guards.test.js` |
+| 40 | Gợi ý hiện ngay sau dấu `.` | Chat/sentence guard; `nextWordEnabled` |
+| 41 | Macro `;gitc` bung trong URL | Code guard phải chạy trước macro |
+| 42 | `$CLIPBOARD` lấy nội dung cũ | Macro mở clipboard tại thời điểm bung |
+| 43 | Badge `AUTO` nhưng popup hiện `Telex` | Storage chưa broadcast; kiểm tra 4 khóa cho phép |
+| 44 | Popup lưu rồi mất setting | Fallback `localStorage` khi không có `storage.sync` |
+| 45 | `spellCheck` bật thì từ lóng bị chặn | Thêm vào user dictionary (whitelist thắng) |
+| 46 | Gõ trong ô password vẫn đổi dấu | Password guard; `data-no-ime` |
+| 47 | Teams Web vẫn trả chữ thô | Model-backed editor; cần adapter riêng |
+| 48 | E2E xanh nhưng người dùng kêu lỗi | Thiếu canary hoặc sai origin thật |
+| 49 | Reviewer rebuild khác checksum | Timestamp khác; so functional, xem BUILD.md |
+| 50 | Tag `v1.4.5` trỏ commit cũ | `git tag -f -a` + `git push --force origin v1.4.5` |
 
 ---
 
