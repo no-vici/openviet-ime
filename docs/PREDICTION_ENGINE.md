@@ -54,7 +54,7 @@ Mỗi khi người dùng hoàn thành một từ và nhấn phím ngắt từ (k
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        TẦNG 4: Compound Phrases Index                  │
-│   Trích xuất từ các từ ghép tiếng Việt chuẩn (COMMON_COMPOUNDS)        │
+│   Trích xuất từ các từ ghép Tiếng Việt chuẩn (COMMON_COMPOUNDS)        │
 │   Ví dụ: W_(n-1) = "công" -> gợi ý phần còn lại: "nghệ", "ty", "việc"  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -66,13 +66,13 @@ Mỗi kết quả được gom lại, khử trùng lặp qua `Set` và chốt ch
 ## 3. Cơ Chế Domain-Isolation Weight Lock (Khóa Trọng Số Miền Kỹ Thuật)
 
 ### 3.1. Bài toán thực tế
-Khi lập trình viên gõ các câu lệnh CLI hoặc mã nguồn (ví dụ `git push`, `docker run`), các cặp từ này được lưu vào Tầng 2. Tuy nhiên, khi chuyển sang nhắn tin hoặc viết văn bản tiếng Việt thông thường (với số lượng từ lớn gấp hàng chục lần), thuật toán suy hao thời gian (Exponential Decay) sẽ làm điểm số của các từ lập trình bị tụt dốc, dẫn đến việc các lệnh kỹ thuật bị từ hội thoại thường ngày lấn át.
+Khi lập trình viên gõ các câu lệnh CLI hoặc mã nguồn (ví dụ `git push`, `docker run`), các cặp từ này được lưu vào Tầng 2. Tuy nhiên, khi chuyển sang nhắn tin hoặc viết văn bản Tiếng Việt thông thường (với số lượng từ lớn gấp hàng chục lần), thuật toán suy hao thời gian (Exponential Decay) sẽ làm điểm số của các từ lập trình bị tụt dốc, dẫn đến việc các lệnh kỹ thuật bị từ hội thoại thường ngày lấn át.
 
 ### 3.2. Công thức toán học có bảo vệ miền
 
 $$\text{Score}(entry) = \text{Count} \times e^{-\lambda \cdot \Delta t_{\text{hours}}} + \text{Bonus}_{\text{dev}}$$
 
-- **Với từ hội thoại tiếng Việt thông thường**:
+- **Với từ hội thoại Tiếng Việt thông thường**:
   - $\lambda = 0.002$ / giờ (chu kỳ bán rã $\approx 14$ ngày).
   - $\text{Bonus}_{\text{dev}} = 0$.
   - Sau 30 ngày không dùng, một từ gõ 10 lần sẽ suy hao tự nhiên từ $10.0$ điểm xuống còn **$\approx 2.37$ điểm**.
@@ -127,8 +127,8 @@ Cơ sở dữ liệu lệnh kỹ thuật được tổ chức module hóa trong 
    - Ngăn chặn triệt để hiện tượng gợi ý từ chữ thường vô duyên khi người dùng chuẩn bị bắt đầu một câu mới.
 
 2. **Bảo vệ phím Enter khi nhắn tin (Chat Application Enter Pass-Through)**:
-   - Trong các ứng dụng nhắn tin thời gian thực như **Telegram Web, Slack, Facebook Messenger, Zalo**: người dùng có thói quen bấm `Enter` để gửi tin nhắn.
-   - Nếu thanh ribbon đang ở chế độ `nextword`, bộ gõ **tuyệt đối không chặn sự kiện `Enter`** và không tự ý chèn từ vào ô chat. Thay vào đó, nó âm thầm đóng thanh gợi ý và cho phép sự kiện `Enter` tự nhiên đi qua để tin nhắn được gửi đi tức thì.
+   - Trong các ứng dụng nhắn tin thời gian thực như **Telegram Web, Slack, Facebook Messenger, Zalo**: người dùng có thói quen bấm `Enter` để gởi tin nhắn.
+   - Nếu thanh ribbon đang ở chế độ `nextword`, bộ gõ **tuyệt đối không chặn sự kiện `Enter`** và không tự ý chèn từ vào ô chat. Thay vào đó, nó âm thầm đóng thanh gợi ý và cho phép sự kiện `Enter` tự nhiên đi qua để tin nhắn được gởi đi tức thì.
 
 ---
 

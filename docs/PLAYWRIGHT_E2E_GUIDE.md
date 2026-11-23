@@ -58,15 +58,15 @@ Khi người dùng gõ `playwright` trong chế độ gõ Telex:
    - Engine coi `y` là âm chính và đặt dấu hỏi $\rightarrow$ biến thành **`plăỷ`**.
 4. Gõ tiếp `i` `g` `h` `t` $\rightarrow$ kết quả biến dị thành **`plăỷight`**.
 
-### 3.2. Vi phạm quy tắc chính tả & ngữ âm học tiếng Việt:
+### 3.2. Vi phạm quy tắc chánh tả & ngữ âm học Tiếng Việt:
 1. **Phụ âm đầu ngoại lai (Foreign Initial Consonant Clusters)**:
-   - Trong chính tả tiếng Việt chuẩn, **hoàn toàn không có phụ âm đầu `pl-`** (cũng như `fl-`, `cl-`, `bl-`, `gl-`, `sl-`, `dr-`, `cr-`, `br-`, `gr-`, `fr-`, `sp-`, `st-`, `sk-`, `str-`...).
+   - Trong chánh tả Tiếng Việt chuẩn, **hoàn toàn không có phụ âm đầu `pl-`** (cũng như `fl-`, `cl-`, `bl-`, `gl-`, `sl-`, `dr-`, `cr-`, `br-`, `gr-`, `fr-`, `sp-`, `st-`, `sk-`, `str-`...).
    - Ngoại lệ duy nhất là một số địa danh Tây Nguyên (như `Pleiku`, `Krông Nô`, `Prông`).
-   - Mọi từ có phụ âm đầu thuộc danh mục `FOREIGN_INITIAL_CLUSTERS` mà không nằm trong từ điển âm tiết tiếng Việt/địa danh Tây Nguyên thì **100% là từ ngoại ngữ** và phải bị treo bộ gõ tiếng Việt.
+   - Mọi từ có phụ âm đầu thuộc danh mục `FOREIGN_INITIAL_CLUSTERS` mà không nằm trong từ điển âm tiết Tiếng Việt/địa danh Tây Nguyên thì **100% là từ ngoại ngữ** và phải bị treo bộ gõ Tiếng Việt.
 2. **Quy tắc tổ hợp nguyên âm với `ă`**:
    - `ă` là một nguyên âm đơn ngắn (short monophthong), bắt buộc phải có phụ âm cuối đóng (`-c, -m, -n, -ng, -p, -t`).
-   - `ă` **tuyệt đối không bao giờ đi kèm bán nguyên âm hay nguyên âm khác** (`ăy`, `ăi`, `ău`, `ăo` hoàn toàn không tồn tại trong tiếng Việt).
-   - `ay` (tay, may, bay) và `ây` (tây, mây, cây) hợp lệ, nhưng `ăy` là sai luật chính tả 100%.
+   - `ă` **tuyệt đối không bao giờ đi kèm bán nguyên âm hay nguyên âm khác** (`ăy`, `ăi`, `ău`, `ăo` hoàn toàn không tồn tại trong Tiếng Việt).
+   - `ay` (tay, may, bay) và `ây` (tây, mây, cây) hợp lệ, nhưng `ăy` là sai luật chánh tả 100%.
 
 ### 3.3. Cơ chế chặn 2 lớp đã triển khai trong mã nguồn:
 - **Lớp 1 - Khóa phụ âm đầu ngoại lai trong `src/engine/avim.js`**:
@@ -78,7 +78,7 @@ Khi người dùng gõ `playwright` trong chế độ gõ Telex:
     }
   }
   ```
-  Nhờ đó, khi đang gõ `play...`, `flow...`, `slow...`, `status...`, `clean...`, `spring...`, hệ thống lập tức treo biến âm tiếng Việt và giữ nguyên phím thô Latin.
+  Nhờ đó, khi đang gõ `play...`, `flow...`, `slow...`, `status...`, `clean...`, `spring...`, hệ thống lập tức treo biến âm Tiếng Việt và giữ nguyên phím thô Latin.
 - **Lớp 2 - Ràng buộc âm vị học trong `src/engine/syllable-parser.js`**:
   ```javascript
   // Phonology Constraint: ă không bao giờ đi kèm nguyên âm khác (ăy, ăi, ău, ăo)

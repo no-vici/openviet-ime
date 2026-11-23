@@ -14,7 +14,7 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 
 ### Giai đoạn 2: Tối ưu Hóa Trải Nghiệm Gõ Hiện Đại (UX & Chống Lỗi)
 - [x] **Bỏ dấu cuối từ (Late Vowel Shaping)**: Gõ `chong` + `o` ra `chông`, `kieu` + `e` ra `kiêu`.
-- [x] **Bộ lọc cú pháp Code, URL & Email**: Tự động nhận diện `http://`, `user@domain`, `snake_case`, `kebab-case` để tạm dừng gõ dấu tiếng Việt, tránh phá hỏng mã nguồn hay đường link.
+- [x] **Bộ lọc cú pháp Code, URL & Email**: Tự động nhận diện `http://`, `user@domain`, `snake_case`, `kebab-case` để tạm dừng gõ dấu Tiếng Việt, tránh phá hỏng mã nguồn hay đường link.
 - [x] **Chống nhảy chữ & lặp ký tự (Atomic Range Replacement)**: Chặn sự kiện lan truyền tức thì (`stopImmediatePropagation`) trên các chatbox AI và rich editor phức tạp (Sider.ai, StackEdit, TipTap, CodeMirror, Slack, Telegram Web).
 - [x] **Chuẩn hóa Unicode NFC toàn diện (`canon`)**: Đầu ra luôn là dựng sẵn (NFC); chuẩn hóa hai chiều cả nháy đơn cong (`’`) và thẳng (`'`) phục vụ địa danh Tây Nguyên (`M'đrắk`, `Cư M'gar`).
 - [x] **Hoàn tác nhanh bằng phím ESC (Instant ESC Revert)**: Khôi phục chuỗi phím thô ban đầu chỉ với 1 phím bấm.
@@ -33,7 +33,7 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 - [x] **Hoán đổi dấu phụ bảo lưu thanh điệu (Shape Modifier Swapping từ VietC / vnchKey)**:
   - Telex: `â + w` $\leftrightarrow$ `ă`, `ă + a` $\leftrightarrow$ `â` (`ấm` + `w` $\rightarrow$ `ắm`, `cân` + `w` $\rightarrow$ `căn`, `tập` + `w` $\rightarrow$ `tặp`); `ô + w` $\leftrightarrow$ `ơ`, `ơ + o` $\leftrightarrow$ `ô` (`bốn` + `w` $\rightarrow$ `bớn`, `hộp` + `w` $\rightarrow$ `hợp`).
   - VNI: `6` $\leftrightarrow$ `8` (`tấ` + `8` $\rightarrow$ `tắ`), `6` $\leftrightarrow$ `7` (`bốn` + `7` $\rightarrow$ `bớn`, `giồ` + `7` $\rightarrow$ `giờ`).
-- [x] **Bảo vệ ngữ âm tự nhiên (Natural Phonological Guard)**: Ngay cả khi người dùng tắt kiểm tra chính tả, các lệnh/từ kỹ thuật (`fcitx5`, `docx4`, `linux6`, `curl7`) vẫn được bảo toàn nguyên vẹn, không bị ép dấu sai luật ngữ âm.
+- [x] **Bảo vệ ngữ âm tự nhiên (Natural Phonological Guard)**: Ngay cả khi người dùng tắt kiểm tra chánh tả, các lệnh/từ kỹ thuật (`fcitx5`, `docx4`, `linux6`, `curl7`) vẫn được bảo toàn nguyên vẹn, không bị ép dấu sai luật ngữ âm.
 - [x] **Thu nạp từ trước Backspace (`adoptWordBeforeBackspace`)**: Xóa khoảng trắng sau từ cho phép nhấn phím dấu tác động ngay vào từ trước đó.
 - [x] **Phân định rạch ròi 2 chuẩn bỏ dấu**:
   - **Chuẩn mới (BGDĐT)**: `hoà, hoá, thuỷ, khoẻ, thoả` (dấu trên âm chính).
@@ -69,7 +69,7 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 
 ### v1.2.0: Tối Ưu Lõi Với WebAssembly (WASM) & Rust
 - [ ] **Biên dịch bộ phân tích âm tiết sang WebAssembly**: Port `syllable-parser` và `avim` sang Rust để đạt tốc độ xử lý sub-millisecond, hoàn toàn không sinh rác bộ nhớ (Zero GC Pause) trong các tác vụ gõ văn bản hàng triệu ký tự.
-- [ ] **Bảng tra nén DAFSA (Deterministic Acyclic Finite State Automaton)**: Nén toàn bộ từ điển tiếng Việt 40,000 từ và từ điển địa danh thành một khối nhị phân dưới 150KB.
+- [ ] **Bảng tra nén DAFSA (Deterministic Acyclic Finite State Automaton)**: Nén toàn bộ từ điển Tiếng Việt 40,000 từ và từ điển địa danh thành một khối nhị phân dưới 150KB.
 
 ### v1.3.0: Ngữ Cảnh AI Sâu & Trí Tuệ Dự Đoán Kiểu Gboard (Deep Context & Prediction)
 - [x] **Mô hình Trigram Context Prediction (Lấy cảm hứng từ Gboard)**: Mở rộng bộ suy luận từ Bigram ($W_{n-1} \rightarrow W_n$) lên Trigram ($W_{n-2} + W_{n-1} \rightarrow W_n$). Ví dụ phương ngữ miền Nam và văn hóa Sài Gòn xưa: `sài` + `gòn` $\rightarrow$ gợi ý `xưa`; `bá` + `cháy` $\rightarrow$ gợi ý `bù chét`; `cà` + `rịch` $\rightarrow$ gợi ý `cà tang`; `cà` + `chớn` $\rightarrow$ gợi ý `cà chác`; `mèn` + `đéc` $\rightarrow$ gợi ý `ơi`.
@@ -87,6 +87,6 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 Nếu bạn là một người mới bắt đầu học lập trình hoặc muốn tìm hiểu cách một bộ gõ hoạt động trong trình duyệt web, hãy đi theo lộ trình sau:
 1. Đọc tài liệu **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** để nắm toàn cảnh dòng chảy sự kiện.
 2. Mở file **`src/engine/key-codes.js`** để xem cách phân loại phím và nguyên tắc đặt dấu.
-3. Chạy lệnh **`npm test`** và đọc file **`test/syllable-parser.test.js`** để quan sát cách một từ tiếng Việt được bóc tách và ráp lại.
+3. Chạy lệnh **`npm test`** và đọc file **`test/syllable-parser.test.js`** để quan sát cách một từ Tiếng Việt được bóc tách và ráp lại.
 4. Nghiên cứu file **`src/content/content.js`** để học cách can thiệp vào ô nhập liệu mà không làm hỏng trạng thái React/Vue của trang web.
 
