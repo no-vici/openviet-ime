@@ -1,6 +1,6 @@
 # SỔ TAY TRA CỨU OPENVIET IME
 
-**Phiên bản đối chiếu:** v1.4.5 · tag `3f05777` · `main` tại `6813047`
+**Phiên bản đối chiếu:** v1.4.5 · tag `v1.4.5` · `main` tại HEAD
 **Đối tượng:** chính người bảo trì (dùng để tra cứu khi đang mệt), reviewer AMO, và người mới muốn đọc từng phần một.
 
 > Cuốn này không dạy lý thuyết từ đầu. Lý thuyết nằm ở [`ARCHITECTURE.md`](./ARCHITECTURE.md) và [`VIETNAMESE_PHONOLOGY.md`](./VIETNAMESE_PHONOLOGY.md). Ở đây là **thẻ nhớ, bảng tra, công thức, và quy trình làm việc**. Nếu bạn chỉ nhớ được một câu khi đọc cuốn này, hãy nhớ: **mỗi triệu chứng có một chỗ tra cứu ở mục 3**.
@@ -734,16 +734,9 @@ test/playwright-rich-editors.test.js (24) ─┴─ npm run test:e2e
 
 Gitignore: `manifest.json`, `src/content/content.bundle.js`, `src/options/options.bundle.js`.
 
-Checksum tại tag `v1.4.5` (`3f05777`):
+Bảng checksum chính thức nằm tại **`web-ext-artifacts/SHA256SUMS.txt`** — không commit vào git, vì source zip chứa chính `docs/` này. Nếu copy checksum vào đây thì file sẽ tự lỗi thời ngay sau khi regenerate source zip.
 
-```text
-5a917d7456c34c8c22d777544ec75ddbbb68c3d12844e0fedbc0ec633f3c0d9e  openviet_ime-firefox-1.4.5.zip
-ebe15cbccbbf79de4dc31a16dabef9f1ef7a5f652256c7b2d397355b659a641d  openviet_ime-chrome-1.4.5.zip
-30b6a11b3dd54c2c32cfb42c822054db5884fa928b966dce3ae3bdfd6d42f047  openviet_ime-edge-1.4.5.zip
-85ddfa7ae8f716d27179997b3a41d9f9f9365fac13a95eb4a1c48a23fcfcb161  openviet_ime-1.4.5-source.zip
-```
-
-> 📦 Checksum thay đổi nếu commit thêm docs/source. Luôn regenerate `SHA256SUMS.txt`.
+> 📦 Checksum thay đổi nếu commit thêm docs/source. Luôn regenerate source zip rồi `SHA256SUMS.txt` theo [4.12](#412-release-playbook-copy--paste).
 
 ### 4.12 Release playbook (copy & paste)
 
