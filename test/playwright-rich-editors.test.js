@@ -19,7 +19,16 @@ import fs from 'node:fs';
 import os from 'node:os';
 
 const EXTENSION_PATH = path.resolve('.');
-const ERROR_LOG_PATH = path.join(process.cwd(), 'ime-rich-editors-context-logs.json');
+const ERROR_LOG_PATH = path.join(process.cwd(), 'ime-rich-editors-error-context-logs.json');
+
+// Chromium refuses an MV3 manifest with `background.scripts` (Firefox-style), so headful
+// runs load a temporary copy using manifest.chrome.json / service_worker instead.
+function prepareChromiumExtensionDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openviet-chrome-ext-'));
+  fs.copyFileSync(path.join(EXTENSION_PATH, 'manifest.chrome.json'), path.join(dir, 'manifest.json'));
+  fs.cpSync(path.join(EXTENSION_PATH, 'src'), path.join(dir, 'src'), { recursive: true });
+  return dir;
+}
 
 // Core typing sequences for rich text verification
 const TEST_CASES = [
@@ -75,13 +84,15 @@ async function runRichEditorsE2ETest() {
   let browser;
   let context;
   let isHeadful = false;
+  let headfulExtensionDir = null;
 
   try {
+    headfulExtensionDir = prepareChromiumExtensionDir();
     context = await chromium.launchPersistentContext(userDataDir, {
       headless: false,
       args: [
-        `--disable-extensions-except=${EXTENSION_PATH}`,
-        `--load-extension=${EXTENSION_PATH}`,
+        `--disable-extensions-except=${headfulExtensionDir}`,
+        `--load-extension=${headfulExtensionDir}`,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-gpu'
@@ -106,8 +117,11 @@ async function runRichEditorsE2ETest() {
     currentKeySequence.push(key);
   });
 
-  // Setup HTML containing both TipTap / ProseMirror and Microsoft Teams Web editor architectures
-  await page.setContent(`<!DOCTYPE html>
+  // Setup HTML containing both TipTap / ProseMirror and Microsoft Teams Web editor architectures.
+  // IMPORTANT: serve from a real http origin. Extension content scripts match <all_urls>, which
+  // does NOT include about:blank. The old page.setContent() approach silently skipped the IME
+  // in headful mode, causing 12 false failures while English words passed trivially.
+  const pageHtml = `<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -152,7 +166,14 @@ async function runRichEditorsE2ETest() {
     <p dir="ltr"><br></p>
   </div>
 </body>
-</html>`);
+</html>`;
+
+  await page.route('http://openviet.test/**', route => route.fulfill({
+    status: 200,
+    contentType: 'text/html; charset=utf-8',
+    body: pageHtml
+  }));
+  await page.goto('http://openviet.test/');
 
   // Emulate Microsoft Teams Web paste handling (RoosterJS Content Model update via ClipboardEvent)
   await page.evaluate(() => {
@@ -193,12 +214,12 @@ async function runRichEditorsE2ETest() {
     });
   });
 
-  // Inject content script if headless
+  // Headless mode has no extension context, so inject the built content script manually.
   if (!isHeadful) {
     await page.addScriptTag({ path: path.join(EXTENSION_PATH, 'src/content/content.bundle.js') });
   }
 
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(100);
 
   const targets = [
     {
@@ -250,6 +271,19 @@ async function runRichEditorsE2ETest() {
       }
     }
   ];
+
+  // Canary: prove the IME is actually attached before running the matrix. Content scripts
+  // run in an isolated world, so window markers are not visible to page.evaluate(). Without
+  // this, a dead content script still "passes" every English trap word (raw == expected).
+  const canaryEditor = page.locator(targets[0].selector);
+  await targets[0].prepare(canaryEditor);
+  await canaryEditor.click();
+  await page.keyboard.type('toans ', { delay: 5 });
+  await page.waitForTimeout(60);
+  const canaryText = (await canaryEditor.innerText()).trim();
+  if (!canaryText.includes('toán')) {
+    throw new Error(`OpenViet IME did not initialize in ${isHeadful ? 'headful' : 'headless'} mode (canary produced "${canaryText}")`);
+  }
 
   let totalPassed = 0;
   let totalFailed = 0;
@@ -311,6 +345,9 @@ async function runRichEditorsE2ETest() {
   if (browser) await browser.close();
   try {
     fs.rmSync(userDataDir, { recursive: true, force: true });
+  } catch {}
+  try {
+    if (headfulExtensionDir) fs.rmSync(headfulExtensionDir, { recursive: true, force: true });
   } catch {}
 
   console.log(`\n======================================================`);

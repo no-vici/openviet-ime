@@ -14,6 +14,15 @@ import os from 'node:os';
 const EXTENSION_PATH = path.resolve('.');
 const ERROR_LOG_PATH = path.join(process.cwd(), 'ime-error-context-logs.json');
 
+// Chromium rejects Firefox-style MV3 (`background.scripts`). Headful runs therefore
+// load a temporary copy with manifest.chrome.json / service_worker.
+function prepareChromiumExtensionDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openviet-chrome-ext-'));
+  fs.copyFileSync(path.join(EXTENSION_PATH, 'manifest.chrome.json'), path.join(dir, 'manifest.json'));
+  fs.cpSync(path.join(EXTENSION_PATH, 'src'), path.join(dir, 'src'), { recursive: true });
+  return dir;
+}
+
 // Danh sách các chuỗi thử nghiệm (Edge Cases Telex / Tiếng Anh kỹ thuật / Từ bẫy / vnchKey)
 const HARDCORE_TEST_CASES = [
   {
@@ -83,13 +92,15 @@ async function runE2ETestSuite() {
   let browser;
   let context;
   let isHeadful = false;
+  let headfulExtensionDir = null;
 
   try {
+    headfulExtensionDir = prepareChromiumExtensionDir();
     context = await chromium.launchPersistentContext(userDataDir, {
       headless: false,
       args: [
-        `--disable-extensions-except=${EXTENSION_PATH}`,
-        `--load-extension=${EXTENSION_PATH}`,
+        `--disable-extensions-except=${headfulExtensionDir}`,
+        `--load-extension=${headfulExtensionDir}`,
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-gpu'
@@ -114,7 +125,9 @@ async function runE2ETestSuite() {
     currentKeySequence.push(key);
   });
 
-  await page.setContent(`<!DOCTYPE html>
+  // Serve from a real http origin: <all_urls> does not match about:blank, so the old
+  // page.setContent() approach silently skipped the extension content script in headful mode.
+  const pageHtml = `<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -125,7 +138,14 @@ async function runE2ETestSuite() {
   <div id="editor" contenteditable="true" style="min-height: 120px; padding: 12px; border: 1px solid #444; font-size: 18px;"></div>
   <input id="nativeInput" type="text" style="width: 100%; margin-top: 16px; padding: 10px; font-size: 16px;" />
 </body>
-</html>`);
+</html>`;
+
+  await page.route('http://openviet.test/**', route => route.fulfill({
+    status: 200,
+    contentType: 'text/html; charset=utf-8',
+    body: pageHtml
+  }));
+  await page.goto('http://openviet.test/');
 
   // If in headless mode where chrome-headless-shell ignores unpacked extensions,
   // directly inject the extension bundle to test DOM and typing event loop
@@ -146,6 +166,17 @@ async function runE2ETestSuite() {
 
   const editorLocator = page.locator('#editor');
   await editorLocator.click();
+
+  // Canary: prove the IME is attached before the matrix. A dead content script would
+  // otherwise let every English trap word "pass" because raw text equals expectation.
+  await editorLocator.evaluate(node => { node.innerHTML = ''; });
+  await editorLocator.click();
+  await page.keyboard.type('toans ', { delay: 5 });
+  await page.waitForTimeout(100);
+  const canaryText = (await editorLocator.innerText()).trim();
+  if (!canaryText.includes('toán')) {
+    throw new Error(`OpenViet IME did not initialize in ${isHeadful ? 'headful' : 'headless'} mode (canary produced "${canaryText}")`);
+  }
 
   let passed = 0;
   let failed = 0;
@@ -201,6 +232,9 @@ async function runE2ETestSuite() {
   if (browser) await browser.close();
   try {
     fs.rmSync(userDataDir, { recursive: true, force: true });
+  } catch {}
+  try {
+    if (headfulExtensionDir) fs.rmSync(headfulExtensionDir, { recursive: true, force: true });
   } catch {}
 
   console.log(`\n========================================`);

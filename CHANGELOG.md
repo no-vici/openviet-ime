@@ -8,7 +8,11 @@ All notable changes to OpenViet IME will be documented in this file.
 - Pinned `web-ext` in `devDependencies`, committed `package-lock.json`, and switched build docs to `npm ci` for reproducible AMO reviewer builds.
 - Popup now imports the shared `DEFAULT_SETTINGS` instead of keeping a divergent local copy; added a parity test against the service-worker defaults.
 - Converted `test/ime-edge-cases.test.mjs` from Vitest to `node:test` and wired it into `npm test` (98 tests total); removed the unused `vitest` dependency/script.
-- Clarified the Playwright E2E guide: the 9/9 table is historical and the rich-editor suite is diagnostic, not a submission gate.
+- Clarified the Playwright E2E guide and documented the corrected headful/headless baselines.
+
+### Fixed
+- Fixed the 12 false rich-editor E2E failures: headful runs now serve the testbed from a real `http://openviet.test` origin and load a temporary Chromium-compatible manifest instead of `about:blank` + the Firefox manifest.
+- Added a `toans -> toán` canary to both Playwright suites so a dead content script can no longer produce false passes on English trap words. `npm run test:e2e` is now 11/11 + 24/24 in both modes.
 
 ## [1.4.4] - 2026-11-23
 

@@ -89,12 +89,16 @@ The deterministic submission gate is the Node test suite. Reviewers can verify t
 ```bash
 npm test
 ```
-Expected result for v1.4.4: **76 tests, 76 passed, 0 failed**.
+Expected result on `main` after the hygiene pass: **98 tests, 98 passed, 0 failed**.
+(The frozen v1.4.4 submission used 76/76.)
 
-An additional browser-based diagnostic suite is available but is **not** a submission gate and requires Playwright browsers to be installed first:
+An additional browser-based suite is available but is **not** a submission gate and requires Playwright browsers to be installed first:
 ```bash
 npx playwright install chromium
 npm run test:e2e
 ```
-The mock rich-editor scenarios in that suite are diagnostic only; the unit suite above is the reproducible verification target for this submission.
+Expected result: **11/11** in `playwright-e2e.js` and **24/24** in
+`playwright-rich-editors.test.js`, in both headful and headless modes. The mock
+rich-editor scenarios are still diagnostic only; the unit suite above is the
+reproducible verification target for AMO submissions.
 
