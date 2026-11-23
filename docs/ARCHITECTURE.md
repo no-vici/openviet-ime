@@ -7,7 +7,9 @@ Tài liệu này dành cho người lần đầu nhìn vào mã nguồn của m�
 3. Vì sao gõ trong Telegram/GitHub/Teams lại dễ hỏng, và OpenViet giải những ca đó ra sao?
 4. Mã nguồn được chia thành những phần nào, mình nên bắt đầu đọc từ đâu?
 
-> **Quy ước thuật ngữ:** xuyên suốt tài liệu dùng **Tiếng Việt** (viết hoa chữ cái đầu), **chánh tả** và **gởi** một cách đồng nhất. Tên file, tên hàm, cờ cấu hình và tên thư viện giữ nguyên dạng gốc tiếng Anh để bạn dễ đối chiếu với source.
+> **Quy ước thuật ngữ:** xuyên suốt tài liệu dùng **Tiếng Việt** (viết hoa chữ cái đầu), **chánh tả** và **gởi** một cách đồng nhất. Tên file, tên hàm, cờ cấu hình và tên thư viện giữ nguyên dạng gốc để bạn dễ đối chiếu với source.
+
+> **Đọc tiếp:** [`VIETNAMESE_PHONOLOGY.md`](./VIETNAMESE_PHONOLOGY.md) giải thích chi tiết ngữ âm Tiếng Việt, bảng phụ âm/nguyên âm, luật đặt dấu cũ–mới và mọi chuỗi bị bộ lọc chánh tả loại trừ. [`REFERENCE_HANDBOOK.md`](./REFERENCE_HANDBOOK.md) là sổ tay tra cứu nhanh: thẻ gõ phím, cookbook 30 ca lỗi, bản đồ test và release playbook.
 
 ---
 

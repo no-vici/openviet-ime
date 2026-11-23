@@ -15,7 +15,9 @@
 
 A high-performance, cross-browser Vietnamese Input Method Editor (IME) and text-expansion macro engine. Designed for modern web browsers (Chrome, Edge, Brave, Opera, Arc, Firefox) as both a Manifest V3 browser extension and a standalone web application.
 
-> 🌐 **Bản tiếng Việt**: [Đọc tài liệu tiếng Việt tại README.vi.md](./README.vi.md)
+> 🌐 **Bản Tiếng Việt**: [Đọc tài liệu Tiếng Việt tại README.vi.md](./README.vi.md)
+
+> 📖 **Tài liệu chuyên sâu**: [Kiến trúc kỹ thuật](./docs/ARCHITECTURE.md) · [Ngữ âm Tiếng Việt & quy tắc bộ gõ](./docs/VIETNAMESE_PHONOLOGY.md) · [Sổ tay tra cứu](./docs/REFERENCE_HANDBOOK.md)
 
 ---
 
@@ -340,7 +342,7 @@ Once a word is committed, the prediction ribbon displays the most probable succe
 - **Sentence Endings**: After sentence terminators (`. ? !`) or spaces following sentence terminators, next-word suggestions are suppressed to avoid awkward lowercase suggestions at the start of new sentences.
 
 ### On-Device Personalized Learning (100% Private)
-- As you type consecutive words (e.g. `họp team`, `chuyển khoản`, `gửi email`), the local bigram model automatically increments transition frequencies.
+- As you type consecutive words (e.g. `họp team`, `chuyển khoản`, `gởi email`), the local bigram model automatically increments transition frequencies.
 - High-frequency personal pairs surface at position #1 with a green **Habit** badge.
 - **Smart Erase Habit Learning (Zero-Accent Whitelist)**: If you type an accented word and delete the **entire word** (via consecutive Backspaces, `Ctrl+Backspace`, or `Escape`) **2 or more times** to re-type it, OpenViet IME automatically learns that this raw sequence should remain unaccented. The word is seamlessly registered into your personal `userDictionary` and protected from subsequent diacritic conversion.
 - Stored exclusively in the user's browser `localStorage` / `sync storage` with zero telemetry, network requests, or tracking.

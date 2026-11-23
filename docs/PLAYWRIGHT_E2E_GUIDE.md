@@ -9,7 +9,7 @@
 > **không phải lỗi engine**: headful dùng `page.setContent()` trên `about:blank` (content script
 > `<all_urls>` không chạy) và nạp manifest Firefox có `background.scripts` mà Chromium từ chối.
 > Giờ test dùng origin `http://openviet.test` + `manifest.chrome.json` tạm thời và có canary
-> `toans → toán` để không bao giờ "pass giả" ở các từ tiếng Anh. Gate unit vẫn là `npm test`.
+> `toans → toán` để không bao giờ "pass giả" ở các từ ngữ không dấu. Gate unit vẫn là `npm test`.
 
 ---
 
@@ -96,7 +96,7 @@ Khi người dùng gõ `playwright` trong chế độ gõ Telex:
 # 1. Chạy bài kiểm thử E2E Playwright trên trình duyệt
 npm run test:e2e
 
-# 2. Chạy toàn bộ 29 Unit Test & Ngữ âm học (Node native test runner)
+# 2. Chạy toàn bộ 98 Unit Test & Ngữ âm học (Node native test runner)
 npm test
 
 # 3. Build lại bundle cho Chrome & Firefox

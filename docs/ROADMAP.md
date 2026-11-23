@@ -18,7 +18,7 @@ Tài liệu định hướng phát triển tổng thể của **OpenViet IME** �
 - [x] **Chống nhảy chữ & lặp ký tự (Atomic Range Replacement)**: Chặn sự kiện lan truyền tức thì (`stopImmediatePropagation`) trên các chatbox AI và rich editor phức tạp (Sider.ai, StackEdit, TipTap, CodeMirror, Slack, Telegram Web).
 - [x] **Chuẩn hóa Unicode NFC toàn diện (`canon`)**: Đầu ra luôn là dựng sẵn (NFC); chuẩn hóa hai chiều cả nháy đơn cong (`’`) và thẳng (`'`) phục vụ địa danh Tây Nguyên (`M'đrắk`, `Cư M'gar`).
 - [x] **Hoàn tác nhanh bằng phím ESC (Instant ESC Revert)**: Khôi phục chuỗi phím thô ban đầu chỉ với 1 phím bấm.
-- [x] **Tự động khôi phục từ tiếng Anh (GoNhanh Feature)**: Bấm Space tự khôi phục các từ dễ dính bẫy gõ nhầm (`text`, `user`, `push`, `window`).
+- [x] **Tự động khôi phục từ ngữ không dấu (GoNhanh Feature)**: Bấm Space tự khôi phục các từ dễ dính bẫy gõ nhầm (`text`, `user`, `push`, `window`).
 
 ### Giai đoạn 3: Bộ Gõ Tắt Macro & Trí Tuệ Ngữ Cảnh (Macro & AI Prediction)
 - [x] **Macro Engine cực nhanh**: Thay thế từ viết tắt tức thì khi gõ phím cách/dấu câu (`vn` $\rightarrow$ `Việt Nam`).

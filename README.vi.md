@@ -14,9 +14,11 @@
 
 </div>
 
-Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ cao dành cho mọi trình duyệt (Microsoft Edge, Brave, Opera, Arc, Firefox). Hoạt động hoàn hảo dưới cả hai hình thức: **Tiện ích mở rộng trình duyệt (Manifest V3)** và **Ứng dụng Web độc lập (Web App)**.
+Bộ gõ Tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ cao dành cho mọi trình duyệt (Microsoft Edge, Brave, Opera, Arc, Firefox). Hoạt động hoàn hảo dưới cả hai hình thức: **Tiện ích mở rộng trình duyệt (Manifest V3)** và **Ứng dụng Web độc lập (Web App)**.
 
 > 🇺🇸 **English Version**: [Read English documentation at README.md](./README.md)
+
+> 📚 **Tài liệu tham khảo**: [Kiến trúc kỹ thuật](./docs/ARCHITECTURE.md) · [Ngữ âm Tiếng Việt & quy tắc bộ gõ](./docs/VIETNAMESE_PHONOLOGY.md) · [Sổ tay tra cứu](./docs/REFERENCE_HANDBOOK.md)
 
 ---
 
@@ -66,11 +68,11 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Không Phụ Thuộc Hệ Điều Hành**: Hoạt động trực tiếp trên mọi tab trình duyệt, iframe, web app (Gmail, Slack, Notion, Facebook, Telegram Web, Discord, web console, Figma...).
 - **Chế Độ Tự Động (Auto) Mặc Định**: Mặc định kích hoạt chế độ **Tự động thích ứng** (gõ số theo VNI, gõ chữ theo Telex), dễ dàng chuyển đổi sang Telex, VNI hoặc Tắt chỉ với 1 click.
 - **Phím `z` Xóa Dấu Thanh Chuyên Dụng**: Gõ phím `z` (Telex/Auto) hoặc phím `0` (VNI) để lập tức gỡ bỏ dấu thanh và đưa nguyên âm về dạng gốc (`toán` + `z` -> `toan`, `tiến` + `z` -> `tiên`, `được` + `z` -> `đươc`, `thuế` + `z` -> `thuê`).
-- **Tự Động Bỏ Qua URL, Email & Code (`isUrlOrEmailOrCode`)**: Tự động nhận diện đường dẫn web (`https://`, `www.`, `.com`, `/path`), đường dẫn tệp tin tương đối/hệ thống (`../path`, `./src`, `~/.config`, `/usr/bin/`), khối mã nội dòng bọc trong dấu backtick (`` `code` ``), địa chỉ email (`user@gmail.com`) và cú pháp lập trình (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, thẻ HTML, `->`, `=>`, `===`), tạm ngưng biến đổi bộ gõ khi đang gõ mã và mở lại tiếng Việt ngay khi sang từ mới.
-- **Chế Độ Lập Trình Thông Minh (Bảo Vệ `camelCase` & `PascalCase`)**: Tự động nhận diện cú pháp đặt tên biến/hàm/lớp của lập trình viên (như `useState`, `isCamelCase`, `UserController`, `AppProps`). Khi bạn gõ ký tự in hoa nối tiếp, bộ gõ tự động khôi phục tiền tố không dấu và tạm ngưng bỏ dấu tiếng Việt, giúp anh em lập trình gõ code mượt mà mà không phải tắt bộ gõ.
+- **Tự Động Bỏ Qua URL, Email & Code (`isUrlOrEmailOrCode`)**: Tự động nhận diện đường dẫn web (`https://`, `www.`, `.com`, `/path`), đường dẫn tệp tin tương đối/hệ thống (`../path`, `./src`, `~/.config`, `/usr/bin/`), khối mã nội dòng bọc trong dấu backtick (`` `code` ``), địa chỉ email (`user@gmail.com`) và cú pháp lập trình (`snake_case`, `kebab-case`, `object.prop`, `$var`, `#id`, thẻ HTML, `->`, `=>`, `===`), tạm ngưng biến đổi bộ gõ khi đang gõ mã và mở lại Tiếng Việt ngay khi sang từ mới.
+- **Chế Độ Lập Trình Thông Minh (Bảo Vệ `camelCase` & `PascalCase`)**: Tự động nhận diện cú pháp đặt tên biến/hàm/lớp của lập trình viên (như `useState`, `isCamelCase`, `UserController`, `AppProps`). Khi bạn gõ ký tự in hoa nối tiếp, bộ gõ tự động khôi phục tiền tố không dấu và tạm ngưng bỏ dấu Tiếng Việt, giúp anh em lập trình gõ code mượt mà mà không phải tắt bộ gõ.
 - **Cứu Chữ & Cứu Dấu (Đột Phá UX Kiểu Ngó Sen / vnchKey)**:
-  - **Phím tắt Cứu Chữ Tức Thì (`Ctrl+Shift+R` hoặc `Alt+R`)**: Khi đang gõ phím mà nhận ra chưa bỏ dấu hoặc muốn phục hồi từ trước con trỏ (hoặc vùng bôi đen), nhấn ngay `Ctrl+Shift+R` hoặc `Alt+R` để hoán chuyển tức thì giữa chữ thô và tiếng Việt có dấu (`theer` $\leftrightarrow$ `thể`, `coong` $\leftrightarrow$ `công`, `tieengs` $\leftrightarrow$ `tiếng`) mà không cần rời tay chuột hay bật tắt IME.
-  - **Cứu chữ tự động khi bật bộ gõ**: Khi bạn lỡ gõ một câu dài khi bàn phím đang tắt dấu (`Chaof banj, tieengs vieetj nef`), chỉ cần bấm bật bộ gõ (`2x Ctrl`, `Ctrl+Shift+Z` hoặc click popup), tiện ích tự động hồi phục chuỗi thô thành tiếng Việt có dấu chuẩn xác: $\rightarrow$ `Chào bạn, tiếng việt nè` (bảo toàn nguyên vẹn các từ tiếng Anh như `linux`, `server`). Bấm `ESC` để hoàn tác lại chuỗi thô tức thì.
+  - **Phím tắt Cứu Chữ Tức Thì (`Ctrl+Shift+R` hoặc `Alt+R`)**: Khi đang gõ phím mà nhận ra chưa bỏ dấu hoặc muốn phục hồi từ trước con trỏ (hoặc vùng bôi đen), nhấn ngay `Ctrl+Shift+R` hoặc `Alt+R` để hoán chuyển tức thì giữa chữ thô và Tiếng Việt có dấu (`theer` $\leftrightarrow$ `thể`, `coong` $\leftrightarrow$ `công`, `tieengs` $\leftrightarrow$ `tiếng`) mà không cần rời tay chuột hay bật tắt IME.
+  - **Cứu chữ tự động khi bật bộ gõ**: Khi bạn lỡ gõ một câu dài khi bàn phím đang tắt dấu (`Chaof banj, tieengs vieetj nef`), chỉ cần bấm bật bộ gõ (`2x Ctrl`, `Ctrl+Shift+Z` hoặc click popup), tiện ích tự động hồi phục chuỗi thô thành Tiếng Việt có dấu chuẩn xác: $\rightarrow$ `Chào bạn, Tiếng Việt nè` (bảo toàn nguyên vẹn các từ Tiếng Anh như `linux`, `server`). Bấm `ESC` để hoàn tác lại chuỗi thô tức thì.
   - **Cứu dấu khi bôi đen**: Bôi đen từ bất kỳ rồi gõ phím dấu thanh (`s, f, r, x, j, z` hoặc `1-5, 0`) để đổi, thêm hoặc xóa dấu trực tiếp (`nhanh` + `s` $\rightarrow$ `nhánh`, `nhánh` + `z` $\rightarrow$ `nhanh`, `hoa` + `r` $\rightarrow$ `hòa`), không làm mất chữ đã bôi đen.
 - **Bảo Vệ Code & Tự Căn Chỉnh Ribbon Chống Tràn Màn Hình**:
   - Bộ lọc `isUrlOrEmailOrCode` mở rộng bảo vệ tuyệt đối các biến shell/PHP (`$var`, `${VAR}`), đường dẫn Linux/macOS (`/usr/bin/`, `/var/log/`, `~/.config`, `./dist`).
@@ -80,13 +82,13 @@ Bộ gõ tiếng Việt hiện đại và công cụ gõ tắt Macro tốc độ
 - **Tối Ưu Riêng Cho Telegram Web A & Trình Soạn Thảo Rich-Text**: Xử lý triệt để xung đột con trỏ của TipTap/ProseMirror, khởi tạo Shadow Host sớm và xác định vùng chọn `TEXT_NODE` chuẩn xác, không bao giờ bị nhảy con trỏ hay lặp vòng viết hoa đầu câu.
 - **Chống Nhảy Chữ & Lặp Ký Tự Khi Gõ Nhanh**: Áp dụng kỹ thuật chặn sự kiện lan truyền tức thì (`stopImmediatePropagation`) và thay thế nguyên khối (Range-based Atomic Replacement) trên các chatbox AI và editor hiện đại (Sider.ai, StackEdit, TipTap, CodeMirror, Slate), loại bỏ hoàn toàn hiện tượng nhân đôi ký tự (`vâyậy`, `thêể`) khi gõ phím ở tốc độ cao.
 - **Chuẩn Hóa Unicode NFC Tuyệt Đối & Nhất Quán Dấu Nháy**: Toàn bộ chuỗi xuất ra DOM và lưu trữ đều ở dạng dựng sẵn **NFC** chuẩn quốc tế; tích hợp hàm chuẩn hóa `canon()` tự động đồng nhất dấu nháy cong và thẳng (`’`, `‘` -> `'`), đảm bảo kiểm tra chánh tả và gõ chuẩn xác 100% các địa danh như `M'Đrắk`, `Cư M'gar`, `R'lấp`.
-- **Dự Đoán Từ Thân Thiện Với Chat & Dấu Câu**: Khi nhấn phím `Enter` trong Telegram, Messenger, Zalo, Slack, thanh gợi ý next-word tự ẩn ngay và nhường quyền cho phím `Enter` gửi tin nhắn tức thì; không hiển thị từ gợi ý chữ thường ngay sau dấu kết thúc câu (`. ? !`).
+- **Dự Đoán Từ Thân Thiện Với Chat & Dấu Câu**: Khi nhấn phím `Enter` trong Telegram, Messenger, Zalo, Slack, thanh gợi ý next-word tự ẩn ngay và nhường quyền cho phím `Enter` gởi tin nhắn tức thì; không hiển thị từ gợi ý chữ thường ngay sau dấu kết thúc câu (`. ? !`).
 - **Gợi Ý Từ Thông Minh & Chữ Mờ Ngay Con Trỏ (Inline Ghost Text)**: Bảng menu nổi hiện đại gợi ý từ ngữ ngay khi bạn gõ các ký tự đầu tiên (`cuu` -> `cứu hộ`, `cứu nạn`; `cấp` -> `cấp cứu`), hoặc chế độ **Inline Ghost Text** (tương tự GitHub Copilot / Google Smart Compose) hiển thị chữ mờ bám sát con trỏ nhập liệu và chấp nhận gợi ý bằng phím `Tab` hoặc `→` mà không làm che khuất các menu tìm kiếm hay dropdown của trang web. Có công tắc bật/tắt nhanh ngay trên popup toolbar.
 - **Hỗ Trợ Toàn Diện Địa Danh Tây Nguyên & Từ Hiếm**: Tích hợp sẵn bộ âm tiết đặc thù cho các địa danh Tây Nguyên (`Đắk Lắk`, `Krông Nô`, `Krông Pắk`, `Buôn Ma Thuột`, `Pleiku`, `Chư Sê`, `Chư Păh`), địa danh có dấu nháy (`M'Đrắk`, `Ea H'leo`, `Cư M'gar`, `Ia H'Drai`, `Đắk R'lấp`), cùng các từ Hán-Việt cổ / phương ngữ (`khuếch`, `khuynh`, `ngoắt`, `nguầy`, `dzô`, `dzậy`, `zị`, `mầy`) mà không bị bộ lọc chánh tả chặn.
-- **Tự Học Thói Quen Người Dùng (On-Device Machine Learning)**: Tự động ghi nhớ các cặp từ bạn hay gõ (như `họp team`, `chuyển khoản`, `gửi email`, `chúc anh`) và đưa lên đầu danh sách với huy hiệu xanh **Thói quen**. Toàn bộ dữ liệu lưu trong `localStorage` máy bạn, không gửi bất kỳ byte nào ra ngoài internet.
-- **Tự Động Khôi Phục Từ Tiếng Anh & Công Cụ Giả Lập Bẫy Gõ Phím**: Khi nhấn phím Cách (Space), tự động hoàn trả các từ tiếng Anh hay bị dính bẫy gõ nhầm (`text` thay vì `tẽt`, `user` thay vì `úer`, `push` thay vì `púh`, `modern` thay vì `modẻn`, `luxury` thay vì `lủuy`, `window` thay vì `ưindoư`). Tích hợp bộ công cụ `scripts/gen-english-traps.mjs` tự động giả lập luồng gõ phím thực tế qua bộ parser Telex để duy trì 144 bẫy va chạm chuẩn xác. Đặc biệt, **kiểu gõ VNI hoàn toàn miễn nhiễm** với các bẫy này do dùng phím số (`1-9`), trong khi Telex và Auto Mode sử dụng cơ chế Auto-Restore để bảo toàn trải nghiệm gõ song ngữ mượt mà.
+- **Tự Học Thói Quen Người Dùng (On-Device Machine Learning)**: Tự động ghi nhớ các cặp từ bạn hay gõ (như `họp team`, `chuyển khoản`, `gởi email`, `chúc anh`) và đưa lên đầu danh sách với huy hiệu xanh **Thói quen**. Toàn bộ dữ liệu lưu trong `localStorage` máy bạn, không gởi bất kỳ byte nào ra ngoài internet.
+- **Tự Động Khôi Phục Từ Tiếng Anh & Công Cụ Giả Lập Bẫy Gõ Phím**: Khi nhấn phím Cách (Space), tự động hoàn trả các từ Tiếng Anh hay bị dính bẫy gõ nhầm (`text` thay vì `tẽt`, `user` thay vì `úer`, `push` thay vì `púh`, `modern` thay vì `modẻn`, `luxury` thay vì `lủuy`, `window` thay vì `ưindoư`). Tích hợp bộ công cụ `scripts/gen-english-traps.mjs` tự động giả lập luồng gõ phím thực tế qua bộ parser Telex để duy trì 144 bẫy va chạm chuẩn xác. Đặc biệt, **kiểu gõ VNI hoàn toàn miễn nhiễm** với các bẫy này do dùng phím số (`1-9`), trong khi Telex và Auto Mode sử dụng cơ chế Auto-Restore để bảo toàn trải nghiệm gõ song ngữ mượt mà.
 - **Hoàn Tác Nhanh Bằng Phím ESC (Instant ESC Revert)**: Nhấn `ESC` để đưa ngay từ đang gõ dở dang về lại chuỗi phím thô ban đầu mà không cần bấm xóa lùi từng ký tự.
-- **Quy Tắc Chánh Tả Chặt Chẽ**: Kiểm tra chánh tả tiếng Việt (`c/k`, `g/gh`, `ng/ngh` để bảo vệ từ tiếng Anh như `center`, `city`, `get`) và kiểm soát âm khép (`-c, -ch, -p, -t` chỉ nhận dấu Sắc hoặc Nặng).
+- **Quy Tắc Chánh Tả Chặt Chẽ**: Kiểm tra chánh tả Tiếng Việt (`c/k`, `g/gh`, `ng/ngh` để bảo vệ từ Tiếng Anh như `center`, `city`, `get`) và kiểm soát âm khép (`-c, -ch, -p, -t` chỉ nhận dấu Sắc hoặc Nặng).
 - **Bộ Gõ Tắt Macro Cực Nhanh (Kiểu xKey) Với Hoàn Tác 2 Bước & Hút Dấu Câu**: Thay thế từ viết tắt tức thì (`vn` -> `Việt Nam`, `dc` -> `được`, `tv` -> `Tiếng Việt`) với khả năng chuyển hoa/thường tự động, hoàn tác 2 bước bằng phím Backspace (bước 1 xóa khoảng trắng thừa, bước 2 khôi phục ký tự tắt gốc), và cơ chế tự động dính hút dấu câu (`. , ; : ! ?` dính sát vào từ đã bung).
 - **Biến Thời Gian Thực Động Trong Macro**: Hỗ trợ chèn ngày giờ thực tế theo định dạng địa phương: `$DATE` (`DD/MM/YYYY`), `$TIME` (`HH:mm`), `$DATETIME` và `$YEAR` (với tiền tố an toàn như `+today`, `+now`).
 - **Bộ Từ Điển Gõ Tắt Sài Gòn Xưa Đậm Chất Nam Bộ**: Tích hợp sẵn hơn 100+ từ lóng, cụm từ ba chữ, thành ngữ dân gian thời Sài Gòn xưa và phương ngữ Nam Bộ (`bá cháy bù chét`, `cà rịch cà tang`, `mèn đéc ơi`, `quởn đời`, `hết sảy con bà bảy`), dễ dàng nạp nhanh chỉ bằng 1 cú nhấp chuột trong Cài Đặt.
@@ -138,16 +140,16 @@ Telex sử dụng các phím chữ lặp và các ký tự quy ước (`w`, `s`,
 
 - Nếu từ đang có dấu thanh, gõ `z` (Telex) hoặc `0` (VNI) sẽ xóa sạch dấu thanh về nguyên âm cơ sở.
 - Nếu từ chưa có dấu thanh (ví dụ `toan`), gõ `z` sẽ xuất ra chữ `z` bình thường (`toanz`).
-- **Cơ Chế Phục Hồi Chữ Khi Gõ Lại Dấu Thanh (Đột Phá Kiểu vnchKey)**: Khi gõ lại cùng phím dấu thanh đối với từ tiếng Việt chuẩn, bộ gõ sẽ gỡ dấu (`cá` + `s` -> `ca`). Đối với các từ tiếng Anh hoặc từ bẫy va chạm mà từ gốc không phải từ tiếng Việt hợp lệ (như `doc`), khi gõ phím dấu lần thứ 2, bộ gõ sẽ lập tức gỡ dấu và trả lại chữ cái nguyên bản (`doc` + `s` -> `dóc` + `s` -> `docs`), không cần phải gõ tới 3 lần phím `s`. Nếu tiếp tục gõ thêm `s`, chữ sẽ nối thêm tự nhiên (`docs` + `s` -> `docss`). Kết hợp với tính năng Tự động phục hồi từ tiếng Anh (Auto-Restore), các từ tiếng Anh như `docs`, `modern`, `variable` (`vaỉable` -> `variable`) sẽ tự động được bảo toàn nguyên bản khi nhấn phím cách (Space) hoặc Enter.
+- **Cơ Chế Phục Hồi Chữ Khi Gõ Lại Dấu Thanh (Đột Phá Kiểu vnchKey)**: Khi gõ lại cùng phím dấu thanh đối với từ Tiếng Việt chuẩn, bộ gõ sẽ gỡ dấu (`cá` + `s` -> `ca`). Đối với các từ Tiếng Anh hoặc từ bẫy va chạm mà từ gốc không phải từ Tiếng Việt hợp lệ (như `doc`), khi gõ phím dấu lần thứ 2, bộ gõ sẽ lập tức gỡ dấu và trả lại chữ cái nguyên bản (`doc` + `s` -> `dóc` + `s` -> `docs`), không cần phải gõ tới 3 lần phím `s`. Nếu tiếp tục gõ thêm `s`, chữ sẽ nối thêm tự nhiên (`docs` + `s` -> `docss`). Kết hợp với tính năng Tự động phục hồi từ Tiếng Anh (Auto-Restore), các từ Tiếng Anh như `docs`, `modern`, `variable` (`vaỉable` -> `variable`) sẽ tự động được bảo toàn nguyên bản khi nhấn phím cách (Space) hoặc Enter.
 
 ---
 
 ### Tự Động Bỏ Qua URL, Email & Cú Pháp Code
 
-Khi gõ đường link, email hoặc viết code, các bộ gõ truyền thống thường xuyên bỏ nhầm dấu tiếng Việt làm hỏng nội dung (ví dụ: gõ `search` thành `seảch`, `user_name` thành `úer_name`).
+Khi gõ đường link, email hoặc viết code, các bộ gõ truyền thống thường xuyên bỏ nhầm dấu Tiếng Việt làm hỏng nội dung (ví dụ: gõ `search` thành `seảch`, `user_name` thành `úer_name`).
 
 OpenViet IME tích hợp cơ chế bảo vệ thông minh (`isUrlOrEmailOrCode`) tự động nhận dạng:
-- **Đường dẫn Web & File Paths (URLs & Đường Dẫn Thư Mục)**: Nhận diện `http://`, `https://`, `www.`, `localhost`, `.com`, `.vn`, `.org`, `.net`, `.io`, `.dev`, `.ai`, API routes `/api/v1` và đường dẫn file hệ thống/tương đối (`../folder`, `./src`, `~/.config`, `/usr/bin/`). Cơ chế nhận diện đường dẫn được giới hạn phạm vi chặt chẽ trong từng từ (token-scoped) để ngay khi bạn nhấn phím Cách (Space) sang từ kế tiếp, bộ gõ sẽ mở khóa tiếng Việt tức thì mà không bị kẹt.
+- **Đường dẫn Web & File Paths (URLs & Đường Dẫn Thư Mục)**: Nhận diện `http://`, `https://`, `www.`, `localhost`, `.com`, `.vn`, `.org`, `.net`, `.io`, `.dev`, `.ai`, API routes `/api/v1` và đường dẫn file hệ thống/tương đối (`../folder`, `./src`, `~/.config`, `/usr/bin/`). Cơ chế nhận diện đường dẫn được giới hạn phạm vi chặt chẽ trong từng từ (token-scoped) để ngay khi bạn nhấn phím Cách (Space) sang từ kế tiếp, bộ gõ sẽ mở khóa Tiếng Việt tức thì mà không bị kẹt.
 - **Bảo Vệ Khối Mã Backtick (Inline Code Guard)**: Nhận diện dấu backtick (`` ` ``) và các đoạn inline code Markdown. Bộ gõ tự động chặn cơ chế tự động viết hoa (auto-capitalization) bên trong dấu backtick, đồng thời bảo vệ các từ kỹ thuật (như `` `backtick` `` hay `` `code` ``) không bị cắt xén hoặc xóa nhầm mảnh từ khi nhấn Space.
 - **Địa chỉ Email**: Nhận diện ký tự `@` trong từ (`contact@company.vn`, `user@gmail.com`).
 - **Cú pháp Code**: Nhận diện `snake_case` có `_`, `kebab-case` có `-`, thuộc tính object có dấu chấm (`console.log`, `user.name`), biến (`$var`, `#id`), thẻ HTML (`<div`, `</span`) và toán tử (`->`, `=>`, `===`).
@@ -158,11 +160,11 @@ Khi phát hiện ngữ cảnh này, bộ gõ sẽ tự động tạm ngưng can 
 
 ### Chế Độ Lập Trình Thông Minh (Bảo Vệ camelCase & PascalCase)
 
-Khi lập trình viên đặt tên biến, hàm hay lớp theo chuẩn `camelCase` hoặc `PascalCase` trên trình duyệt (trong VS Code Web, DevTools Console, GitHub PR, hay chat trao đổi trên Slack), các bộ gõ tiếng Việt thông thường rất hay bỏ dấu nhầm vào phần tiền tố (ví dụ: gõ `useState` thành `uéState`, `isCamelCase` thành `íCamelCase`, `UserController` thành `UérController`).
+Khi lập trình viên đặt tên biến, hàm hay lớp theo chuẩn `camelCase` hoặc `PascalCase` trên trình duyệt (trong VS Code Web, DevTools Console, GitHub PR, hay chat trao đổi trên Slack), các bộ gõ Tiếng Việt thông thường rất hay bỏ dấu nhầm vào phần tiền tố (ví dụ: gõ `useState` thành `uéState`, `isCamelCase` thành `íCamelCase`, `UserController` thành `UérController`).
 
 OpenViet IME tích hợp cơ chế nhận diện quá trình chuyển tiếp hoa-thường theo chuẩn Unicode:
-- **Tự động bóc tách tiền tố có dấu**: Ngay khi gõ ký tự in hoa nối liền kề (như gõ `S` sau `ué`), bộ gõ tự động khôi phục tiền tố về chữ tiếng Anh không dấu chuẩn (`ué` $\rightarrow$ `use`) để tạo thành `useS`.
-- **Khóa dấu tiếng Việt trong từ**: Toàn bộ các ký tự gõ tiếp theo trong từ đó sẽ được giữ nguyên chữ tiếng Anh thuần túy, không bị bộ gõ can thiệp bỏ dấu bậy bạ. Bạn có thể thoải mái viết `useState`, `isCamelCase`, `UserController`, `AppProps` mà không cần phải gõ phím tắt tắt/bật bộ gõ liên tục.
+- **Tự động bóc tách tiền tố có dấu**: Ngay khi gõ ký tự in hoa nối liền kề (như gõ `S` sau `ué`), bộ gõ tự động khôi phục tiền tố về chữ Tiếng Anh không dấu chuẩn (`ué` $\rightarrow$ `use`) để tạo thành `useS`.
+- **Khóa dấu Tiếng Việt trong từ**: Toàn bộ các ký tự gõ tiếp theo trong từ đó sẽ được giữ nguyên chữ Tiếng Anh thuần túy, không bị bộ gõ can thiệp bỏ dấu bậy bạ. Bạn có thể thoải mái viết `useState`, `isCamelCase`, `UserController`, `AppProps` mà không cần phải gõ phím tắt tắt/bật bộ gõ liên tục.
 
 ---
 
@@ -174,7 +176,7 @@ Ngữ âm học chữ Quốc ngữ có những trường hợp đặc biệt kh�
    - Bình thường `uo` + `w` sẽ biến thành `ươ` (`duoc` + `w` $\rightarrow$ `được`).
    - Tuy nhiên, trong 3 trường hợp gốc này, `u` chỉ là âm đệm và duy nhất chữ `o` được nhận dấu móc `ơ`:
      - `thuở` (`muôn thuở`, `thuở xưa`): `thuo` + `w` $\rightarrow$ `thuơ` $\rightarrow$ `thuở` (tuyệt đối không thành `thưở`).
-     - `quởn` / `quỡn` / `quơ`: Trong tiếng Việt chữ `q` không bao giờ đi với `ư`. `quon` + `w` $\rightarrow$ `quơn` $\rightarrow$ `quởn`.
+     - `quởn` / `quỡn` / `quơ`: Trong Tiếng Việt chữ `q` không bao giờ đi với `ư`. `quon` + `w` $\rightarrow$ `quơn` $\rightarrow$ `quởn`.
      - `huơ` (`huơ tay`, `huơ dao`): `huo` + `w` $\rightarrow$ `huơ`.
 2. **Bẫy Nguyên Âm Ba Dị Biệt (`khuỷu`, `ngoèo`)**:
    - `khuỷu` (`khuỷu tay`): Dấu hỏi bắt buộc phải nằm trên chữ `y` $\rightarrow$ `khuỷu` (không rơi vào `u` thành `khủyu`).
@@ -203,7 +205,7 @@ Trong các từ như `được`, `nước`, `bước`, `trước`, `thương`, c
 ### Cụm Nguyên Âm `uê` (`thuế`, `huế`, `quế`) & `ưu` (`cứu`, `cừu`)
 
 1. **Cụm `uê`**:
-   - Theo ngữ âm học tiếng Việt, `u` là âm đệm và `ê` là âm chính mang trọng âm.
+   - Theo ngữ âm học Tiếng Việt, `u` là âm đệm và `ê` là âm chính mang trọng âm.
    - Dấu thanh bắt buộc phải rơi vào `ê`:
      - `thue61` hoặc `thue16` -> **`thuế`** (tuyệt đối không bị lỗi `thúê`).
      - `hue61` -> **`huế`**.
@@ -280,7 +282,7 @@ Lấy cảm hứng từ các kiến trúc bộ gõ hệ thống hiện đại vi
 
 Nhằm giữ bộ gõ luôn nhẹ, nhanh, dễ dự đoán và tuân theo triết lý Unix ("Do one thing and do it well"):
 - **Core IME Thuần Khiết**: Core Engine không tự ý suy đoán thêm dấu vào các chuỗi phím không dấu (ví dụ: gõ `khong`, `truong`, `nganh` sẽ giữ nguyên ký tự thô, không tự tiện ép thành `không`, `trương`, `ngành`). Người dùng có toàn quyền cấu hình gõ tắt thông qua bảng Macro nếu mong muốn.
-- **Tự Học Thói Quen Xóa Từ (Smart Erase Habit Learning)**: Khi người dùng gõ một từ tiếng Anh hoặc từ lóng ngoài từ điển mà vô tình bị bỏ dấu (ví dụ: `sas` $\rightarrow$ `sá`, `da5`), nếu bạn xóa nguyên vẹn cả từ này và gõ lại liên tiếp từ ngưỡng cài đặt trở lên (mặc định là 3 lần, có thể chỉnh từ 2 đến 10), OpenViet IME sẽ tự động học và thêm từ đó vào từ điển riêng. Kể từ lần sau, từ này sẽ không bao giờ bị bỏ dấu ngoài ý muốn nữa.
+- **Tự Học Thói Quen Xóa Từ (Smart Erase Habit Learning)**: Khi người dùng gõ một từ Tiếng Anh hoặc từ lóng ngoài từ điển mà vô tình bị bỏ dấu (ví dụ: `sas` $\rightarrow$ `sá`, `da5`), nếu bạn xóa nguyên vẹn cả từ này và gõ lại liên tiếp từ ngưỡng cài đặt trở lên (mặc định là 3 lần, có thể chỉnh từ 2 đến 10), OpenViet IME sẽ tự động học và thêm từ đó vào từ điển riêng. Kể từ lần sau, từ này sẽ không bao giờ bị bỏ dấu ngoài ý muốn nữa.
 - **Toàn Quyền Kiểm Soát & Chỉnh Sửa**: Người dùng có thể bật/tắt tính năng tự học này trong Cài Đặt, chỉnh ngưỡng số lần xóa, và dễ dàng xem, chỉnh sửa hoặc xóa các từ đã học trong tab "Từ Điển Riêng".
 
 ---
@@ -288,7 +290,7 @@ Nhằm giữ bộ gõ luôn nhẹ, nhanh, dễ dự đoán và tuân theo triế
 ### Quy Tắc Ngữ Âm & Bảo Vệ Lệnh Kỹ Thuật Tự Nhiên
 
 - **Âm Khép Phụ Âm Cuối (`-c, -ch, -p, -t`)**: Những âm tiết kết thúc bằng phụ âm tắc (`c`, `ch`, `p`, `t`) **chỉ có thể nhận Thanh 1 (Sắc) hoặc Thanh 5 (Nặng)**. Tuyệt đối không nhận thanh Huyền, Hỏi, Ngã (`bac` + `s` -> `bác`, nhưng `bac` + `f` -> `bacf` không bị biến thành `bàc`).
-- **Quy tắc `c/k`, `g/gh`, `ng/ngh`**: Các nguyên âm trước (`e, ê, i, y`) không đi cùng `c`, `g`, `ng`. Các từ tiếng Anh như `center`, `city`, `get` được giữ nguyên vẹn mà không bị đổi dấu sai.
+- **Quy tắc `c/k`, `g/gh`, `ng/ngh`**: Các nguyên âm trước (`e, ê, i, y`) không đi cùng `c`, `g`, `ng`. Các từ Tiếng Anh như `center`, `city`, `get` được giữ nguyên vẹn mà không bị đổi dấu sai.
 - **Lớp Bảo Vệ Ngữ Âm Tự Nhiên (Bảo Vệ Lệnh CLI & Từ Kỹ Thuật)**: Ngay cả khi người dùng **tắt tính năng kiểm tra chánh tả**, Syllable Parser của OpenViet IME vẫn luôn thực thi luật cấu trúc âm tiết tự nhiên (bảo vệ các phụ âm cuối lạ ngoại ngữ như `-tx`, `-cx`, `-rl`, `-sh`,...). Nhờ đó, các câu lệnh shell, tên file, thư viện lập trình (như `fcitx5`, `docx4`, `linux6`) **hoàn toàn không bị biến dạng** (ví dụ `fcitx5` được giữ nguyên vẹn thay vì bị biến thành `fcịtx`).
 
 ---
@@ -299,8 +301,8 @@ Kế thừa phát kiến trải nghiệm người dùng xuất sắc từ Ngó S
 
 1. **Cứu Chữ Tự Động Khi Bật Bộ Gõ (On-Activation Word Rescue)**:
    - **Tình huống**: Bạn mải mê gõ một mạch văn bản dài (ví dụ: `Chaof banj, tieengs vieetj nef`), ngẩng mặt lên mới tá hỏa nhận ra bàn phím đang ở chế độ Tiếng Anh!
-   - **Xử lý**: Ngay khi bạn bấm phím bật bộ gõ (`2x Ctrl`, `Ctrl+Shift+Z` hoặc click biểu tượng popup), bộ gõ tự động phân tích ngữ cảnh thô trước con trỏ và biến đổi thành tiếng Việt chuẩn ngữ pháp: $\rightarrow$ `Chào bạn, tiếng việt nè`.
-   - **Bảo toàn từ tiếng Anh & Hoàn tác an toàn**: Các từ vựng tiếng Anh (như `linux`, `server`, `browser`) được giữ nguyên vẹn. Nếu không muốn cứu chữ, chỉ cần nhấn phím **`Escape`**, bộ gõ sẽ lập tức trả lại chuỗi phím thô ban đầu.
+   - **Xử lý**: Ngay khi bạn bấm phím bật bộ gõ (`2x Ctrl`, `Ctrl+Shift+Z` hoặc click biểu tượng popup), bộ gõ tự động phân tích ngữ cảnh thô trước con trỏ và biến đổi thành Tiếng Việt chuẩn ngữ pháp: $\rightarrow$ `Chào bạn, Tiếng Việt nè`.
+   - **Bảo toàn từ Tiếng Anh & Hoàn tác an toàn**: Các từ vựng Tiếng Anh (như `linux`, `server`, `browser`) được giữ nguyên vẹn. Nếu không muốn cứu chữ, chỉ cần nhấn phím **`Escape`**, bộ gõ sẽ lập tức trả lại chuỗi phím thô ban đầu.
 
 2. **Cứu Dấu Khi Bôi Đen (Selection Accent Rescue)**:
    - **Tình huống**: Bạn muốn thêm, đổi hoặc gỡ dấu thanh trên một từ đã có sẵn trên màn hình mà không muốn phải xóa lùi rồi gõ lại từ đầu.
@@ -320,7 +322,7 @@ Kế thừa phát kiến trải nghiệm người dùng xuất sắc từ Ngó S
 ### Nguồn Dữ Liệu Từ Điển Đa Tầng
 Bộ gõ tích hợp 4 tầng dữ liệu từ điển:
 1. **Từ Ghép Tiếng Việt & Địa Danh Chọn Lọc (`COMMON_VIETNAMESE_COMPOUNDS`)**: Hơn 200+ cụm từ ghép thông dụng trong công việc, học tập, hành chính, cùng hệ thống địa danh các tỉnh thành khắp cả nước (Hà Nội, Sài Gòn, Đà Nẵng, Cần Thơ, Hải Phòng,...) và trọn bộ địa danh Tây Nguyên (Đắk Lắk, Buôn Ma Thuột, Krông Nô, Pleiku, Cư M'gar, Ea H'leo, M'Đrắk,...).
-2. **Kho Âm Tiết Tiếng Việt Chuẩn & Mở Rộng (`vietnamese-words.js`)**: ~6.700 âm tiết chuẩn mực từ từ điển Hunspell tiếng Việt kết hợp cùng bộ âm tiết địa danh Tây Nguyên, từ tượng thanh, phương ngữ và từ cổ (`pắk`, `búk`, `păh`, `prông`, `krông`, `đrắk`, `nguầy`, `nguậy`, `dzô`, `dzậy`, `zị`, `mầy`).
+2. **Kho Âm Tiết Tiếng Việt Chuẩn & Mở Rộng (`vietnamese-words.js`)**: ~6.700 âm tiết chuẩn mực từ từ điển Hunspell Tiếng Việt kết hợp cùng bộ âm tiết địa danh Tây Nguyên, từ tượng thanh, phương ngữ và từ cổ (`pắk`, `búk`, `păh`, `prông`, `krông`, `đrắk`, `nguầy`, `nguậy`, `dzô`, `dzậy`, `zị`, `mầy`).
 3. **Từ Điển Riêng Của Bạn (`userDictionary`)**: Các từ thuật ngữ, tên riêng được bạn thêm vào và ưu tiên hàng đầu.
 4. **Thuật Ngữ Công Nghệ & Tiếng Anh (`COMMON_ENGLISH_WORDS`)**: Các từ phổ biến như `React`, `TypeScript`, `Docker`, `GitHub`, `API`.
 
@@ -335,14 +337,14 @@ Khi bạn vừa gõ xong một từ, thanh gợi ý ribbon sẽ đưa ra các t�
 - `nghiên ` -> `[ cứu ]`, `[ cứu sinh ]`.
 
 **Quy Tắc Thân Thiện Với Ứng Dụng Chat & Dấu Câu**:
-- **Không chiếm phím Enter**: Khi chat trong Telegram, Messenger, Zalo, Slack, việc bấm `Enter` để gửi tin nhắn sẽ **không bao giờ** bị chen ngang bởi từ gợi ý next-word. Thanh gợi ý tự ẩn ngay và tin nhắn được gửi đi tức thì.
+- **Không chiếm phím Enter**: Khi chat trong Telegram, Messenger, Zalo, Slack, việc bấm `Enter` để gởi tin nhắn sẽ **không bao giờ** bị chen ngang bởi từ gợi ý next-word. Thanh gợi ý tự ẩn ngay và tin nhắn được gởi đi tức thì.
 - **Tôn trọng dấu kết thúc câu**: Sau các dấu chấm câu (`. ? !`) hoặc dấu cách sau dấu chấm câu, bộ gõ sẽ không gợi ý các từ kế tiếp ở dạng chữ thường để tránh làm phiền mắt ở đầu câu mới.
 
 ### Tự Học Thói Quen Người Dùng Cục Bộ (Bảo Mật 100%)
-- Khi bạn gõ các cặp từ liên tiếp (như `họp team`, `chuyển khoản`, `gửi email`), mô hình bigram trên máy bạn sẽ tự động tăng tần suất xuất hiện.
+- Khi bạn gõ các cặp từ liên tiếp (như `họp team`, `chuyển khoản`, `gởi email`), mô hình bigram trên máy bạn sẽ tự động tăng tần suất xuất hiện.
 - Các cặp từ hay dùng nhất sẽ được đưa lên vị trí số 1 kèm huy hiệu xanh **Thói quen**.
-- **Tự động học thói quen khi xóa từ (Ngăn bỏ dấu lặp lại)**: Khi bạn gõ một từ bị bỏ dấu tiếng Việt ngoài ý muốn và thực hiện **xóa toàn bộ từ đó** (qua phím Backspace liên tiếp hết từ, `Ctrl+Backspace`, hoặc `Escape`) từ **2 lần trở lên**, bộ gõ sẽ tự động nhận diện đây là từ bạn không muốn bỏ dấu. Từ này lập tức được nạp vào Từ Điển Riêng (`userDictionary`), hiển thị thông báo HUD nhẹ nhàng và vĩnh viễn không bị bỏ dấu nhầm ở những lần gõ tiếp theo.
-- Toàn bộ dữ liệu được lưu cục bộ trong `localStorage` / `sync storage` của trình duyệt, không có telemetry, không gửi dữ liệu ra mạng internet.
+- **Tự động học thói quen khi xóa từ (Ngăn bỏ dấu lặp lại)**: Khi bạn gõ một từ bị bỏ dấu Tiếng Việt ngoài ý muốn và thực hiện **xóa toàn bộ từ đó** (qua phím Backspace liên tiếp hết từ, `Ctrl+Backspace`, hoặc `Escape`) từ **2 lần trở lên**, bộ gõ sẽ tự động nhận diện đây là từ bạn không muốn bỏ dấu. Từ này lập tức được nạp vào Từ Điển Riêng (`userDictionary`), hiển thị thông báo HUD nhẹ nhàng và vĩnh viễn không bị bỏ dấu nhầm ở những lần gõ tiếp theo.
+- Toàn bộ dữ liệu được lưu cục bộ trong `localStorage` / `sync storage` của trình duyệt, không có telemetry, không gởi dữ liệu ra mạng internet.
 - **Xuất & Nhập Thói Quen (Backup & Portable)**: Hỗ trợ xuất (`Export JSON`, `Export CSV`) và nhập (`Import`) trực tiếp từ tab *"Gợi Ý & Thói Quen"* trong trang Cài Đặt. Bạn có thể dễ dàng chuyển toàn bộ dữ liệu thói quen gõ từ máy này sang máy khác mà không cần phải gõ lại từ đầu, đồng thời hỗ trợ chế độ Gộp thông minh (Merge) hoặc Ghi đè.
 
 ---
@@ -409,7 +411,7 @@ Bộ gõ tắt hỗ trợ các biến thời gian thực, tự động điền n
 - `$YEAR`: Năm hiện tại (`2026`).
 
 > [!TIP]
-> Để tránh việc vô tình bị bung macro khi gõ các từ tiếng Anh hoặc tiếng Việt thông thường, các macro động này được gán tiền tố an toàn `+`:
+> Để tránh việc vô tình bị bung macro khi gõ các từ Tiếng Anh hoặc Tiếng Việt thông thường, các macro động này được gán tiền tố an toàn `+`:
 > - `+today` + `Space` $\rightarrow$ `08/11/2026`
 > - `+now` + `Space` $\rightarrow$ `08/11/2026 09:15`
 > - `+time` + `Space` $\rightarrow$ `09:15`
@@ -439,7 +441,7 @@ Người dùng có thể tải nhanh bộ từ điển này vào danh sách Macr
 ├────────────────────────────────────────────────────────────────────────┤
 │                     Extension Trình Duyệt (MV3)                        │
 │  - Service Worker / Background Script (Đồng bộ cấu hình & phím tắt)    │
-│  - Content Script (Bắt sự kiện gõ phím & kích hoạt bộ gõ tiếng Việt)   │
+│  - Content Script (Bắt sự kiện gõ phím & kích hoạt bộ gõ Tiếng Việt)   │
 │  - Thanh HUD & Ribbon Gợi Ý (Giao diện nổi cách ly qua Shadow DOM)     │
 │  - Giao diện Popup Cài Đặt & Trang Tùy Chọn Options                    │
 │  - Đa nền tảng (Chrome MV3 / Firefox WebExtensions / Edge Chromium)    │
@@ -545,13 +547,13 @@ npm run lint
 
 ## Triết Lý Thiết Kế: Chuẩn Hóa Unicode Hiện Đại
 
-OpenViet IME được phát triển hoàn toàn cho kỷ nguyên web hiện đại. Chúng tôi **chủ động không tích hợp** các bộ chuyển đổi mã nguồn cũ kỹ từ thập niên 1990/2000 (như TCVN3 / ABC, VNI-Windows, BK HCM 1/2). Ngày nay hơn 99.9% trang web và ứng dụng máy tính đều chạy chuẩn xác trên nền UTF-8 Unicode. Việc loại bỏ các bộ chuyển mã lỗi thời giúp mã nguồn luôn gọn gàng, tăng tốc độ xử lý, giảm thiểu lỗ hổng bảo mật và tập trung toàn diện vào trải nghiệm gõ phím tiếng Việt nhanh, mượt mà và chuẩn xác nhất.
+OpenViet IME được phát triển hoàn toàn cho kỷ nguyên web hiện đại. Chúng tôi **chủ động không tích hợp** các bộ chuyển đổi mã nguồn cũ kỹ từ thập niên 1990/2000 (như TCVN3 / ABC, VNI-Windows, BK HCM 1/2). Ngày nay hơn 99.9% trang web và ứng dụng máy tính đều chạy chuẩn xác trên nền UTF-8 Unicode. Việc loại bỏ các bộ chuyển mã lỗi thời giúp mã nguồn luôn gọn gàng, tăng tốc độ xử lý, giảm thiểu lỗ hổng bảo mật và tập trung toàn diện vào trải nghiệm gõ phím Tiếng Việt nhanh, mượt mà và chuẩn xác nhất.
 
 ---
 
 ## Gỡ Lỗi & Live Inspector
 
-- **Giao diện Tùy chọn (Options)**: Mở **Options** và bấm nút **🐛 Copy Debug Snapshot** để sao chép nhanh phiên bản, thông tin trình duyệt, cấu hình đang bật và trạng thái engine vào clipboard khi gửi báo lỗi.
+- **Giao diện Tùy chọn (Options)**: Mở **Options** và bấm nút **🐛 Copy Debug Snapshot** để sao chép nhanh phiên bản, thông tin trình duyệt, cấu hình đang bật và trạng thái engine vào clipboard khi gởi báo lỗi.
 - **DevTools Console**: Trên bất kỳ trang web nào đang bật bộ gõ, chạy lệnh:
   ```js
   window.__AVIM_XKEY__?.avimEngine?.inspectState()
@@ -564,12 +566,12 @@ OpenViet IME được phát triển hoàn toàn cho kỷ nguyên web hiện đ�
 Phát hành theo [Giấy phép Apache, Phiên bản 2.0](LICENSE).
 
 ### Tri Ân & Đóng Góp Cộng Đồng
-OpenViet IME kế thừa và phát triển dựa trên những đóng góp, ý tưởng thuật toán và mã nguồn mở quý báu của cộng đồng phát triển bộ gõ tiếng Việt:
+OpenViet IME kế thừa và phát triển dựa trên những đóng góp, ý tưởng thuật toán và mã nguồn mở quý báu của cộng đồng phát triển bộ gõ Tiếng Việt:
 - **AVIM**: Khởi xướng bởi **Đặng Minh Tuấn** (phiên bản JavaScript đầu tiên bởi **Nguyễn Kim Kha**).
 - **xKey**: Phát triển bởi **xmannv** (Võ Văn Mann) — nguồn cảm hứng cho cơ chế mở rộng macro và gõ tắt phụ âm nhanh.
-- **GoNhanh**: Phát triển bởi **Kha Phan** — nguồn cảm hứng cho tính năng hoàn tác tức thì bằng phím ESC và tự động khôi phục từ tiếng Anh.
+- **GoNhanh**: Phát triển bởi **Kha Phan** — nguồn cảm hứng cho tính năng hoàn tác tức thì bằng phím ESC và tự động khôi phục từ Tiếng Anh.
 - **IBus-Bamboo / Bamboo Engine**: Phát triển bởi **Lượng Thanh Lâm** (`luongthanhlam` / BambooEngine) — cấu trúc ngữ âm học 5 thành phần (âm đầu, âm đệm, âm chính, âm cuối, dấu thanh) và cơ chế dời dấu động.
 - **fcitx5-vmk**: Phát triển bởi **Võ Ngô Hoàng Thành** (`thanhpy2009`) — bài học kinh nghiệm xử lý văn bản non-preedit mượt mà trên môi trường hiện đại.
-- **Funput**: Phát triển bởi **P-Code Dynamics** (`@pcodedynamics`) — triết lý thiết kế bộ gõ tiếng Việt đa nền tảng, gọn nhẹ và bảo mật.
+- **Funput**: Phát triển bởi **P-Code Dynamics** (`@pcodedynamics`) — triết lý thiết kế bộ gõ Tiếng Việt đa nền tảng, gọn nhẹ và bảo mật.
 
 Biểu tượng và đồ họa được thiết kế theo phong cách bàn phím hiện đại, trung tính và phù hợp sử dụng trên mọi nền tảng.
