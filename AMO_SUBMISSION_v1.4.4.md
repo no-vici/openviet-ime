@@ -62,7 +62,9 @@ Notes for review
 1. All readable source lives under src/ as ES modules. The generated files
    manifest.json and src/{content,options}/*.bundle.js are gitignored and created
    at build time by esbuild (unminified IIFE); they are intentionally absent from
-   the clean source archive.
+   the clean source archive. The add-on ZIP excludes dev-only files (tests, docs,
+   scripts, lockfiles, logs and stale review dumps); the clean source archive keeps
+   them for reproducibility.
 2. esbuild and web-ext are declared devDependencies in package.json. They are used
    only for bundling/packaging and are not shipped as runtime remote code.
 3. The previously used "Sentence Momentum & Math Context" heuristics were removed

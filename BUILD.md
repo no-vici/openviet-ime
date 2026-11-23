@@ -63,8 +63,11 @@ npm run build:firefox
    *(Copies the Firefox-specific manifest containing Gecko IDs and background scripts fallback).*
 3. **Packages into ZIP via `web-ext`**:
    ```bash
-   npx web-ext build --overwrite-dest --filename=openviet_ime-firefox-{version}.zip
+   npx web-ext build --overwrite-dest --filename=openviet_ime-firefox-{version}.zip --ignore-files=...
    ```
+   Dev-only files (`test/`, `docs/`, `scripts/`, lockfiles, stale review dumps,
+   logs and the non-active manifest) are excluded from the add-on ZIP. They remain
+   in the clean source archive for reviewers.
 
 ---
 
@@ -74,7 +77,9 @@ After running `npm run build:firefox`, the final add-on package will be generate
 ```
 web-ext-artifacts/openviet_ime-firefox-1.4.4.zip
 ```
-This `.zip` file is the exact identical package submitted to Mozilla Add-ons (AMO).
+This `.zip` file is the Firefox package submitted to Mozilla Add-ons (AMO). A
+reviewer rebuild is functionally equivalent; ZIP byte checksums may differ because
+of file timestamps.
 
 ---
 
