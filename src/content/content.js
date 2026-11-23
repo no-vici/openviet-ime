@@ -9,7 +9,7 @@
 import { AvimEngine } from '../engine/avim.js';
 import { MacroEngine, DEFAULT_MACROS } from '../engine/macro.js';
 import { DEFAULT_SETTINGS } from '../engine/config.js';
-import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode, isDeveloperCheatContext } from '../engine/key-codes.js';
+import { IME_METHOD, TONE_STYLE, isDelimiter, isUrlOrEmailOrCode, isDeveloperCheatContext, isImeCompositionEvent } from '../engine/key-codes.js';
 import { DomObserver } from './dom-observer.js';
 import { TextReplacer, ZERO_WIDTH_TRAILING_RE } from './text-replacer.js';
 import { autoCompleteEngine } from '../engine/autocomplete.js';
@@ -227,6 +227,8 @@ class AvimContentScript {
     // Guard against Chromium / macOS beforeinput leak when keydown was prevented by IME transformation
     this._blockedKeys = new Map(); // char -> timestamp
     document.addEventListener('beforeinput', (event) => {
+      // Never block text produced by an OS/browser IME (Pinyin, Kana, ...).
+      if (isImeCompositionEvent(event)) return;
       if (event.data && this._blockedKeys && this._blockedKeys.has(event.data)) {
         const ts = this._blockedKeys.get(event.data);
         if (ts && (Date.now() - ts) < 80) {
@@ -238,6 +240,19 @@ class AvimContentScript {
         }
         this._blockedKeys.delete(event.data);
       }
+    }, true);
+
+    // MDN: let the OS/browser IME own composition. Reset our Telex session so a
+    // foreign composition cannot be completed later by a Vietnamese delimiter.
+    document.addEventListener('compositionstart', () => {
+      if (this._blockedKeys) this._blockedKeys.clear();
+      this.hideSuggestions();
+      this.avimEngine.resetWordSession();
+      this.lastWordBeforeDelimiter = '';
+      this.secondLastWordBeforeDelimiter = '';
+    }, true);
+    document.addEventListener('compositionend', () => {
+      this.avimEngine.resetWordSession();
     }, true);
 
     document.addEventListener('click', (e) => {
@@ -1102,6 +1117,13 @@ class AvimContentScript {
 
     // Ignore modifier combinations (Ctrl, Alt, Meta) except Shift
     if (event.ctrlKey || event.altKey || event.metaKey) {
+      return;
+    }
+
+    // Trạm 1b: let an OS/browser IME own the keystroke (MDN recommendation).
+    // Placed after shortcuts so Ctrl+Shift+U / Alt+R / Tab still work, but
+    // before any Telex/VNI buffer, autocomplete or rich-editor DOM rewrite.
+    if (isImeCompositionEvent(event)) {
       return;
     }
 

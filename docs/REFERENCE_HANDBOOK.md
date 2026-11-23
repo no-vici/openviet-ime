@@ -710,7 +710,7 @@ TONE_MARK {
 | `hardcore-edge-cases.test.js` | `toansf → toàn`, `toansfr → toản`, `toansfz → toan` |
 | `telex-w-revert.test.js` | `w` toggle, `ơ+w→o`, `ư+w→w` |
 | `vni-macro-vars.test.js` | VNI + `$DATE/$TIME/$DATETIME/$CLIPBOARD` |
-| `url-code-guards.test.js` | URL/email/camelCase/snake_case |
+| `url-code-guards.test.js` | URL/email/camelCase/snake_case + IME composition guard |
 | `ime-edge-cases.test.mjs` | Ép xoá có dấu, ESC revert, casing |
 | `settings-parity.test.js` | `DEFAULT_SETTINGS` khớp service worker |
 | `playwright-e2e.js` *(E2E)* | 11 ca: trap word, camelCase, foreign onset, canary |
@@ -1037,6 +1037,9 @@ Bạn bấm chữ `s` để gõ `toás`. Trước khi chữ `s` kịp hiện ra,
 [1] Shortcut?        Ctrl+Shift+U? Double Ctrl? Esc?  → xử lý rồi dừng
          │ không
          ▼
+[1b] IME hệ điều hành? isComposing || keyCode === 229 → thả phím, kết thúc
+         │ không
+         ▼
 [2] Đang OFF?        method === 0 → thả phím, kết thúc
          │ không
          ▼
@@ -1052,7 +1055,7 @@ Bạn bấm chữ `s` để gõ `toás`. Trước khi chữ `s` kịp hiện ra,
 [6] Ghi vào trang    TextReplacer thay đúng đoạn, giữ nguyên phần còn lại
 ```
 
-Nếu dấu không hiện, hãy hỏi **theo thứ tự**: trạm 1 có nuốt phím không? trạm 2 có đang OFF không? trạm 3 có tìm thấy ô nhập không? trạm 4 có tưởng nhầm là code không? trạm 5 có từ chối vì chánh tả không? trạm 6 có ghi nhầm chỗ không?
+Nếu dấu không hiện, hãy hỏi **theo thứ tự**: trạm 1 có nuốt phím không? trạm 1b có đang compose bằng IME hệ điều hành không? trạm 2 có đang OFF không? trạm 3 có tìm thấy ô nhập không? trạm 4 có tưởng nhầm là code không? trạm 5 có từ chối vì chánh tả không? trạm 6 có ghi nhầm chỗ không?
 
 Đây là câu hỏi đầu tiên trong [10.1](#101-dấu-không-hiện--đi-từng-trạm).
 
@@ -1445,13 +1448,15 @@ Zip khác checksum / reviewer rebuild khác
 
 MDN khuyến nghị bỏ qua `keydown` khi `event.isComposing` **hoặc** `event.keyCode === 229`, vì Firefox vẫn bắn `keydown` trong lúc compose và `compositionstart` có thể đến sau phím đầu.
 
-Hiện tại OpenViet **chưa có guard này** — content script lắng nghe `keydown` trực tiếp. Đây không phải lỗi với ca gõ Telex thuần, nhưng là điều cần nhớ nếu bạn
+Từ 1.4.5 OpenViet đã áp dụng khuyến nghị đó. Predicate thuần `isImeCompositionEvent(event)` trong `src/engine/key-codes.js` được gọi ở ba chỗ:
 
-- bật thêm IME hệ điều hành (Pinyin, Kana, tiếng Trung/Nhật) trên cùng một ô;
-- thấy thư viện rich editor tự gọi `compositionstart`;
-- debug ca \"dấu biến mất khi đổi ngôn ngữ bàn phím\".
+- `handleKeyDown()`: ngay sau các shortcut, trước khi đụng vào buffer Telex/VNI — chính là **trạm 1b** trong [7.2](#72-một-phím-đi-qua-sáu-trạm-kiểm-soát);
+- listener `beforeinput` capture: không chặn `event.data` khi đang compose, để chữ Pinyin/Kana không bị nuốt;
+- `compositionstart`: xoá `_blockedKeys`, ẩn gợi ý và reset word session; `compositionend`: reset lại session một lần nữa.
 
-Ghi nhận ở đây để khỏi tưởng engine \"quên\" rule. Đây là **khoảng trống đã biết**, không phải việc cần làm ngay trong đợt 1.4.5.
+Vì guard nằm **sau** shortcut, `Ctrl+Shift+U`, `Alt+R`, Tab gợi ý... vẫn chạy bình thường. Với ca gõ Telex thuần `isComposing` luôn `false`, nên `đồ`, `ăn`, `toán` không đổi. Đây là hardening, không phải tính năng mới.
+
+> ⚠️ Giới hạn kiểm thử: Playwright không tạo được sự kiện compose thật của IME hệ điều hành, nên guard được phủ bằng unit test trên predicate trong `url-code-guards.test.js`; E2E chỉ khẳng định đường Telex thuần vẫn `11/11 + 24/24`. Nếu debug ca đổi ngôn ngữ bàn phím, bật debug log và quan sát `compositionstart` / `compositionend` trong DevTools.
 
 #### (2) UAX #15: đường nối khi thay DOM
 
@@ -1473,7 +1478,7 @@ Trang Source code submission ghi môi trường mặc định hiện tại: **Ub
 |---|---|---|---|
 | `beforeinput` có thể cancel | `src/content/content.js` | `capture: true`, `preventDefault()` | Nếu chỉ nghe `input` thay vì `keydown`, lỗi gì xảy ra? |
 | `Range.deleteContents()` | `src/content/text-replacer.js` | `replaceInContentEditable()` | Vì sao không dùng `document.execCommand('insertText')`? |
-| `keyCode === 229` | `src/content/content.js` | chưa có | Nếu thêm guard, đặt ở trạm số mấy trong [7.2](#72-một-phím-đi-qua-sáu-trạm-kiểm-soát)? |
+| `keyCode === 229` | `src/engine/key-codes.js` → `isImeCompositionEvent()` | Nằm ở trạm 1b trong [7.2](#72-một-phím-đi-qua-sáu-trạm-kiểm-soát): sau shortcut, trước trạm 2 |
 | `page.route()` | `test/playwright-rich-editors.test.js` | `http://openviet.test` | Nếu bỏ route này, ca nào đỏ đầu tiên? |
 
 ---

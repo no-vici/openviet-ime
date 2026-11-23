@@ -6,7 +6,7 @@ All notable changes to OpenViet IME will be documented in this file.
 
 ### Added
 - `docs/VIETNAMESE_PHONOLOGY.md`: 1,270-line Vietnamese phonology reference (inventory, valid vowel/consonant combinations, tone placement old vs new, every sequence excluded from diacritics, annotated guides to the four local PDFs and verified online linguistics/Unicode sources).
-- `docs/REFERENCE_HANDBOOK.md`: 1,490-line quick-reference handbook (cheat sheets, 50-case troubleshooting cookbook, absolute-beginner guide, 7-day study plan, diagnostic decision trees, verified MDN/AMO/Playwright sources and release playbook), plus `npm run check:terms` to keep terminology consistent.
+- `docs/REFERENCE_HANDBOOK.md`: 1,495-line quick-reference handbook (cheat sheets, 50-case troubleshooting cookbook, absolute-beginner guide, 7-day study plan, diagnostic decision trees, verified MDN/AMO/Playwright sources and release playbook), plus `npm run check:terms` to keep terminology consistent.
 
 ### Changed
 - Pinned `web-ext` in `devDependencies`, committed `package-lock.json`, and switched build docs to `npm ci` for reproducible AMO reviewer builds.
@@ -17,6 +17,7 @@ All notable changes to OpenViet IME will be documented in this file.
 - Unified `Tiếng Việt` / `chánh tả` / `gởi` terminology across docs, popup and Options UI (dictionary suggestions intentionally keep both historical spellings of `gởi`).
 
 ### Fixed
+- Ignore `keydown` and `beforeinput` while an OS/browser IME is composing (`event.isComposing || event.keyCode === 229`), clear blocked-key guards on `compositionstart`, and reset the Telex word session so Pinyin/Kana text cannot reactivate a stale buffer. Plain Telex typing is unchanged.
 - Fixed the 12 false rich-editor E2E failures: headful runs now serve the testbed from a real `http://openviet.test` origin and load a temporary Chromium-compatible manifest instead of `about:blank` + the Firefox manifest.
 - Added a `toans -> toán` canary to both Playwright suites so a dead content script can no longer produce false passes on English trap words. `npm run test:e2e` is now 11/11 + 24/24 in both modes.
 

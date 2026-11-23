@@ -238,3 +238,21 @@ export function isDeveloperCheatContext(hostname = '', targetElement = null) {
   }
   return false;
 }
+
+/**
+ * True while an OS/browser IME (Pinyin, Kana, ...) owns the keystroke.
+ *
+ * MDN recommends ignoring `keydown` when `event.isComposing` is true OR
+ * `event.keyCode === 229`: Firefox still fires `keydown` during composition,
+ * and `compositionstart` may arrive after the first key while `compositionend`
+ * may arrive before the last one. Checking both flags covers those edges.
+ *
+ * Pure function on purpose: content.js uses it for both `keydown` and
+ * `beforeinput`, and unit tests can call it without a DOM.
+ *
+ * @param {{ isComposing?: boolean, keyCode?: number }} event
+ * @returns {boolean}
+ */
+export function isImeCompositionEvent(event) {
+  return Boolean(event && (event.isComposing === true || event.keyCode === 229));
+}
