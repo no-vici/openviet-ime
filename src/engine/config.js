@@ -15,7 +15,10 @@ export const DEFAULT_SETTINGS = {
   ctrlToggleEnabled: true,
   quickConsonants: false,
   quickTelex: true,
-  typeW2U: true,         // vnchKey TypeW2U (Non-Start): 'w' acts as 'ư' after consonants / 'uw' / 'uow', but standalone initial 'w' stays English
+  // Internal flag (kept for compatibility): true = Non-Start policy (initial 'w' stays 'w');
+  // false = legacy/VietLotus policy (initial 'w' also becomes 'ư'). The UI exposes this as
+  // a positive "Gõ w thành ư" toggle and inverts the value when saving.
+  typeW2U: true,
   smartHorn: true,       // vnchKey SmartHorn: intelligent horn placement on uo/uu/trio exception pairs
   emojiShortcuts: true,
   autoCapitalize: false,

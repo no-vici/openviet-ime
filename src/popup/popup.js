@@ -63,6 +63,8 @@ async function initPopup() {
     ctrlToggleEnabled: true,
     quickConsonants: false,
     quickTelex: true,
+    typeW2U: true,
+    smartHorn: true,
     emojiShortcuts: true,
     autoCapitalize: true,
     perDomainMemory: true,
@@ -121,7 +123,8 @@ async function initPopup() {
       quickTelexToggle.checked = settings.quickTelex !== false;
     }
     if (typeW2UToggle) {
-      typeW2UToggle.checked = settings.typeW2U !== false;
+      // UI is positive ("bật = w -> ư"); internal typeW2U=false is the legacy/VietLotus policy.
+      typeW2UToggle.checked = settings.typeW2U === false;
     }
     if (smartHornToggle) {
       smartHornToggle.checked = settings.smartHorn !== false;
@@ -285,7 +288,7 @@ async function initPopup() {
 
   if (typeW2UToggle) {
     typeW2UToggle.addEventListener('change', async () => {
-      settings.typeW2U = typeW2UToggle.checked;
+      settings.typeW2U = !typeW2UToggle.checked;
       await saveSettings();
     });
   }

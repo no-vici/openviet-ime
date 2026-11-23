@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   ctrlToggleEnabled: true,
   quickConsonants: false,
   quickTelex: true,
+  typeW2U: true,
+  smartHorn: true,
   emojiShortcuts: true,
   autoCapitalize: false,
   autoSpaceAfterPunctuation: false,
