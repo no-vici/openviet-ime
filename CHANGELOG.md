@@ -9,6 +9,8 @@ All notable changes to OpenViet IME will be documented in this file.
 - Popup now imports the shared `DEFAULT_SETTINGS` instead of keeping a divergent local copy; added a parity test against the service-worker defaults.
 - Converted `test/ime-edge-cases.test.mjs` from Vitest to `node:test` and wired it into `npm test` (98 tests total); removed the unused `vitest` dependency/script.
 - Clarified the Playwright E2E guide and documented the corrected headful/headless baselines.
+- Rewrote `docs/ARCHITECTURE.md` as a beginner-friendly guide with a glossary, a one-keystroke walkthrough, the browser challenges and the current three-layer architecture.
+- Unified `Tiếng Việt` / `chánh tả` / `gởi` terminology across docs, popup and Options UI (dictionary suggestions intentionally keep both `gửi` and `gởi`).
 
 ### Fixed
 - Fixed the 12 false rich-editor E2E failures: headful runs now serve the testbed from a real `http://openviet.test` origin and load a temporary Chromium-compatible manifest instead of `about:blank` + the Firefox manifest.

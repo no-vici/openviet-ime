@@ -1,29 +1,116 @@
 # OpenViet IME: Kiến Trúc Kỹ Thuật & Hướng Dẫn Nhập Môn
 
-Tài liệu này được viết theo phong cách tường minh, dễ tiếp cận, giúp bất kỳ lập trình viên nào (kể cả người mới bắt đầu) cũng hiểu rõ cách một **Bộ gõ Tiếng Việt hiện đại trong trình duyệt web** hoạt động từ A đến Z.
+Tài liệu này dành cho người lần đầu nhìn vào mã nguồn của một **bộ gõ Tiếng Việt chạy trong trình duyệt**. Sau khi đọc xong, bạn sẽ trả lời được bốn câu hỏi:
 
-> **Quy ước thuật ngữ:** xuyên suốt tài liệu này dùng **Tiếng Việt** (viết hoa chữ cái đầu), **chánh tả** và **gởi** một cách đồng nhất. Khi nói đến mã nguồn, tên file, tên hàm hoặc cờ cấu hình thì giữ nguyên tên gốc bằng tiếng Anh.
+1. Bộ gõ là gì, và nó khác với UniKey/Bamboo cài ở hệ điều hành chỗ nào?
+2. Khi mình gõ `toans`, điều gì đã xảy ra trước khi chữ `toán` hiện lên màn hình?
+3. Vì sao gõ trong Telegram/GitHub/Teams lại dễ hỏng, và OpenViet giải những ca đó ra sao?
+4. Mã nguồn được chia thành những phần nào, mình nên bắt đầu đọc từ đâu?
 
----
-
-## 1. Bản Chất Của Bộ Gõ Trên Trình Duyệt Web
-
-Khi bạn gõ bàn phím trên hệ điều hành (Windows/macOS/Linux), bộ gõ hệ thống (như UniKey hay Bamboo) chặn phím ở tầng driver trước khi ứng dụng nhận được.
-
-Tuy nhiên, **Browser Extension IME** hoạt động bên trong môi trường JavaScript của trình duyệt. Nó phải đối mặt với ba thách thức lớn:
-
-1. **Tranh chấp sự kiện (Event Race Condition)**: Các framework hiện đại như React, Vue, Slate, TipTap, Lexical, CodeMirror luôn theo dõi phím bấm. Nếu extension không xử lý khéo léo, ký tự gốc sẽ lọt vào DOM trước khi bộ gõ kịp thay thế, gây ra lỗi **nhảy chữ, lặp chữ** (ví dụ: `toán` thành `toáan` hoặc `vâyậy`).
-2. **Khác biệt ô nhập liệu**:
-   - Ô nhập chuẩn: `<input>`, `<textarea>`.
-   - Trình soạn thảo văn bản phong phú: `<div contenteditable="true">` (TipTap/ProseMirror, Lexical, Slate, RoosterJS/CKEditor trong Microsoft Teams Web).
-   - Một số editor dùng canvas (Google Docs, Sheets, Slides, Figma, Canva, Miro) không lộ DOM chữ để thay thế an toàn, nên `DomObserver` **chủ động bỏ qua** các domain này thay vì cố gắng can thiệp.
-3. **Chuỗi không đồng nhất**: editor có thể chèn zero-width marker hoặc lưu dấu thanh ở dạng NFD. Ranh giới từ phải được tính toán bỏ qua các ký tự đó, nếu không `đồ` rất dễ bị rụng còn `do`.
+> **Quy ước thuật ngữ:** xuyên suốt tài liệu dùng **Tiếng Việt** (viết hoa chữ cái đầu), **chánh tả** và **gởi** một cách đồng nhất. Tên file, tên hàm, cờ cấu hình và tên thư viện giữ nguyên dạng gốc tiếng Anh để bạn dễ đối chiếu với source.
 
 ---
 
-## 2. Kiến Trúc Tổng Thể (System Architecture)
+## 0. Cẩm nang từ vựng: đọc xong bảng này là hiểu nửa tài liệu
 
-Dự án được phân chia thành 3 tầng độc lập, theo nguyên lý **Separation of Concerns (SoC)**:
+| Thuật ngữ | Nghĩa đời thường | Ý nghĩa trong OpenViet IME |
+|---|---|---|
+| **IME** (Input Method Editor) | "bộ gõ" — phần mềm biến phím Latin thành chữ có dấu | `AvimEngine` trong `src/engine/avim.js` |
+| **Browser Extension** | một chương trình nhỏ cài vào trình duyệt | gồm content script, background service worker, popup, options |
+| **Content script** | "nhân viên đứng ngay tại ô nhập liệu" | `src/content/content.js`, chạy trong trang, đọc/ghi DOM |
+| **Background service worker** | "tổng đài" chạy ngầm, không thấy trên trang | `src/background/service-worker.js`, giữ cấu hình, badge, broadcast |
+| **DOM** (Document Object Model) | cây các thẻ HTML mà trình duyệt dựng ra | nơi con trỏ và đoạn text đang nằm |
+| **caret / selection / Range** | con trỏ nhấp nháy / vùng đang chọn / đoạn bôi trong DOM | `TextReplacer` dùng `Selection` và `Range` để thay chữ |
+| **contenteditable** | thẻ HTML cho phép gõ trực tiếp, ví dụ `<div contenteditable="true">` | TipTap, Lexical, Teams editor đều dạng này |
+| **event capture** | gắn sự kiện ở chế độ "bắt trước, hỏi sau" | `addEventListener('keydown', ..., true)` giúp bộ gõ đi trước framework |
+| **preventDefault()** | "phím này tôi xử lý rồi, trang đừng gõ thêm nữa" | chặn chữ Latin thô lọt vào trước chữ có dấu |
+| **stopImmediatePropagation()** | "đừng để listener khác ở cùng sự kiện này chạy nữa" | ngăn React/Vue/Slate tự động gõ lại chữ thô |
+| **beforeinput / InputEvent** | sự kiện trình duyệt báo "sắp chèn/xóa text" | lớp guard 80ms chặn event rò rỉ sau khi `keydown` đã bị hủy |
+| **model-backed editor** | editor không lưu text thuần trong DOM mà có model riêng | Teams (RoosterJS/CKEditor), Lexical cần `paste` hoặc `beforeinput` có `targetRanges` |
+| **NFC / NFD** | hai cách lưu cùng một chữ có dấu: `ế` là 1 ký tự (NFC) hoặc `e` + dấu (NFD) | output luôn NFC; khi đọc thì bỏ qua dấu NFD và zero-width marker |
+| **zero-width marker** | ký tự vô hình editor chèn vào để đánh dấu ranh giới | `extractWordBeforeOffset()` bỏ qua để không mất dấu ở đầu/cuối từ |
+| **atomic replacement** | đổi cả từ trong một thao tác, không bấm Backspace giả liên tục | `TextReplacer.replaceInContentEditable()` |
+| **Shadow DOM** | một "cây HTML con" bị cô lập, CSS của trang không ảnh hưởng | thanh gợi ý và HUD toast; chỉ mount khi cần (lazy) |
+| **lazy index / prefix bucket** | chia sẵn từ vào nhóm theo chữ cái đầu, nhưng chỉ xây khi có người hỏi | `AutoCompleteEngine._ensureIndexes()` |
+| **bigram / trigram** | xác suất "sau A thì thường là B" / "sau A B thì thường là C" | gợi ý từ kế tiếp, có học trên thiết bị |
+| **Telex / VNI** | hai cách gõ dấu bằng phím Latin | Telex: `s` = dấu sắc, `w` = dấu móc; VNI: `6,7,8,...` |
+| **Onset / Glide / Nucleus / Coda / Tone** | âm đầu / âm đệm / âm chính / âm cuối / dấu thanh | 5 thành phần của một âm tiết trong `SyllableParser` |
+| **chánh tả** | đúng quy tắc viết của Tiếng Việt | `dictionary.js`, `phonologyRules`, stop-finals |
+| **HUD** | cái toast nhỏ hiện góc màn hình | báo "đã tắt Tiếng Việt", "đã thoát code mode" |
+| **canary** | con chim họa mi trong hầm mỏ: test nhỏ báo ngay nếu hệ thống chết | canary `toans → toán` đầu mỗi suite E2E |
+
+---
+
+## 1. Siêu tốc: điều gì xảy ra khi bạn gõ `toans`?
+
+Hãy tưởng tượng bạn đang gõ vào một ô chat. Bạn bấm lần lượt `t` `o` `a` `n` `s`.
+
+| Lúc bạn bấm | Trạng thái bộ gõ | Chữ trên màn hình |
+|---|---|---|
+| `t` | chưa có âm tiết, cho phím đi qua | `t` |
+| `o` | vẫn là chuỗi Latin đang build | `to` |
+| `a` | parser biết cụm `oa` là nguyên âm chính hợp lệ | `toa` |
+| `n` | `n` là âm khép, dấu (nếu có) sẽ dời vào `a` | `toan` |
+| `s` | Telex hiểu `s` = dấu Sắc; engine tạo `toán` và **chặn phím `s` thô** | `toán` |
+
+Điểm mấu chốt nằm ở phím cuối: thay vì để trình duyệt gõ chữ `s` rồi mới xóa đi sửa lại, OpenViet **quyết định trước**, gọi `event.preventDefault()` và tự thay cả từ bằng `toán`. Đó là lý do bạn không thấy hiện tượng `toáns` rồi mới mất `s`.
+
+Nếu gõ ngược `toasn`, parser vẫn nhận ra `s` là dấu, `n` là coda, rồi dời dấu đúng chỗ → vẫn ra `toán`. Khả năng "dấu gõ trước vẫn tự nhảy đúng chỗ" đó gọi là **dynamic tone shifting** (dời dấu động).
+
+---
+
+## 2. Vì sao làm bộ gõ trong trình duyệt lại khó?
+
+### 2.1. Cuộc đua sự kiện (Event Race Condition)
+
+Trên hệ điều hành, UniKey chặn phím ở tầng driver: ứng dụng chỉ nhận chữ đã có dấu. Trình duyệt thì không cho extension can thiệp ở tầng đó.
+
+Extension chỉ được nghe sự kiện `keydown` Giống như mọi script khác trên trang. Nếu React/Slate/TipTap cũng nghe `keydown` và tự chèn chữ thô trước khi extension kịp thay thế, bạn sẽ thấy:
+
+- `toán` thành `toáan` (nhảy chữ),
+- `vâyậy` thay vì `vậy` (lặp chữ),
+- dấu bị rụng khi gõ nhanh 5ms/phím.
+
+**Cách giải:** gắn listener ở chế độ capture (`true`), xử lý xong thì `preventDefault()` + `stopPropagation()` + `stopImmediatePropagation()`. Ngoài ra, một guard `beforeinput` trong 80ms chặn luôn `InputEvent` mà Chromium/macOS đôi khi vẫn gởi thêm sau khi `keydown` đã bị hủy.
+
+### 2.2. Không phải ô nhập nào cũng giống nhau
+
+| Loại ô | Ví dụ | Khó khăn |
+|---|---|---|
+| `<input>`, `<textarea>` | ô tìm kiếm, ô password | dễ nhất: chỉ cần sửa `value` và dispatch `input` |
+| `contenteditable` thường | Notion, Slack Web | con trỏ nằm trong text node, có khi nằm giữa `<p>` rỗng |
+| Editor có framework | TipTap/ProseMirror, Lexical, Slate | framework tự đồng bộ model, sửa DOM trực tiếp có thể bị ghi đè |
+| Editor có model riêng | Teams Web (RoosterJS/CKEditor) | bắt buộc gởi `paste` hoặc `beforeinput` kèm `targetRanges` để model tự cập nhật |
+| Canvas | Google Docs/Sheets/Slides, Figma, Canva | không lộ text có thể thay thế an toàn → **bỏ qua chủ động** |
+
+`DomObserver` quyết định target có đáng can thiệp hay không. `TextReplacer` sau đó chọn adapter phù hợp thay vì dùng một cách làm chung cho tất cả.
+
+### 2.3. Unicode không chỉ là "có dấu hay không"
+
+Chữ `ế` có thể được lưu dưới hai dạng:
+
+- **NFC**: một ký tự `ế`.
+- **NFD**: `e` + dấu mũ + dấu sắc (hai hoặc ba code point).
+
+Editor thường chèn thêm **zero-width marker** (ký tự vô hình độ rộng bằng 0) để đánh dấu ranh boundary giữa các đoạn styled. Nếu đếm cả những ký tự đó làm một phần của từ, backspace sẽ xóa nhầm hoặc dấu sẽ bị rụng: `đồ` → `do`.
+
+**Cách giải:** mọi output được `normalize('NFC')`; mọi lần đọc từ đi qua `extractWordBeforeOffset()` trong `text-replacer.js`, hàm này bỏ dấu NFD khi cần và bỏ zero-width marker khi tính `startIndex/endIndex`.
+
+### 2.4. Hiệu năng và riêng tư
+
+Bộ gõ chạy trên **mọi phím bấm**. Nếu mỗi lần gõ lại dựng lại từ điển 6.700 âm tiết, máy sẽ lag. Nếu gọi mạng để tra cứu, vừa chậm vừa vi phạm chính sách AMO.
+
+**Cách giải:** Engine là JavaScript thuần, không fetch, không remote code. Index gợi ý được xây **lazy** ở lần đầu cần, sau đó tái dùng. Mọi thói quen người học được lưu trong `storage.sync` trên thiết bị.
+
+---
+
+## 3. Kiến trúc 3 tầng: ai làm việc gì?
+
+Hãy tưởng tượng một quán cafe:
+
+- **Nhân viên pha chế** đứng ngay quầy, nhìn thấy ly của bạn — đó là **Tầng nội dung**.
+- **Bếp trưởng** chỉ biết công thức, không cần biết ly đang ở bàn nào — đó là **Tầng động cơ**.
+- **Quản lý** giữ thực đơn và nhớ bạn thích uống gì — đó là **Tầng nền tảng**.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -51,160 +138,201 @@ Dự án được phân chia thành 3 tầng độc lập, theo nguyên lý **Se
 │                TẦNG NỀN TẢNG (Background & Settings)                   │
 │                                                                        │
 │  [Service Worker] ◄── storage.sync ──> [Popup]   [Options]              │
-│  (badge + broadcast)                  (module, dùng DEFAULT_SETTINGS)  │
+│  (badge + broadcast)                  (dùng DEFAULT_SETTINGS)          │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-Luồng gõ mặc định: `keydown` (capture) → `DomObserver` → `TextReplacer.extract*WordBuffer()` → `AvimEngine.processKey()` → `TextReplacer.replace*()` → (tuỳ chọn) gợi ý từ/ cụm từ.
+### Tầng nội dung — "nhân viên quầy"
 
-`manifest.json` và `src/content/content.bundle.js`, `src/options/options.bundle.js` là sản phẩm sinh ra bởi `esbuild` trong lúc build; chúng được gitignore và không có trong clean source archive.
+`src/content/content.js` được inject vào mọi trang (`<all_urls>`, `document_start`). Nó nghe phím, hỏi `DomObserver` xem target có hợp lệ không, nhờ `TextReplacer` lấy đoạn text quanh con trỏ, gọi engine, rồi nhờ `TextReplacer` thay lại. Nó cũng quản lý thanh gợi ý Shadow DOM và HUD toast.
 
----
+### Tầng động cơ — "bếp trưởng"
 
-## 3. Giải Thích Chi Tiết Từng Module
+Các file trong `src/engine/` **không biết DOM là gì**. Chúng nhận vào một chuỗi (`currentWord`) và một phím (`key`), trả về chuỗi mới. Nhờ vậy bạn có thể test engine bằng `node --test` mà không cần mở trình duyệt. Đây là lý do 98 test unit chạy trong chưa đầy giây.
 
-### Module 1: Cấu Hình Dùng Chung (`src/engine/config.js`, `src/engine/key-codes.js`)
+### Tầng nền tảng — "quản lý"
 
-`DEFAULT_SETTINGS` là nguồn chân lý duy nhất cho Popup, Options và Content Script. Service Worker là classic script nên vẫn giữ một bản sao các giá trị mặc định; `test/settings-parity.test.js` đảm bảo hai bản này không lệch nhau.
+`service-worker.js` ghi cấu hình mặc định lúc cài đặt, đổi chữ `TE/VNI/AUTO/OFF` trên badge và broadcast `SETTINGS_UPDATED` khi Popup/Options đổi setting. Popup và Options đọc/ghi cùng một khóa `avim_settings` trong `storage.sync`.
 
-Điểm dễ nhầm nhất là cờ `w`:
-
-- `typeW2U` là cờ nội bộ, luôn bị ép thành `true` ở Content Script. Nó thể hiện chính sách **Non-Start**: `w` ở đầu từ vẫn là Latin (`web`, `wifi`, `wife`, `world`, `ward`).
-- `wToUEnabled` là công tắc người dùng (mặc định `true`). Bật: `w` sau phụ âm/nguyên âm thành `ư/ơ/ă` (`thw → thư`, `uow → ươ`). Tắt: `processKey()` trả về literal `w` ngay từ đầu, mọi biến đổi Telex liên quan đến `w` đều bị bỏ qua (`sway` giữ nguyên là `sway`).
-
-`key-codes.js` gom các hàm bảo vệ ngữ cảnh: `isUrlOrEmailOrCode()`, `isCamelOrPascalCase()`, `isDeveloperCheatContext()`, cùng bảng Telex/VNI và bộ delimiter.
+`DEFAULT_SETTINGS` trong `src/engine/config.js` là nguồn chân lý cho Popup, Options và Content Script. Service Worker là classic script nên vẫn giữ một bản sao; `test/settings-parity.test.js` can thiệp để hai bản không lệch nhau.
 
 ---
 
-### Module 2: Phân Tích Âm Tiết & Biến Đổi Chính (`src/engine/syllable-parser.js`, `src/engine/avim.js`)
+## 4. Hành trình một phím, nhìn dưới dạng giả code
 
-`SyllableParser` mô hình hóa bất kỳ âm tiết Tiếng Việt nào thành **5 thành phần chuẩn**:
+Đây là đường đi rút gọn của `handleKeyDown(event)`:
 
-$$\text{Syllable} = \text{Onset (Âm đầu)} + \text{Glide (Âm đệm)} + \text{Nucleus (Âm chính)} + \text{Coda (Âm cuối)} + \text{Tone (Dấu thanh)}$$
-
-Ví dụ:
-
-- `quán`: `Onset = q`, `Glide = u`, `Nucleus = a`, `Coda = n`, `Tone = 1` (Sắc).
-- `thủy`: `Onset = th`, `Glide = u`, `Nucleus = y`, `Coda = trống`, `Tone = 3` (Hỏi).
-
-**Dời dấu động (Dynamic Tone Shifting)** xảy ra ngay trong lúc gõ:
-
-1. `t` + `o` → `to`.
-2. Gõ `s` → `tó` (dấu tạm đặt trên `o`).
-3. Gõ `a` → parser nhận diện cụm `oa`, chuyển thành `tóa`.
-4. Gõ `n` → phát hiện âm khép `n`. Theo luật chánh tả Tiếng Việt, dấu sắc phải nằm trên âm chính `a`, không được nằm trên âm đệm `o`. Engine tái tạo thành **`toán`**, ngăn chặn `tóan`.
-
-`AvimEngine` quản lý `VOWEL_TABLE`, ma trận Telex (`aa → â`, `oo → ô`, `ow → ơ`, `uw → ư`) và VNI (`6, 7, 8`), kiểm tra âm khép (`c, ch, p, t` chỉ nhận Sắc/Nặng), đồng thời hỗ trợ hai phong cách đặt dấu:
-
-- **Chuẩn mới (BGDĐT)**: `hoà, hoá, thuỷ, khoẻ`.
-- **Chuẩn cũ (classic / UniKey cổ điển)**: `hòa, hóa, thủy, khỏe` — đây là giá trị mặc định hiện tại.
-
-Engine **không** đoán dấu cho từ không dấu (`khong`, `truong`, `nganh`); việc đó thuộc về Macro Engine hoặc người dùng. Không có cơ chế "Sentence Momentum & Math Context" trong mã nguồn hiện tại.
-
----
-
-### Module 3: Từ Điển, Chánh Tả & Casing (`src/engine/dictionary.js`, `src/engine/casing.js`, `src/engine/vietnamese-words.js`)
-
-- `COMMON_ENGLISH_WORDS` chứa các từ bẫy như `sway`, `manjaro`, `user`, `text`, `docs`, `useState`. Khi gặp delimiter, `shouldAutoRestoreEnglish()` khôi phục chúng về dạng Latin thay vì để dấu lọt vào.
-- `UserDictionary` lưu từ người dùng đã học được (kể cả trường hợp xóa từ có dấu nhiều lần) vào `storage.sync`, không gọi mạng.
-- `hasPhonologyViolation()`, `hasForeignOnset()`, `isLikelyEnglishWord()` ngăn sinh ra âm tiết sai chánh tả hoặc phá cụm phụ âm nước ngoài (`play`, `spring`, `status`).
-- `harmonizeSyllableCase()` xử lý bẫy Shift/CapsLock (`ĐƯợc → Được`, `đƯỢc → được`) nhưng chỉ bật khi `autoHarmonizeCase = true` (mặc định tắt). `camelCase`, `PascalCase` và `ALL CAPS` luôn được bảo vệ.
-- **Smart Erase Habit Learning** (`eraseHabitLearning`, mặc định bật, ngưỡng mặc định 3): nếu người dùng xóa trọn một từ có dấu nhiều lần, dạng thô của từ đó được thêm vào từ điển cá nhân để những lần sau không bị ép dấu.
-
----
-
-### Module 4: Gõ Tắt Macro (`src/engine/macro.js`)
-
-`DEFAULT_MACROS` gồm các trigger phổ biến:
-
-- `vn → Việt Nam`, `tv → Tiếng Việt`, `dc → được`, `ko → không`, `tks → cảm ơn`.
-- Biến đặc biệt: `+today → $DATE`, `+now → $DATETIME`, `+cb → $CLIPBOARD`.
-- Preset đi kèm: `SAIGON_XUA_MACROS`, `DEV_GIT_MACROS`, `MATH_SCIENCE_MACROS` (bật/tắt từ Options).
-
-Cơ chế **Undo hai bước** tránh kẹt người dùng:
-
-1. Gõ `vn` + Space → `Việt Nam `.
-2. Backspace lần 1 → chỉ xóa delimiter, giữ `Việt Nam`.
-3. Backspace lần 2 → thu hồi thành `vn`, đồng thời đặt `suppressedTrigger`. Lần gõ Space ngay sau đó đi qua bình thường (`vn `) thay vì bung lại, nhờ vậy không rơi vào vòng lặp vô tận.
-
----
-
-### Module 5: Can Thiệp DOM & Chống Nhảy Chữ (`src/content/dom-observer.js`, `text-replacer.js`, `content.js`)
-
-Đây là phần tinh vi nhất quyết định độ mượt của extension:
-
-1. **Lọc target**: `DomObserver` đi xuyên Shadow DOM, bỏ qua `password`, `[data-no-ime]`, domain bị đen đen danh sách và các editor canvas nêu ở mục 1.
-2. **Chặn sự kiện lan truyền**: khi một phím tạo ra ký tự Tiếng Việt, `handleKeyDown()` gọi ngay `preventDefault()`, `stopPropagation()` và `stopImmediatePropagation()`. Một lớp guard `beforeinput` (cửa sổ 80ms) chặn luôn trường hợp Chromium/macOS vẫn gởi thêm `InputEvent` sau khi `keydown` đã bị hủy.
-3. **Thay thế nguyên khối (Atomic Replacement)**: `TextReplacer` tính đúng `startIndex/endIndex` rồi đổi toàn bộ từ trong một thao tác. Có adapter riêng cho:
-   - `<input>/<textarea>`: cập nhật `value` + dispatch `input`.
-   - TipTap/ProseMirror: synthetic `beforeinput` với `inputType: 'insertReplacementText'` và `targetRanges`.
-   - Lexical/Slate: `execCommand('insertText')`, không dispatch lại sự kiện thừa.
-   - Microsoft Teams Web (RoosterJS/CKEditor): `ClipboardEvent('paste')` hoặc `beforeinput` có `targetRanges` để Content Model tự cập nhật.
-   - Fallback cuối: thao tác `Range` trực tiếp trên DOM.
-4. **Ranh giới an toàn**: `extractWordBeforeOffset()` bỏ qua zero-width marker và xử lý dấu NFD, nên backspace/xóa từ không làm rụng dấu (`đồ` không trở thành `do`).
-5. **Thu nạp từ trước Backspace (`adoptWordBeforeBackspace`)**: gõ `toan ` rồi Backspace xóa khoảng trắng → bộ đệm nạp lại `toan`; chỉ cần gõ `s` là thành `toán`.
-6. **Khôi phục editor phức tạp**: nếu extraction trả về prefix ASCII cũ nhưng `AvimEngine.lastTransformed` đã có dấu, content script ưu tiên bản đã chuyển đổi trước khi xử lý phím tiếp theo.
-7. **UI nổi**: suggestion host Shadow DOM chỉ được mount khi thực sự cần (lazy); HUD toast dùng để báo trạng thái (ví dụ thoát chế độ code).
-
----
-
-### Module 6: Gợi Ý Từ, Gợi Ý Từ Tiếp Theo & Emoji (`src/engine/autocomplete.js`, `emoji.js`)
-
-- Xem chi tiết: [PREDICTION_ENGINE.md](PREDICTION_ENGINE.md).
-- **Lazy prefix buckets**: index nặng (cụm từ, ~6.700 âm tiết, từ Tiếng Anh) chỉ được xây ở lần đầu gọi gợi ý, không dựng sẵn lúc import module. Bucket được chia theo ký tự đầu đã bỏ dấu để gõ `a` vẫn thấy cả `à`. Bucket của từ điển người dùng chỉ dựng lại khi `getIndex()` đổi.
-- **Gợi ý từ kế tiếp** gồm 4 tầng: trigram người học → trigram có sẵn → bigram người học → bigram có sẵn → cụm từ (tầng cuối cùng nằm chung nhóm 4). Với token lập trình (`git`, `docker`, `npm`, `kubectl`, `python`, `supabase`,...), `Domain-Isolation Weight Lock` khóa suy hao $\lambda = 0{,}0001$ và cộng điểm neo `+5.0` để lệnh kỹ thuật không bị hội thoại thường ngày lấn át.
-- **Bảo vệ chat app**: khi đang có gợi ý nhưng người dùng bấm `Enter`, extension **không chặn** sự kiện; tin nhắn được gởi ngay trong Telegram Web, Slack, Messenger.
-- `emoji.js` nhận shortcut dạng `:smile:` và gợi ý emoji; được bật/tắt bằng `emojiShortcuts`.
-
----
-
-## 4. Hướng Dẫn Bắt Đầu Dành Cho Người Mới (Getting Started)
-
-### Bước 1: Cài đặt và chạy thử nghiệm
-
-```bash
-npm ci          # dùng package-lock.json, tái tạo đúng dependency tree
-npm test        # 98 tests, 98 passed, 0 failed
+```text
+keydown (capture = true)
+ │
+ ├─ 1. Phím hệ thống / shortcut đặc biệt?
+ │     ├─ Ctrl+Shift+U → đổi chữ thường/HOA/Title, dừng ở đây
+ │     ├─ Esc trong code fence → thoát chế độ code
+ │     └─ Ctrl hai lần → đổi phương pháp gõ (Double-Ctrl)
+ │
+ ├─ 2. Method = OFF? → trả phím 100% cho trang, không can thiệp
+ │
+ ├─ 3. Target hợp lệ? (DomObserver)
+ │     ├─ password / [data-no-ime] / domain blacklist → thôi
+ │     └─ canvas host (Docs, Figma...) → thôi
+ │
+ ├─ 4. Đang ở URL / email / camelCase / code?
+ │     → tạm treo biến âm Tiếng Việt, giữ phím Latin
+ │
+ ├─ 5. Macro khớp trigger + delimiter? (MacroEngine)
+ │     → bung macro, xử lý undo/phục hồi nếu cần
+ │
+ ├─ 6. Delimiter (Space, dấu câu)? → auto-restore từ Anh, ghi lại bigram
+ │
+ ├─ 7. AvimEngine.processKey(currentWord, key)
+ │     ├─ wToUEnabled = false và key = w → trả literal w NGAY (early return)
+ │     ├─ SyllableParser dời dấu đúng âm chính
+ │     ├─ Dictionary chặn âm tiết sai chánh tả
+ │     └─ trả { transformed: true, result: 'toán' }
+ │
+ ├─ 8. Nếu transformed:
+ │     ├─ preventDefault + stopImmediatePropagation
+ │     ├─ ghi _blockedKeys[key] = now  (guard beforeinput 80ms)
+ │     └─ TextReplacer.replaceInNativeInput() hoặc replaceInContentEditable()
+ │
+ └─ 9. (tuỳ chọn) sau 150ms → AutoCompleteEngine.getSuggestions()
+       → hiện thanh gợi ý trong Shadow DOM
 ```
 
-Các test nằm trong `test/`, chạy bằng Node test runner có sẵn. Riêng `test/settings-parity.test.js` can thiệp để Service Worker và `DEFAULT_SETTINGS` không lệch nhau.
+Hai chi tiết đáng nhớ:
 
-### Bước 2: Đóng gói extension
+- **Full w opt-out** nằm ở bước 7, ngay đầu `processKey()`. Khi tắt `wToUEnabled`, mọi phép biến `w` (kể cả `sway → sưay`) bị triệt tiêu; còn chính sách Non-Start (`web`, `wifi` giữ nguyên) vẫn áp dụng vì `typeW2U` bị ép `true`.
+- **Rich-editor recovery** nằm ngay trước bước 7: nếu `TextReplacer` trích xuất được prefix ASCII cũ nhưng `lastTransformed` đã có dấu, content script ưu tiên bản đã chuyển đổi để phím tiếp theo không bị "tụt lại" về dạng chưa dấu.
 
-```bash
-npm run bundle:extension   # esbuild → content.bundle.js + options.bundle.js
-npm run build:firefox      # hoặc build:chrome / build:edge
+---
+
+## 5. Bảng "bệnh → thuốc": 12 ca khó nhất đã được giải
+
+| Triệu chứng người dùng thấy | Nguyên nhân gốc | Cách OpenViet giải | File cần đọc |
+|---|---|---|---|
+| Gõ nhanh thành `toáan`, `vâyậy` | framework gõ thô trước khi extension sửa | capture + `preventDefault()` + `stopImmediatePropagation()` + guard `beforeinput` | `content.js`, `text-replacer.js` |
+| Dấu bị rụng trong Telegram/ProseMirror | extraction trả prefix cũ, editor tự render lại | ưu tiên `avimEngine.lastTransformed` rồi thay nguyên khối | `content.js` |
+| Teams không nhận chữ, hoặc nhận xong rồi mất | RoosterJS/CKEditor có Content Model riêng | gởi `ClipboardEvent('paste')` / `beforeinput` kèm `targetRanges` | `text-replacer.js` |
+| `đồ` thành `do` sau Backspace | NFD + zero-width marker làm sai ranh giới | `extractWordBeforeOffset()` + output NFC | `text-replacer.js` |
+| Dấu đứng sai chỗ (`tóan`) | dấu được gõ trước khi có coda | `SyllableParser` dời dấu theo âm chính | `syllable-parser.js`, `avim.js` |
+| `sway`/`manjaro` bị biến dị | từ Anh đi vào luồng Telex | `COMMON_ENGLISH_WORDS` + `shouldAutoRestoreEnglish()` | `dictionary.js` |
+| Bật/tắt `w` gây nhầm lẫn | công tắc cũ `typeW2U:false` còn sót | `wToUEnabled` là công tắc mới; `typeW2U` bị ép `true` | `config.js`, `content.js`, `avim.js` |
+| Macro bung lại sau khi undo | Backspace xóa Space rồi Space bung macro lần 2 | undo 2 bước + `suppressedTrigger` | `macro.js` |
+| Gợi ý làm lag phím đầu | dựng index 6.700 từ lúc import | lazy prefix buckets, user bucket chỉ rebuild khi index đổi | `autocomplete.js` |
+| Lệnh `git`, `docker` bị gợi ý thành hội thoại | decay thời gian làm từ kỹ thuật tụt điểm | Domain-Isolation Weight Lock: λ = 0,0001, neo +5.0 | `autocomplete.js` |
+| Popup/Options/service worker lệch setting | mỗi nơi tự định nghĩa default | `DEFAULT_SETTINGS` + parity test | `config.js`, `settings-parity.test.js` |
+| E2E headful "pass giả" | test dùng `about:blank`, content script không chạy | origin `http://openviet.test` + manifest Chromium tạm + canary `toans → toán` | `test/playwright-*.js` |
+
+---
+
+## 6. Đi sâu từng module (vẫn theo hướng nhập môn)
+
+### 6.1. `config.js` và `key-codes.js` — luật chơi chung
+
+`DEFAULT_SETTINGS` chứa mọi công tắc: phương pháp gõ, kiểu dấu, macro, chánh tả, gợi ý, học thói quen, blacklist domain...
+
+`key-codes.js` định nghĩa bảng phím Telex/VNI, bộ delimiter và các hàm bảo vệ:
+
+- `isUrlOrEmailOrCode()`: gõ `https://`, `user@domain`, `snake_case` thì treo dấu.
+- `isCamelOrPascalCase()`: giữ `useState`, `loWeRcAsE`.
+- `isDeveloperCheatContext()`: nhận diện trang like GitHub/LeetCode để bớt can thiệp.
+
+### 6.2. `syllable-parser.js` và `avim.js` — trái tim ngữ âm
+
+Một âm tiết Tiếng Việt được bóc thành 5 phần:
+
+```text
+Syllable = Onset (âm đầu) + Glide (âm đệm) + Nucleus (âm chính) + Coda (âm cuối) + Tone (dấu thanh)
+
+quán → q  +  u  +  a  +  n  +  Sắc
+thủy → th +  u  +  y  +  ∅  +  Hỏi
 ```
 
-Kết quả nằm tại `web-ext-artifacts/`. Muốn nạp unpacked locally, sinh `manifest.json` trước:
+Khi gõ `toans`, engine tạo `tóan` tạm, thấy `n` là âm khép thì dời dấu sang `a` → `toán`. Đây là **dynamic tone shifting**.
+
+`avim.js` cũng xử lý:
+
+- Telex `aa → â`, `oo → ô`, `ow → ơ`, `uw → ư`; VNI `6,7,8...`.
+- Stop finals: `c/ch/p/t` chỉ hợp lệ với Sắc hoặc Nặng → chặn `đườc`.
+- Hai kiểu đặt dấu: classic `hòa, hóa, thủy, khỏe` (mặc định) và BGDĐT `hoà, hoá, thuỷ, khoẻ`.
+- Full opt-out `w`: trả literal `w` ngay đầu `processKey()`.
+
+Engine **không** tự thêm dấu cho `khong`, `truong`, `nganh`; đó là việc của macro hoặc người dùng. Không có "Sentence Momentum & Math Context" trong mã nguồn hiện tại.
+
+### 6.3. `dictionary.js`, `casing.js`, `vietnamese-words.js` — chánh tả và từ bẫy
+
+- `COMMON_ENGLISH_WORDS` chứa `sway`, `manjaro`, `text`, `user`, `useState`... Gặp delimiter là `shouldAutoRestoreEnglish()` trả lại dạng Latin.
+- `hasPhonologyViolation()`, `hasForeignOnset()` ngăn tạo âm tiết sai chánh tả hoặc phá cụm `play`, `spring`, `status`.
+- `harmonizeSyllableCase()` sửa `ĐƯợc → Được`, nhưng chỉ bật khi `autoHarmonizeCase = true` (mặc định tắt). `camelCase` và `ALL CAPS` luôn được giữ.
+- Smart Erase Habit Learning: xóa trọn một từ có dấu nhiều lần (mặc định 3) thì dạng thô được thêm vào từ điển cá nhân, stored on-device.
+
+### 6.4. `macro.js` — gõ tắt có đường lui
+
+`vn → Việt Nam`, `tv → Tiếng Việt`, `dc → được`, `+now → $DATETIME`, `+cb → $CLIPBOARD`.
+
+Undo hai bước:
+
+1. `vn` + Space → `Việt Nam `.
+2. Backspace 1 → chỉ mất Space.
+3. Backspace 2 → về `vn`, đặt `suppressedTrigger`; Space ngay sau đó đi qua thành `vn ` chứ không bung lại.
+
+### 6.5. `content/` — nơi "mượt" hay "giật" được quyết định
+
+- `dom-observer.js`: đi xuyên Shadow DOM, lọc target, bỏ qua canvas host và domain blacklist.
+- `text-replacer.js`: 4 adapter (native input / ProseMirror / Lexical / Teams) + fallback `Range`; chịu trách nhiệm ranh giới NFD/zero-width.
+- `content.js`: điều phối, lazy mount Shadow DOM, HUD toast, `adoptWordBeforeBackspace`, rich-editor recovery.
+
+### 6.6. `autocomplete.js` và `emoji.js` — gợi ý không làm chậm gõ
+
+Index được xây ở lần đầu gọi, chia bucket theo chữ cái đầu đã bỏ dấu (gõ `a` vẫn thấy `à`). Gợi ý từ kế tiếp có 4 tầng: trigram học được → trigram có sẵn → bigram học được → bigram có sẵn/cụm từ. Token lập trình được khóa suy hao gần như bằng 0 để không bị lấn át.
+
+Khi đang có gợi ý mà bạn bấm `Enter` trong Telegram/Slack, extension **không chặn**: tin nhắn được gởi ngay.
+
+### 6.7. Background, Popup, Options
+
+- `service-worker.js`: viết default vào storage lúc cài, cập nhật badge `TE/VNI/AUTO/OFF`, broadcast `SETTINGS_UPDATED`.
+- `popup/popup.html` + `popup.js`: module ES, import trực tiếp `DEFAULT_SETTINGS`; có công tắc `wToUEnabled`.
+- `options/options.html` → `options.bundle.js` (esbuild): import `DEFAULT_SETTINGS` ở source, đóng gói thành IIFE.
+- `manifest.json` là file sinh ra: `npm run manifest:firefox` hoặc `npm run manifest:chrome` quyết định bản nào được đóng gói.
+
+---
+
+## 7. Bắt đầu thực hành: build, test, nạp vào trình duyệt
 
 ```bash
-npm run manifest:chrome    # Chrome/Edge
-npm run manifest:firefox   # Firefox
+npm ci                    # tái tạo dependency tree từ package-lock.json
+npm test                  # 98 tests, 98 passed, 0 failed
+npm run bundle:extension  # esbuild → content.bundle.js + options.bundle.js
+npm run build:firefox     # hoặc build:chrome / build:edge
+npm run manifest:chrome   # nếu muốn Load unpacked trên Chrome/Edge
+npm run manifest:firefox  # nếu muốn Load Temporary Add-on trên Firefox
 ```
 
-### Bước 3: Nạp vào trình duyệt để thử nghiệm
-
-1. Chrome/Edge: mở `chrome://extensions/`, bật **Developer mode**, chọn **Load unpacked** và trỏ vào thư mục dự án sau khi đã chạy `npm run manifest:chrome`.
-2. Firefox: mở `about:debugging#/runtime/this-firefox`, chọn **Load Temporary Add-on…** và chọn `manifest.json` sau khi đã chạy `npm run manifest:firefox`.
-3. Thử các chuỗi: `toans → toán`, `dduowcj → được`, `xooong → xoong`, `wToUEnabled = false` rồi gõ `sway` vẫn ra `sway`.
-
-### Bước 4 (tuỳ chọn): E2E trên trình duyệt thật
+Tuỳ chọn (cần Playwright):
 
 ```bash
 npx playwright install chromium
-npm run test:e2e
+npm run test:e2e          # 11/11 + 24/24, headful lẫn headless
 ```
 
-Kết quả mong đợi: **11/11** ở `playwright-e2e.js` và **24/24** ở `playwright-rich-editors.test.js`, ở cả chế độ headful lẫn headless. Test dùng origin `http://openviet.test` và manifest Chromium tạm thời; một canary `toans → toán` ở đầu mỗi suite để không bao giờ "pass giả" khi content script không gắn vào trang.
+Nên thử tay các chuỗi này sau khi nạp extension:
+
+| Gõ | Kỳ vọng | Ý nghĩa |
+|---|---|---|
+| `toans ` | `toán` | dời dấu động |
+| `dduowcj ` | `được` | Telex `dd` + âm khép |
+| `xooong ` | `xoong` | bỏ dấu thừa |
+| `sway ` | `sway` | từ bẫy Tiếng Anh được khôi phục |
+| bật/tắt `wToUEnabled`, gõ `thw ` | `thư` / `thw` | công tắc `w` hoạt động đúng |
 
 ---
 
-## 5. Tiêu Chuẩn Viết Code Cần Tuân Thủ (Best Practices)
+## 8. Nguyên tắc vàng khi bạn sửa mã nguồn
 
-- **Nguyên tắc Unicode**: luôn xuất kết quả ở dạng NFC (`normalize('NFC')`). Khi so sánh chuỗi, dùng `canon()` từ `vietnamese-words.js`. Ranh giới từ phải đi qua helper xử lý NFD/zero-width trong `text-replacer.js`.
-- **Zero External Dependencies ở Runtime**: tầng Engine là JavaScript thuần, không fetch, không remote code, không thu thập dữ liệu. Đây là yêu cầu bắt buộc khi gởi lên AMO.
-- **Một nguồn cấu hình**: thêm setting mới thì sửa `DEFAULT_SETTINGS` trước, rồi mới cập nhật UI và cờ tương ứng trong Service Worker; chạy `npm test` để parity test xác nhận.
-- **Mỗi quy tắc đều có test**: bất cứ use-case chánh tả, auto-restore hay rich-editor mới đều cần test case trong `test/`. Nếu sửa luồng gõ, chạy thêm `npm run test:e2e`.
-- **Ưu tiên ổn định**: không đưa lại "Sentence Momentum & Math Context", không tự động viết lại cả câu, không đồng bộ từ điển qua mạng. Bộ gõ chỉ chuyển đổi phím và gợi ý trên thiết bị.
-- **Đồng nhất thuật ngữ**: dùng **Tiếng Việt**, **chánh tả**, **gởi** trong mọi tài liệu và message hiển thị người dùng.
+1. **Đừng tin vào "chữ đang hiện trên màn hình".** Hãy hỏi `TextReplacer` trích xuất gì, và so với `lastTransformed`.
+2. **Mọi output phải NFC.** Mọi so sánh phải đi qua `canon()` hoặc helper bỏ dấu.
+3. **Mỗi rule mới cần một unit test**, và nếu đụng vào luồng gõ thì chạy thêm E2E có canary.
+4. **Một nguồn cấu hình.** Thêm setting thì sửa `DEFAULT_SETTINGS` trước, rồi mới update UI và service worker.
+5. **Không network, không remote code, không thu thập dữ liệu.** Đó là yêu cầu của AMO và cũng là thiết kế của dự án.
+6. **Không hồi sinh "Sentence Momentum & Math Context"**, không tự viết lại cả câu, không đồng bộ từ điển qua mạng.
+7. **Dùng thống nhất Tiếng Việt / chánh tả / gởi** trong tài liệu và message hiển thị người dùng.
