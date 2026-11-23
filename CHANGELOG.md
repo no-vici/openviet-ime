@@ -2,30 +2,43 @@
 
 All notable changes to OpenViet IME will be documented in this file.
 
+## [1.4.4] - 2026-11-23
+
+### Added
+- Optional vnchKey features: `autoSpaceAfterPunctuation`, `autoCapitalizeProperNouns` and `backspaceBySyllable` (all off by default).
+- User-facing `wToUEnabled` switch in popup and Options: ON keeps Non-Start Telex (`thw -> thư`, `uow -> ươ`, but initial `web`, `wifi`, `wife`, `world`, `ward` stay Latin); OFF keeps every `w` literal (`sway` stays `sway`).
+- `sway` and `manjaro` added to the default English trap dictionary so they auto-restore on delimiter.
+- Regression suites for Telex `w` opt-out, NFD/zero-width word boundaries and auto-restore hot paths.
+
+### Changed
+- Autocomplete indexes are built lazily and bucketed by unaccented first character; learned scores are computed only for words that actually match the prefix.
+- Background defaults now include `typeW2U`, `wToUEnabled` and `smartHorn` to avoid schema drift between popup, options and content script.
+- Removed "Sentence Momentum & Math Context" tracking to keep auto-restore conservative and IME stability maximal.
+- `spellCheck` and `autoCapitalize` now default to `false`; `backspaceBySyllable` is scoped to the current typed word.
+- Build documentation now uses the canonical `npm run build:firefox` command.
+
+### Fixed
+- Full Telex `w` opt-out: turning the switch off no longer rewrites `sway` to `sưay`.
+- Word boundaries now keep NFD combining marks and ignore editor-injected zero-width markers in rich editors.
+- Auto-restore delimiter recovery uses the last IME transform when rich-editor extraction goes stale.
+- Fixed a `ReferenceError` in the auto-restore reverse fallback and reset the word session when auto-restore is disabled.
+- The lazy suggestion host is no longer mounted when the suggestion style is `off`.
+- `sway` and `manjaro` now auto-restore to English instead of `sưay` / `mẩno`.
+
 ## [1.4.3] - 2026-11-21
 
 ### Added
 - Regression tests for VNI tone removal, macro variables, URL/code guards, macro/autocomplete edge cases, and Telex `w` revert.
 - Lazy-loaded suggestion host and deferred autocomplete model loading to reduce per-page overhead.
-- Prefix-bucketed autocomplete indexes with lazy construction; scoring is computed only for matching words.
-- User-facing `wToUEnabled` switch in popup and Options: ON keeps Non-Start Telex (`thw -> thư`, but `web/wifi` stay Latin); OFF keeps every `w` literal so `sway` no longer becomes `sưay`.
-- Added `sway` and `manjaro` to the default English trap dictionary so they auto-restore on delimiter.
 
 ### Changed
 - Autosuggest and next-word prediction are debounced (150ms) to avoid typing lag.
-- Background defaults now include `typeW2U`, `wToUEnabled` and `smartHorn` to avoid schema drift between popup/options/content.
-- Removed "Sentence Momentum & Math Context" tracking to improve IME stability.
 - Generated artifacts (`manifest.json`, `*.bundle.js`) are now gitignored.
 
 ### Fixed
 - Fixed characters/diacritics being swallowed when typing quickly in rich text editors (Telegram, StackEdit, ProseMirror/TipTap).
 - Fixed stale beforeinput guards blocking repeated keys (VNI digits, Telex tone keys).
 - Fixed stale contenteditable word extraction corrupting the previous word.
-- Fixed rich editor delimiter handling to recover lost accents from the last IME transform.
-- Fixed word-boundary extraction for NFD combining marks and editor-injected zero-width markers.
-- Fixed a `ReferenceError` in the auto-restore reverse fallback that could crash on trap words.
-- Reset the word session when auto-restore is disabled to prevent unbounded raw-buffer growth.
-- Avoid mounting the lazy suggestion host when the suggestion style is `off`.
 - Restored Firefox `browser_specific_settings` in `manifest.json` after accidental overwrite.
 
 ## [1.4.2] - 2026-11-20

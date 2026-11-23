@@ -1,6 +1,6 @@
 # BUILD INSTRUCTIONS FOR MOZILLA ADD-ONS REVIEWERS
 
-This document outlines the step-by-step instructions to reproduce the exact binary distribution of **OpenViet IME (v1.4.3)** from this source code package, as required by the [Mozilla Add-on Source Code Policy](https://extensionworkshop.com/documentation/publish/source-code-submission/).
+This document outlines the step-by-step instructions to reproduce the exact binary distribution of **OpenViet IME (v1.4.4)** from this source code package, as required by the [Mozilla Add-on Source Code Policy](https://extensionworkshop.com/documentation/publish/source-code-submission/).
 
 ---
 
@@ -72,7 +72,7 @@ npm run build:firefox
 
 After running `npm run build:firefox`, the final add-on package will be generated at:
 ```
-web-ext-artifacts/openviet_ime-firefox-1.4.3.zip
+web-ext-artifacts/openviet_ime-firefox-1.4.4.zip
 ```
 This `.zip` file is the exact identical package submitted to Mozilla Add-ons (AMO).
 
@@ -80,13 +80,16 @@ This `.zip` file is the exact identical package submitted to Mozilla Add-ons (AM
 
 ## 5. Automated Tests
 
-Reviewers can verify all core typing engines, tone adjustments, URL guards, and macro expansions by running:
+The deterministic submission gate is the Node test suite. Reviewers can verify the typing engine, tone adjustments, auto-restore, URL/code guards, word boundaries, autocomplete and macro expansion by running:
 ```bash
 npm test
 ```
-To run the automated browser-based end-to-end integration suite:
+Expected result for v1.4.4: **76 tests, 76 passed, 0 failed**.
+
+An additional browser-based diagnostic suite is available but is **not** a submission gate and requires Playwright browsers to be installed first:
 ```bash
+npx playwright install chromium
 npm run test:e2e
 ```
-All tests should pass with 0 failures.
+The mock rich-editor scenarios in that suite are diagnostic only; the unit suite above is the reproducible verification target for this submission.
 
