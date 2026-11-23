@@ -29,6 +29,8 @@ Tài liệu này là phần tiếp theo của [`ARCHITECTURE.md`](./ARCHITECTURE
 17. [Khi miệng nói một đằng, bàn phím gõ một nẻo](#17-khi-miệng-nói-một-đằng-bàn-phím-gõ-một-nẻo)
 18. [OpenViet và Dokey: mượn ý, không mượn code](#18-openviet-và-dokey-mượn-ý-không-mượn-code)
 19. [Tài liệu tham khảo trong docs/references](#19-tài-liệu-tham-khảo-trong-docsreferences)
+20. [Nguồn ngữ âm trực tuyến đã kiểm chứng](#20-nguồn-ngữ-âm-trực-tuyến-đã-kiểm-chứng)
+21. [Mã hoá, Unicode và RFC 1456](#21-mã-hoá-unicode-và-rfc-1456)
 
 ---
 
@@ -1158,6 +1160,102 @@ Bốn file PDF nằm trong `docs/references/`. Đây là danh mục có chú th�
 | \"Vì sao `centre`/`center` không dính dấu?\" | Dokey chương 5 + Ngo mục 3.4 | `hasCkPhonologyViolation()` |
 
 Nếu trả lời được bốn dòng trên bằng lời của bạn (không cần đúng từng chữ), bạn đã hiểu hơn một nửa tài liệu ngữ âm này.
+
+---
+
+## 20. Nguồn ngữ âm trực tuyến đã kiểm chứng
+
+Bốn PDF trong `docs/references/` là nền tảng. Dưới đây là các nguồn **trực tuyến, có thể truy cập được** để đi sâu hơn. Tất cả đã được kiểm tra đường dẫn vào tháng 11/2026. Chúng ta chỉ trích dẫn ý và số liệu; không copy nguyên văn vào repo.
+
+| Nguồn | Đường dẫn | Đọc khi bạn hỏi | Ghi chú |
+|---|---|---|---|
+| Emerich 2012, *The Vietnamese Vowel System* | https://repository.upenn.edu/handle/20.500.14332/32396 | \"Có bao nhiêu nguyên âm? Sao tài liệu này nói 9, tài liệu kia nói 11 hay 14?\" | Luận văn Penn, **mở tự do**. Chương 2 có bảng 11 monophthong `/i e ɛ a ɐ ʌ ɤ ɯ u o ɔ/`; `/ɐ ʌ/` chỉ xuất hiện trong âm tiết khép |
+| Nguyễn Đình-Hoà 1997, *Vietnamese: Tiếng Việt không son phấn* | DOI `10.1075/z.83` (John Benjamins), được Kirby và Emerich trích dẫn | \"Giọng Hà Nội chuẩn được mô tả ở đâu?\" | Sách tham khảo kinh điển; không nhất thiết có bản PDF mở |
+| Vũ Thanh Phương, \"Phonetic properties of Vietnamese tones across dialects\" (1981/1982) | http://sealang.net/sala/archives/pdf8/vu1982phonetic.pdf | \"Ba giọng Bắc/Trung/Nam khác nhau chỗ nào?\" | So sánh thanh qua thực nghiệm; bảng 1 nêu rõ 6 thanh là lớp nền chung |
+| Andrea Hoa Pham, \"Vietnamese tone: Tone is not pitch\" (2001) và bài 2009 | https://twpl.library.utoronto.ca/index.php/twpl/article/download/6803/3844/10796 | \"Ngoài cao độ còn tín hiệu gì? Sao có 8 thanh?\" | Nhấn mạnh glottalization, /ʔ/ đầu âm tiết, và hai thanh khép `sắc2/nặng2` |
+| Macken & Nguyễn 2006, \"Nói lái and the structure of the syllable\" | http://sealang.net/archives/ltba/pdf/LTBA-29.2.1.pdf | \"Âm tiết, âm đầu, vần có thật trong đầu người không?\" | Dùng nói lái để chứng minh cấu trúc âm tiết có thật, độc lập với chữ viết |
+| ASHA, *Vietnamese Phonemic Inventory* | https://inte.asha.org/siteassets/uploadedfiles/multicultural/vietnamesephonemicinventory.pdf | \"Có bảng tóm tắt dễ đọc cho người mới không?\" | Bảng lâm sàng, dễ đọc; **không dùng để thay quy tắc chánh tả** của engine |
+| Kirby 2011, bản trực tuyến | DOI `10.1017/S0025100311000181` · https://www.pure.ed.ac.uk/ws/files/589949/S0025100311000181a.pdf | \"Bảng IPA chuẩn nhất ở đâu?\" | Cùng bài với file local; bản Edinburgh dễ trích dẫn hơn |
+| Haudricourt 1952, bản dịch 2017 | https://shs.hal.science/halshs-01631474 | \"Chuỗi nguyên âm ngắn có bằng chứng gì?\" | Cùng bài với file local; có HAL ID để cite |
+
+### 20.1. Đừng hoảng khi số nguyên âm không trùng nhau
+
+Bạn sẽ thấy **9** (Kirby), **11** (Nguyễn Đình-Hoà / Emerich), thậm chí **14 monophthong + 19 diphthong** (kết luận riêng của Emerich). Không bên nào \"sai\". Khác nhau là do **cách phân tích**: có người gom `/ɐ ʌ/` vào short vowel của `/a ɤ/`, có người tách riêng; có người xếp `iê/ươ/uô` vào diphthong, có người xếp vào \"contour vowel\" cùng nhóm với monophthong.
+
+Điểm thực tế cho chúng ta:
+
+- Engine **không cần chọn** một con số. Engine chỉ cần bảng **chữ cái được phép** và điều kiện đi kèm.
+- Khi tài liệu nói `/ɐ ʌ/ chỉ ở âm tiết khép`, hãy dịch sang ngôn ngữ code: `ă/â` cần coda.
+- Khi tài liệu nói `iê` và `ia` là hai cách viết của cùng một diphthong, hãy dịch sang: `iê` ở giữa, `ia` ở cuối (`iên` nhưng `gia`).
+
+### 20.2. Ba bài học mang về cho bộ gõ
+
+1. **Thanh không chỉ là cao độ.** Pham (2001) và Kirby (2011) đều nói đến chất giọng. Vì vậy dấu `ã`/`ạ` không nên bị coi là \"dấu thanh y hệt sắc, chỉ khác độ cao\".
+2. **Cấu trúc âm tiết có thật, không phải phát minh của lập trình viên.** Macken & Nguyễn dùng nói lái để chứng minh điều đó. Mô hình 5 trường của `ParsedSyllable` vì thế không phải \"tiện tay chia cho dễ code\".
+3. **Phương ngữ là lớp trên cùng.** Vũ Thanh Phương so sánh ba vùng; engine đứng ở lớp **chánh tả**, nên mọi biến thể vẫn viết ra cùng một chuỗi dấu.
+
+---
+
+## 21. Mã hoá, Unicode và RFC 1456
+
+### 21.1. UAX #15 — chuẩn hoá không chỉ là \"đổi dạng\"
+
+Unicode Standard Annex #15 (https://www.unicode.org/reports/tr15/, phiên bản 18.0/Rev.58, tháng 8/2026) định nghĩa bốn dạng:
+
+| Dạng | Tên đầy đủ | Nghĩa ngắn |
+|---|---|---|
+| NFD | Canonical Decomposition | Tách chữ thành gốc + dấu |
+| NFC | Decomposition + Composition | Ghép lại thành một code point khi có thể |
+| NFKD | Compatibility Decomposition | Tách cả dạng \"tương đương về hiển thị\" |
+| NFKC | Compatibility + Composition | Ghép sau khi tách tương thích |
+
+Hai chi tiết UAX #15 nhấn mạnh mà tài liệu này chưa từng nói trước đây:
+
+- **W3C khuyến NFC cho nội dung Web** để tránh hai chuỗi \"nhìn giống hệt\" nhưng so sánh khác nhau.
+- **Các dạng chuẩn hoá không đóng dưới phép nối chuỗi.** Nghĩa là `X` và `Y` đã chuẩn hoá nhưng `X + Y` chưa chắc đã chuẩn. Lý do: dấu tổ hợp có thứ tự `ccc` riêng và có thể sắp xếp lại ở đường nối.
+
+Hệ quả trực tiếp cho OpenViet: khi `text-replacer.js` cắt một đoạn rồi chèn đoạn khác vào DOM, **đường nối** là chỗ cần cẩn thận. Các test trong `word-boundary.test.js` (Backspace trên `ế`, giữ dính dấu) đang canh đúng chỗ này. Không cần normalize cả ô — chỉ cần không làm rơi combining mark ở ranh giới.
+
+### 21.2. `String.prototype.normalize()` trong JavaScript
+
+API chính thức: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize .
+
+```js
+'ế'.normalize('NFC')  // 'ế'          — 1 code point
+'ế'.normalize('NFD')  // 'e' + ◌̂ + ◌́ — 3 code point
+'đ'.normalize('NFD')  // 'đ'          — vẫn 1 code point
+```
+
+Chạy lại đoạn này mỗi khi bạn nghi ngờ một ca lỗi \"cùng nhìn mà khác code\". So sánh bằng `===` mà không normalize là cách kinh điển để \"mất dấu\" oan.
+
+### 21.3. RFC 1456 (1993): tiền lệ của mọi bộ gõ dấu sau chữ
+
+https://www.rfc-editor.org/rfc/rfc1456 mô tả VIQR — cách gõ Tiếng Việt bằng 7-bit ASCII. Ý chính:
+
+- Dấu được viết **sau chữ cái gốc**, bằng ký tự gợi nhớ: `(` = trăng, `^` = mũ, `+` = móc, `'` = sắc, `` ` `` = huyền, `?` = hỏi, `~` = ngã, `.` = nặng.
+- RFC có cơ chế **thoát** để tránh gõ nhầm. Ví dụ kinh điển: câu Tiếng Anh `How are you?` có thể bị hiểu nhầm thành `yo` + `u?` → `yủ`; vì vậy cần escape.
+
+Đọc kỹ hai dòng trên và bạn sẽ nhận ra: **đây chính là bài toán `text` → `tẽt`, `you?` → dấu hỏi lạc vào chữ, và delimiter của OpenViet**. Khác biệt chỉ là bảng phím (VIQR dùng dấu câu, Telex dùng `s f r x j w`), còn ý tưởng \"cần một ranh giới từ\" đã có từ năm 1993.
+
+| VIQR (1993) | OpenViet 1.4.5 | Cùng giải quyết |
+|---|---|---|
+| Escape sau dấu câu | Delimiter: Cách/Enter/dấu câu | Không để dấu chạy sang từ khác |
+| Gõ dấu sau chữ | Telex/VNI gõ dấu theo thứ tự tự do | Vẫn cần cổng kiểm tra âm tiết |
+| 7-bit → precomposed | NFC output | Cùng đích: chữ hiển thị đúng |
+
+### 21.4. Microsoft Vietnamese IME — đối chiếu nhanh bảng phím
+
+https://learn.microsoft.com/en-us/globalization/input/vietnamese-ime liệt kê bảng Telex và number-key chuẩn của Windows: `aw/aa/dd/ee/oo/ow/uw` và `a8/a6/d9/e6/o6/o7/u7`, dấu `as/af/ar/ax/aj` và `a1…a5`.
+
+Đối chiếu với [§7](#7-telex-và-vni-bàn-phím-được-dịch-thành-chữ-như-thế-nào) và [§0 của sổ tay](./REFERENCE_HANDBOOK.md#01-thẻ-telex-một-trang):
+
+- Bảng của Microsoft **khớp** với `COMMON_TELEX_KEYS` của chúng ta cho 7 chữ có dấu hình chữ.
+- Khác biệt đáng chú ý: Microsoft dùng `đ = dd`; OpenViet cũng vậy, nhưng thêm inferred `z → đ` (xem §2.8). Đây là tiện ích riêng, không phải chuẩn Windows.
+- `wToUEnabled` là tuỳ chọn riêng của OpenViet; tài liệu Microsoft không có cờ này.
+
+### 21.5. Tóm lại một câu
+
+Ngữ âm cho ta **cái gì được phép viết**, Unicode cho ta **cái gì được phép lưu**, RFC 1456 cho ta **tại sao cần delimiter**, và UAX #15 cho ta **tại sao đường nối khi sửa DOM lại quan trọng**. Bốn câu đó cộng lại là phần lớn công việc của một IME.
 
 ---
 

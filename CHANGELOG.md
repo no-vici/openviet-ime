@@ -5,8 +5,8 @@ All notable changes to OpenViet IME will be documented in this file.
 ## [1.4.5] - 2026-11-23
 
 ### Added
-- `docs/VIETNAMESE_PHONOLOGY.md`: 1,170-line Vietnamese phonology reference (inventory, valid vowel/consonant combinations, tone placement old vs new, every sequence excluded from diacritics, plus an annotated guide to the four PDFs in `docs/references/`).
-- `docs/REFERENCE_HANDBOOK.md`: 1,400-line quick-reference handbook (cheat sheets, 50-case troubleshooting cookbook, absolute-beginner guide, 7-day study plan, diagnostic decision trees and release playbook), plus `npm run check:terms` to keep terminology consistent.
+- `docs/VIETNAMESE_PHONOLOGY.md`: 1,270-line Vietnamese phonology reference (inventory, valid vowel/consonant combinations, tone placement old vs new, every sequence excluded from diacritics, annotated guides to the four local PDFs and verified online linguistics/Unicode sources).
+- `docs/REFERENCE_HANDBOOK.md`: 1,490-line quick-reference handbook (cheat sheets, 50-case troubleshooting cookbook, absolute-beginner guide, 7-day study plan, diagnostic decision trees, verified MDN/AMO/Playwright sources and release playbook), plus `npm run check:terms` to keep terminology consistent.
 
 ### Changed
 - Pinned `web-ext` in `devDependencies`, committed `package-lock.json`, and switched build docs to `npm ci` for reproducible AMO reviewer builds.

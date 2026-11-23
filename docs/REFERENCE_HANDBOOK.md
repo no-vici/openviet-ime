@@ -18,7 +18,8 @@
 | Đang có bug trên tay | [Phần 3](#phần-3--cẩm-nang-khắc-phục-sự-cố-cookbook) → [Phần 4.5](#45-bảng-settings-đầy-đủ) → [Phần 4.9](#49-bản-đồ-test-98-cases) | Tuỳ ca |
 | **Chưa biết gì cả, đừng ném thuật ngữ vào mặt tôi** | [Phần 7](#phần-7--nhập-môn-tuyệt-đối-đọc-chậm-thôi) → [Phần 8](#phần-8--lộ-trình-tự-học-7-ngày) | 2 giờ + 7 ngày |
 | Cần đọc 4 file PDF trong `docs/references/` | [Phần 9](#phần-9--đọc-4-file-pdf-trong-docsreferences-không-sợ) | 45 phút |
-| Đang phân vân \"đây là bug engine hay harness?\" | [Phần 10](#phần-10--cây-quyết-định-chẩn-đoán) | 5 phút |
+| Đang phân vân "đây là bug engine hay harness?" | [Phần 10](#phần-10--cây-quyết-định-chẩn-đoán) | 5 phút |
+| Cần thêm nguồn trực tuyến, ngoài 4 PDF | [Phần 13](#phần-13--nguồn-trực-tuyến-đã-kiểm-chứng-bổ-sung-cho-phần-9) | 45 phút |
 
 ### Quy ước ký hiệu
 
@@ -52,6 +53,9 @@
 | \"Tôi bấm một phím thì chuyện gì xảy ra?\" | [7.2](#72-một-phím-đi-qua-sáu-trạm-kiểm-soát) |
 | \"Học theo lịch trình được không?\" | [Phần 8](#phần-8--lộ-trình-tự-học-7-ngày) |
 | \"Tài liệu ngữ âm nói gì, đọc chỗ nào?\" | [Phần 9](#phần-9--đọc-4-file-pdf-trong-docsreferences-không-sợ) |
+| \"Có tài liệu MDN/AMO/Playwright nào đáng đọc?\" | [13.1](#131-bốn-nhóm-nguồn-trực-tuyến) |
+| \"Engine có xử lý IME hệ điều hành không?\" | [13.2](#132-ba-điểm-mới-đáng-chú-ý-nhất) |
+| \"Reviewer AMO rebuild bằng môi trường nào?\" | [13.2](#132-ba-điểm-mới-đáng-chú-ý-nhất) |
 
 ---
 
@@ -1385,6 +1389,92 @@ Zip khác checksum / reviewer rebuild khác
 | 48 | E2E xanh nhưng người dùng kêu lỗi | Thiếu canary hoặc sai origin thật |
 | 49 | Reviewer rebuild khác checksum | Timestamp khác; so functional, xem BUILD.md |
 | 50 | Tag `v1.4.5` trỏ commit cũ | `git tag -f -a` + `git push --force origin v1.4.5` |
+
+---
+
+## Phần 13 — Nguồn trực tuyến đã kiểm chứng (bổ sung cho Phần 9)
+
+> Phần 9 chỉ có 4 PDF nằm trong repo. Phần 13 mở ra **internet**, nhưng chỉ ghi những nguồn đã kiểm tra được vào tháng 11/2026 và có ích trực tiếp cho việc bảo trì bộ gõ. Mục tiêu vẫn như cũ: trả lời \"lúc nào mở nguồn nào\", không phải dán link cho có.
+
+### 13.1 Bốn nhóm nguồn trực tuyến
+
+#### Nhóm A — Nền tảng Web / sự kiện gõ phím
+
+| Nguồn | Đường dẫn | Dùng khi nào |
+|---|---|---|
+| MDN `beforeinput` | https://developer.mozilla.org/en-US/docs/Web/API/Element/beforeinput_event | Hiểu vì sao ta chặn sự kiện **trước khi** DOM đổi, và \"editing host\" là gì trong `contenteditable` |
+| MDN `keydown` | https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event | Đọc đoạn \"keydown events with IME\" — có mẹo `isComposing \|\| keyCode === 229` |
+| MDN `compositionstart` / `compositionend` | https://developer.mozilla.org/en-US/docs/Web/API/Element/compositionstart_event · https://developer.mozilla.org/en-US/docs/Web/API/Element/compositionend_event | Phân biệt IME hệ điều hành (Pinyin, Kana...) với IME của ta |
+| MDN `Selection` / `Range` | https://developer.mozilla.org/en-US/docs/Web/API/Selection · https://developer.mozilla.org/en-US/docs/Web/API/Range | Giải thích cách `replaceInContentEditable()` thay đúng đoạn, giữ caret |
+| MDN `contenteditable` | https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/contenteditable | Biết `true`, `false`, `plaintext-only` — ba giá trị hay gặp trong rich editor |
+| W3C UI Events | https://w3c.github.io/uievents/ | Bản đặc tả gốc của `InputEvent.inputType`, `isComposing`, `beforeinput` |
+
+#### Nhóm B — Extension & AMO
+
+| Nguồn | Đường dẫn | Dùng khi nào |
+|---|---|---|
+| Chrome content scripts | https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts | Giải thích static declaration, `matches`, isolated world — liên quan trực tiếp tới E2E headful |
+| AMO Source code submission | https://extensionworkshop.com/documentation/publish/source-code-submission | Giải thích \"reviewer phải rebuild ra được chính xác zip đã nộp\" |
+| AMO Add-on Policies | https://extensionworkshop.com/documentation/publish/add-on-policies/ | Kiểm tra source, rút gọn code, không obfuscate, không remote code |
+| AMO Data collection permissions | https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent | Đối chiếu `data_collection_permissions.required: [\"none\"]` trong manifest |
+| AMO Third-party library usage | https://extensionworkshop.com/documentation/publish/third-party-library-usage | Giải thích vì sao phải pin `web-ext@10.8.0` + commit `package-lock.json` |
+
+#### Nhóm C — Test & build
+
+| Nguồn | Đường dẫn | Dùng khi nào |
+|---|---|---|
+| Playwright `page.route()` | https://playwright.dev/docs/api/class-page#page-route | Giải thích canary `http://openviet.test` — ta \"bịa\" origin thật để `<all_urls>` chạy |
+| Playwright persistent context | https://playwright.dev/docs/api/class-browser#browser-launch-persistent-context | Giải thích thư mục extension tạm dùng `manifest.chrome.json` |
+| esbuild | https://esbuild.github.io/ | Hiểu vì sao `*.bundle.js` là generated và nằm trong `.gitignore` |
+
+#### Nhóm D — Unicode & lịch sử bảng phím
+
+| Nguồn | Đường dẫn | Dùng khi nào |
+|---|---|---|
+| UAX #15 | https://www.unicode.org/reports/tr15/ | NFC/NFD, thứ tự dấu tổ hợp, và cảnh báo \"nối chuỗi không đóng\" |
+| Unicode Normalization FAQ | https://unicode.org/faq/normalization | Giải thích ngắn gọn bằng câu hỏi–trả lời cho người mới |
+| MDN `String.normalize()` | https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize | Chạy thử `'ế'.normalize('NFD')` trong console |
+| RFC 1456 / VIQR | https://www.rfc-editor.org/rfc/rfc1456 | Tiền lệ 1993 của \"dấu sau chữ\" và cơ chế escape chống `you? → ủ` |
+| Microsoft Vietnamese IME | https://learn.microsoft.com/en-us/globalization/input/vietnamese-ime | Đối chiếu bảng `aw/aa/dd/ee/oo/ow/uw` với thẻ Telex ở [0.1](#01-thẻ-telex-một-trang) |
+
+> 📌 Nguồn ngữ âm học thuật (Emerich, Pham, Vũ Thanh Phương, Macken & Nguyễn...) được liệt kê ở [VIETNAMESE_PHONOLOGY.md §20](../VIETNAMESE_PHONOLOGY.md#20-nguồn-ngữ-âm-trực-tuyến-đã-kiểm-chứng). Không nhân đôi danh mục ở đây.
+
+### 13.2 Ba điểm mới đáng chú ý nhất
+
+#### (1) IME hệ điều hành: tài liệu nói gì, ta làm gì
+
+MDN khuyến nghị bỏ qua `keydown` khi `event.isComposing` **hoặc** `event.keyCode === 229`, vì Firefox vẫn bắn `keydown` trong lúc compose và `compositionstart` có thể đến sau phím đầu.
+
+Hiện tại OpenViet **chưa có guard này** — content script lắng nghe `keydown` trực tiếp. Đây không phải lỗi với ca gõ Telex thuần, nhưng là điều cần nhớ nếu bạn
+
+- bật thêm IME hệ điều hành (Pinyin, Kana, tiếng Trung/Nhật) trên cùng một ô;
+- thấy thư viện rich editor tự gọi `compositionstart`;
+- debug ca \"dấu biến mất khi đổi ngôn ngữ bàn phím\".
+
+Ghi nhận ở đây để khỏi tưởng engine \"quên\" rule. Đây là **khoảng trống đã biết**, không phải việc cần làm ngay trong đợt 1.4.5.
+
+#### (2) UAX #15: đường nối khi thay DOM
+
+Hai chuỗi đã NFC vẫn có thể tạo ra chuỗi chưa NFC khi nối lại. Khi `text-replacer.js` thay một đoạn giữa chừng, hãy nhìn vào **hai ký tự ở ranh giới**. Các test `word-boundary.test.js` đang canh điều đó; đừng \"tối ưu\" bằng cách cắt đứt combining mark.
+
+#### (3) Môi trường build mặc định của reviewer AMO
+
+Trang Source code submission ghi môi trường mặc định hiện tại: **Ubuntu 24.04.4 LTS Desktop, ARM64, Node 24.14.0, npm 11.9.0**. Đây là lý do thực tế để:
+
+- dùng `npm ci` thay vì `npm install`;
+- commit `package-lock.json`;
+- không phụ thuộc vào binary riêng của máy bạn.
+
+`npm run build:firefox` trong source zip đã được chạy thử trên clean tree; xem [4.11](#411-giải-phẫu-build-và-artifact).
+
+### 13.3 Bài tập nhỏ: đối chiếu MDN với code
+
+| Đọc | Mở | Tìm | Câu hỏi tự kiểm tra |
+|---|---|---|---|
+| `beforeinput` có thể cancel | `src/content/content.js` | `capture: true`, `preventDefault()` | Nếu chỉ nghe `input` thay vì `keydown`, lỗi gì xảy ra? |
+| `Range.deleteContents()` | `src/content/text-replacer.js` | `replaceInContentEditable()` | Vì sao không dùng `document.execCommand('insertText')`? |
+| `keyCode === 229` | `src/content/content.js` | chưa có | Nếu thêm guard, đặt ở trạm số mấy trong [7.2](#72-một-phím-đi-qua-sáu-trạm-kiểm-soát)? |
+| `page.route()` | `test/playwright-rich-editors.test.js` | `http://openviet.test` | Nếu bỏ route này, ca nào đỏ đầu tiên? |
 
 ---
 
