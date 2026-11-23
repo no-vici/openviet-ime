@@ -8,11 +8,11 @@ All notable changes to OpenViet IME will be documented in this file.
 - Regression tests for VNI tone removal, macro variables, URL/code guards, macro/autocomplete edge cases, and Telex `w` revert.
 - Lazy-loaded suggestion host and deferred autocomplete model loading to reduce per-page overhead.
 - Prefix-bucketed autocomplete indexes with lazy construction; scoring is computed only for matching words.
-- Positive "Gõ w thành ư (VietLotus)" toggle in popup and Options; internally reuses the `typeW2U` compatibility flag.
+- User-facing `wToUEnabled` switch in popup and Options: ON keeps Non-Start Telex (`thw -> thư`, but `web/wifi` stay Latin); OFF keeps every `w` literal so `sway` no longer becomes `sưay`.
 
 ### Changed
 - Autosuggest and next-word prediction are debounced (150ms) to avoid typing lag.
-- Background defaults now include `typeW2U` and `smartHorn` to avoid schema drift between popup/options/content.
+- Background defaults now include `typeW2U`, `wToUEnabled` and `smartHorn` to avoid schema drift between popup/options/content.
 - Removed "Sentence Momentum & Math Context" tracking to improve IME stability.
 - Generated artifacts (`manifest.json`, `*.bundle.js`) are now gitignored.
 

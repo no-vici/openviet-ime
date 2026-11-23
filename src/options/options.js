@@ -565,7 +565,7 @@ function initPreferences() {
   const toneStyleSelect = document.getElementById('toneStyleSelect');
   const spellCheckOption = document.getElementById('spellCheckOption');
   const quickTelexOption = document.getElementById('quickTelexOption');
-  const typeW2UOption = document.getElementById('typeW2UOption');
+  const wToUEnabledOption = document.getElementById('wToUEnabledOption');
   const smartHornOption = document.getElementById('smartHornOption');
   const emojiShortcutsOption = document.getElementById('emojiShortcutsOption');
   const autoCapitalizeOption = document.getElementById('autoCapitalizeOption');
@@ -615,8 +615,7 @@ function initPreferences() {
     if (toneStyleSelect) toneStyleSelect.value = settings.toneStyle || 'classic';
     if (spellCheckOption) spellCheckOption.checked = Boolean(settings.spellCheck);
     if (quickTelexOption) quickTelexOption.checked = settings.quickTelex !== false;
-    // Positive UI: checked = legacy w -> ư everywhere (internal typeW2U === false).
-    if (typeW2UOption) typeW2UOption.checked = settings.typeW2U === false;
+    if (wToUEnabledOption) wToUEnabledOption.checked = settings.wToUEnabled !== false;
     if (smartHornOption) smartHornOption.checked = settings.smartHorn !== false;
     if (emojiShortcutsOption) emojiShortcutsOption.checked = settings.emojiShortcuts !== false;
     if (autoCapitalizeOption) autoCapitalizeOption.checked = settings.autoCapitalize === true;
@@ -688,9 +687,9 @@ function initPreferences() {
     });
   }
 
-  if (typeW2UOption) {
-    typeW2UOption.addEventListener('change', async () => {
-      settings.typeW2U = !typeW2UOption.checked;
+  if (wToUEnabledOption) {
+    wToUEnabledOption.addEventListener('change', async () => {
+      settings.wToUEnabled = wToUEnabledOption.checked;
       await saveState();
     });
   }

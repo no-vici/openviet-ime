@@ -128,6 +128,7 @@ export class AvimEngine {
     this.phonologyRules = options.phonologyRules ?? true;
     this.autoHarmonizeCase = options.autoHarmonizeCase ?? false;
     this.typeW2U = options.typeW2U ?? true;
+    this.wToUEnabled = options.wToUEnabled ?? true;
     this.smartHorn = options.smartHorn ?? true;
 
     // Session state tracking for current word
@@ -176,6 +177,11 @@ export class AvimEngine {
 
   setTypeW2U(enabled) {
     this.typeW2U = Boolean(enabled);
+  }
+
+  /** Full Telex `w` modifier switch: false keeps every `w` literal (sway, thw, ow). */
+  setWToUEnabled(enabled) {
+    this.wToUEnabled = Boolean(enabled);
   }
 
   setSmartHorn(enabled) {
@@ -422,6 +428,15 @@ export class AvimEngine {
 
     if (!key || key.length !== 1) {
       return { transformed: false, result: word + key };
+    }
+
+    // Full w-to-u opt-out: keep `w` literal everywhere in Telex (sway, thw, ow, uw).
+    // Non-Start policy (initial w stays Latin) is unaffected; this switch removes the
+    // horn/breve behavior entirely for users who find `sway -> sưay` disruptive.
+    if (this.wToUEnabled === false && key.toLowerCase() === 'w' && this.getEffectiveMethod(key) === IME_METHOD.TELEX) {
+      const result = word + key;
+      this.lastTransformed = result;
+      return { transformed: false, result };
     }
 
     // Quotation marks unwrapping:

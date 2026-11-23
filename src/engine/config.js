@@ -15,10 +15,12 @@ export const DEFAULT_SETTINGS = {
   ctrlToggleEnabled: true,
   quickConsonants: false,
   quickTelex: true,
-  // Internal flag (kept for compatibility): true = Non-Start policy (initial 'w' stays 'w');
-  // false = legacy/VietLotus policy (initial 'w' also becomes 'ư'). The UI exposes this as
-  // a positive "Gõ w thành ư" toggle and inverts the value when saving.
+  // Internal, non-UI flag: Non-Start policy (initial 'w' stays Latin, e.g. web/wifi).
+  // Kept for engine compatibility; the user-facing switch is `wToUEnabled`.
   typeW2U: true,
+  // User-facing Telex `w` modifier switch. ON: `w` after a consonant/vowel becomes
+  // ư/ơ/ă (thw -> thư, uow -> ươ), initial `w` stays Latin. OFF: every `w` is literal.
+  wToUEnabled: true,
   smartHorn: true,       // vnchKey SmartHorn: intelligent horn placement on uo/uu/trio exception pairs
   emojiShortcuts: true,
   autoCapitalize: false,

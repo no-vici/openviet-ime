@@ -7,7 +7,7 @@ async function initPopup() {
   const methodButtons = document.querySelectorAll('.method-btn');
   const macroToggle = document.getElementById('macroToggle');
   const quickTelexToggle = document.getElementById('quickTelexToggle');
-  const typeW2UToggle = document.getElementById('typeW2UToggle');
+  const wToUEnabledToggle = document.getElementById('wToUEnabledToggle');
   const smartHornToggle = document.getElementById('smartHornToggle');
   const emojiShortcutsToggle = document.getElementById('emojiShortcutsToggle');
   const autoCapitalizeToggle = document.getElementById('autoCapitalizeToggle');
@@ -64,6 +64,7 @@ async function initPopup() {
     quickConsonants: false,
     quickTelex: true,
     typeW2U: true,
+    wToUEnabled: true,
     smartHorn: true,
     emojiShortcuts: true,
     autoCapitalize: true,
@@ -122,9 +123,8 @@ async function initPopup() {
     if (quickTelexToggle) {
       quickTelexToggle.checked = settings.quickTelex !== false;
     }
-    if (typeW2UToggle) {
-      // UI is positive ("bật = w -> ư"); internal typeW2U=false is the legacy/VietLotus policy.
-      typeW2UToggle.checked = settings.typeW2U === false;
+    if (wToUEnabledToggle) {
+      wToUEnabledToggle.checked = settings.wToUEnabled !== false;
     }
     if (smartHornToggle) {
       smartHornToggle.checked = settings.smartHorn !== false;
@@ -286,9 +286,9 @@ async function initPopup() {
     });
   }
 
-  if (typeW2UToggle) {
-    typeW2UToggle.addEventListener('change', async () => {
-      settings.typeW2U = !typeW2UToggle.checked;
+  if (wToUEnabledToggle) {
+    wToUEnabledToggle.addEventListener('change', async () => {
+      settings.wToUEnabled = wToUEnabledToggle.checked;
       await saveSettings();
     });
   }

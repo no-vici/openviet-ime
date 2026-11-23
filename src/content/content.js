@@ -62,7 +62,8 @@ class AvimContentScript {
       autoRestoreEnglish: this.settings.autoRestoreEnglish,
       escRevert: this.settings.escRevert,
       phonologyRules: this.settings.phonologyRules,
-      typeW2U: this.settings.typeW2U !== false,
+      typeW2U: true,
+      wToUEnabled: this.settings.wToUEnabled !== false,
       smartHorn: this.settings.smartHorn !== false
     });
 
@@ -131,7 +132,10 @@ class AvimContentScript {
     this.avimEngine.setEscRevert(this.settings.escRevert !== false);
     this.avimEngine.setPhonologyRules(this.settings.phonologyRules !== false);
     this.avimEngine.setAutoHarmonizeCase(this.settings.autoHarmonizeCase === true);
-    this.avimEngine.setTypeW2U(this.settings.typeW2U !== false);
+    // Non-Start is now the fixed internal policy (initial w stays Latin); the user-facing
+    // switch is wToUEnabled. Ignore a stale `typeW2U:false` left by the previous UI build.
+    this.avimEngine.setTypeW2U(true);
+    this.avimEngine.setWToUEnabled(this.settings.wToUEnabled !== false);
     this.avimEngine.setSmartHorn(this.settings.smartHorn !== false);
 
     this.macroEngine.enabled = this.settings.macroEnabled;
