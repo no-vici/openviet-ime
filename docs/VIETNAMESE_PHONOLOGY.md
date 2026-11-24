@@ -1133,7 +1133,7 @@ Kết luận: **đọc sách để hiểu nguyên lý, rồi đối chiếu vớ
 
 ## 19. Tài liệu tham khảo trong docs/references
 
-Bốn file PDF nằm trong `docs/references/`. Đây là danh mục có chú thích, kèm \"đọc mục nào khi bạn đang hỏi cái gì\".
+Bốn file đầu là nền tảng đã catalog từ tháng 11/2026. Thư mục hiện có thêm nhiều PDF/docx/md do người bảo trì bổ sung; bảng [19.3](#193-nhóm-tài-liệu-mở-rộng-tháng-112026) phân loại nhóm mới, còn [19.4](#194-bài-học-áp-dụng-được-ngay) tóm tắt cái ta thực sự dùng được. Đây đều là tài liệu có bản quyền hoặc bài blog cá nhân: paraphrase có attribution, không copy nguyên văn vào repo. Bảng dưới đây là danh mục có chú thích, kèm \"đọc mục nào khi bạn đang hỏi cái gì\".
 
 | File | Tác giả / nguồn | Đọc khi bạn hỏi |
 |---|---|---|
@@ -1161,11 +1161,31 @@ Bốn file PDF nằm trong `docs/references/`. Đây là danh mục có chú th�
 
 Nếu trả lời được bốn dòng trên bằng lời của bạn (không cần đúng từng chữ), bạn đã hiểu hơn một nửa tài liệu ngữ âm này.
 
+### 19.3. Nhóm tài liệu mở rộng (tháng 11/2026)
+
+| Nhóm | File | Đọc khi nào / ghi chú |
+|---|---|---|
+| Chấm câu & viết hoa | `CachChamCau_2.pdf`, `dau_phay_trong_tv_7378.pdf`, `QUY_TC_VIT_HOA_TRONG_TING_VIT.docx`, `capitalised-in-Vietamese.pdf` / `.md`, `basic-principles-in-Vietnamese.md` | Dùng để đối chiếu **dấu câu có phải ranh giới từ không** và chữ đầu câu sau `. ? ! … :`. `CachChamCau_2.pdf` trích Duyên Hạc Lê Thái Ất (1996); bài viết hoa Tiếng Việt là của Khải Chính Phạm Kim Thư. |
+| Gạch nối | `gach-noi-trong-TV.md` | Giải thích vì sao `-` từng dùng để gộp từ ghép (`độc-lập`, `bà-con`). Ta giữ `-` ở DELIMITERS nhưng không tự chèn gạch nối. |
+| Chánh tả `i/y`, hỏi/ngã | `i_and_y_in_Vietnamese.md` (Đào Tiến Thi), `i-or-y.md`, `Phep-bo-dau-hoi-nga-trong-tieng-Viet-Dinh-Si-Trang.pdf` (Đinh Sĩ Trang, tái bản 2003, **có bản quyền**), `DautiengViet.pdf` | Đọc khi tự hỏi "có nên nhất loạt sửa `kĩ` thành `kỳ` không?" hay "vì sao `hóa`/`hoá` đều thấy". Câu trả lời ngắn: **không tự sửa**. Xem [19.4](#194-bài-học-áp-dụng-được-ngay). |
+| Vần & ngữ âm đại chúng | `wa-van.pdf` (Trần Ngọc Dung, 2016), `is_VN_hard_VN.pdf` (Jack Halpern) | `wa-van.pdf` nói về cách ráp âm theo vần — đối chiếu với §4–§5 của tài liệu này. Bài của Halpern chỉ để giải thích cho người mới, không dùng làm rule. |
+| Ngữ nghĩa / diễn ngôn (không đổi engine) | `1197-Fulltext-2897-1-10-20181124.pdf` (Nguyễn Vân Phổ, 2015), `TP_CHI_KHOA_HC_VN_D_NG_PHAP_VAN_BN.pdf` (Nguyễn Thanh Tùng, 2017), `PHNG_NG_XA_HI_VA_LI_TRONG_S_DNG_T.pdf`, `Phan_tich_din_ngon_BN_T._VIT_MR_DAN.docx`, `VietNguTruocSau1975.pdf` | Giúp hiểu ngữ cảnh và lời nói, nhưng **không** quy định việc đặt dấu. `VietNguTruocSau1975.pdf` là ý kiến cá nhân, không phải chuẩn chánh tả. |
+| Sách scan, chưa có text layer | `Chúng Tôi Tập Viết Tiếng Việt - Nguyễn Hiến Lê.pdf` (325 tr.), `Vietnamese An Essential Grammar by Binh Ngo (z-lib.org).pdf` (335 tr.), `Vietnamese_elementary.pdf` (247 tr.) | `pdftotext` trả về gần như rỗng. Muốn dùng thì cần OCR; đều có bản quyền, chỉ tham khảo ý. |
+| Corpus / artifact | `Hao_Nhien.md`, `colon.md`, `content` | `Hao_Nhien.md` là truyện ngắn, dùng làm corpus đọc thử. `colon.md` là bài Tiếng Anh về dấu hai chấm — **đừng áp rule Anh ngữ vào Tiếng Việt**. `content` chỉ là trang Cloudflare "Checking your browser" do tải hỏng; bỏ qua. |
+
+### 19.4. Bài học áp dụng được ngay
+
+1. **Dấu câu Tiếng Việt rộng hơn bộ delimiter cũ.** `dau_phay_trong_tv_7378.pdf` liệt kê dấu lửng `…` và dấu ngang `–`; `QUY_TC_VIT_HOA_TRONG_TING_VIT.docx` còn dùng `…` làm mốc xuống dòng. Vì vậy `…` và `–` đã được thêm vào `DELIMITERS` trong `src/engine/key-codes.js`, cùng test trong `url-code-guards.test.js`. `→` thì không phải delimiter.
+2. **Chuẩn `i/y` chưa từng "đóng băng".** Đào Tiến Thi và `i-or-y.md` đều nhắc đến Quy định 1980 (nhất thể `i`) bị Quyết định 240/QĐ ngày 5-3-1984 bãi bỏ; các cặp như `kĩ/kỹ`, `công ti/công ty`, `Lí/Lý` vẫn có hai cách viết có lý do ngữ nghĩa. Engine vì thế **không tự đổi `i` ↔ `y`**; từ điển giữ cả biến thể, cùng tinh thần với việc giữ các biến thể của `gởi`.
+3. **Dấu thanh cũng có hai trường phái.** `DautiengViet.pdf` dẫn `hóa/hoá`, `Thúy/Thuý`, `cửa/cuả` làm bằng chứng thiếu thống nhất. Đây là lý do tồn tại `TONE_STYLE.MODERN` và `TONE_STYLE.CLASSIC`; đừng xoá một trong hai.
+4. **Lấp láy hỏi/ngã là rule ở mức từ ghép, không phải âm tiết.** Đinh Sĩ Trang gọi là luật Trầm Bổng: tiếng đầu không dấu/sắc/hỏi thì tiếng sau lấy dấu hỏi (`bảnh bao`, `cứng cỏi`); tiếng đầu huyền/nặng/ngã thì tiếng sau lấy dấu ngã (`dễ dàng`, `bì bõm`). OpenViet chỉ xử lý âm tiết đang gõ, nên **không** tự sửa cả cặp từ; ghi nhận để khỏi tưởng engine "sai rule".
+5. **Viết hoa sau dấu câu vẫn là tuỳ chọn.** Nhiều tài liệu ở nhóm đầu nói chữ đầu câu sau `. ? ! … :` phải viết hoa, nhưng `autoCapitalizeProperNouns` vẫn mặc định tắt để tránh sửa văn bản người dùng. Đọc thêm [4.5](../REFERENCE_HANDBOOK.md#45-bảng-settings-đầy-đủ).
+
 ---
 
 ## 20. Nguồn ngữ âm trực tuyến đã kiểm chứng
 
-Bốn PDF trong `docs/references/` là nền tảng. Dưới đây là các nguồn **trực tuyến, có thể truy cập được** để đi sâu hơn. Tất cả đã được kiểm tra đường dẫn vào tháng 11/2026. Chúng ta chỉ trích dẫn ý và số liệu; không copy nguyên văn vào repo.
+Bốn PDF nền tảng trong `docs/references/` đã được liệt kê ở §19; nhóm mở rộng ở [19.3](#193-nhóm-tài-liệu-mở-rộng-tháng-112026). Dưới đây là các nguồn **trực tuyến, có thể truy cập được** để đi sâu hơn. Tất cả đã được kiểm tra đường dẫn vào tháng 11/2026. Chúng ta chỉ trích dẫn ý và số liệu; không copy nguyên văn vào repo.
 
 | Nguồn | Đường dẫn | Đọc khi bạn hỏi | Ghi chú |
 |---|---|---|---|

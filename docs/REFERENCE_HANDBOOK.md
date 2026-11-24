@@ -19,7 +19,8 @@
 | **Chưa biết gì cả, đừng ném thuật ngữ vào mặt tôi** | [Phần 7](#phần-7--nhập-môn-tuyệt-đối-đọc-chậm-thôi) → [Phần 8](#phần-8--lộ-trình-tự-học-7-ngày) | 2 giờ + 7 ngày |
 | Cần đọc 4 file PDF trong `docs/references/` | [Phần 9](#phần-9--đọc-4-file-pdf-trong-docsreferences-không-sợ) | 45 phút |
 | Đang phân vân "đây là bug engine hay harness?" | [Phần 10](#phần-10--cây-quyết-định-chẩn-đoán) | 5 phút |
-| Cần thêm nguồn trực tuyến, ngoài 4 PDF | [Phần 13](#phần-13--nguồn-trực-tuyến-đã-kiểm-chứng-bổ-sung-cho-phần-9) | 45 phút |
+| Cần tra cứu thêm tài liệu mới trong `references/` | [VIETNAMESE_PHONOLOGY §19.3](../VIETNAMESE_PHONOLOGY.md#193-nhóm-tài-liệu-mở-rộng-tháng-112026) | 20 phút |
+| Cần thêm nguồn trực tuyến, ngoài nhóm PDF nền tảng | [Phần 13](#phần-13--nguồn-trực-tuyến-đã-kiểm-chứng-bổ-sung-cho-phần-9) | 45 phút |
 
 ### Quy ước ký hiệu
 
@@ -1260,6 +1261,17 @@ Muốn hiểu E2E      → Dokey chương 8 + docs/PLAYWRIGHT_E2E_GUIDE.md
 | \"syllable = tone + initial + labialization + nucleus + final\" | `src/engine/syllable-parser.js` | 5 trường của `ParsedSyllable` |
 
 > 📌 Khi bạn đối chiếu được 3 dòng đầu, bạn đã hiểu tại sao `docs/VIETNAMESE_PHONOLOGY.md` viết những điều tưởng như \"quá chi tiết\". Chi tiết đó có nguồn.
+
+### 9.4 Khi thư mục `references/` phình thêm
+
+Bốn file ở [9.1](#91-bốn-cuốn-bốn-câu-hỏi) vẫn là lộ trình học. Tháng 11/2026 thư mục nhận thêm nhiều PDF/docx/md: chấm câu, viết hoa, gạch nối, `i/y`, dấu hỏi-ngã, vần, corpus văn chương và 3 cuốn sách scan. Xem bảng phân loại tại [VIETNAMESE_PHONOLOGY §19.3](../VIETNAMESE_PHONOLOGY.md#193-nhóm-tài-liệu-mở-rộng-tháng-112026) và phần rút gọn tại [§19.4](../VIETNAMESE_PHONOLOGY.md#194-bài-học-áp-dụng-được-ngay).
+
+Hai điểm đã đổi code, đáng nhớ:
+
+- `…` và `–` là dấu câu Tiếng Việt → đã vào `DELIMITERS`; gõ `toán…` giờ commit như `toán `.
+- Không tự đổi `i` ↔ `y` hay ép một kiểu dấu thanh; từ điển giữ cả biến thể của `gởi`.
+
+`content` trong thư mục đó chỉ là trang Cloudflare chặn tải — đừng tốn thời gian đọc. `colon.md` nói về dấu hai chấm trong **Tiếng Anh**, không áp vào Tiếng Việt.
 
 ---
 
